@@ -1,0 +1,755 @@
+id,nome,preco,categoria,marca,imagem,descricao_resumida,descricao_completa,estoque
+BRAND_001,Brand Collection 001 - Inspiração Allure - 25 ml,"85,88",Brand Collection,,008-001-allure.png,,,5
+BRAND_003,Brand Collection 003 Inspiração CH Fem - 25ml,"85,88",Brand Collection,,009-003-ch-fem-25ml.png,,,0
+BRAND_004,Brand Collection 004 Inspiração Ch men - 25ml,"85,88",Brand Collection,,108-004-ch-men-25ml.png,,,5
+BRAND_005,Brand Collection 005 - Inspiração One Million - 25ml,"79,10",Brand Collection,,067-005-one-million-25ml.png,,,5
+BRAND_007,Brand Collection 007 - Inspiração J'adore - 25ml,"79,10",Brand Collection,,010-007-jadore-25ml.png,,,5
+BRAND_008,Brand Collection 008 - Inspiração 212 Vip Men - 25ml,"79,10",Brand Collection,,011-008-212-vip-men-25ml.png,,,5
+BRAND_009,Brand Collection 009 - Inspiração 212 Vip - 25ml,"79,10",Brand Collection,,,,,0
+BRAND_012,Brand Collection 012 - Inspiração La vie - 25ml,"79,10",Brand Collection,,068-012-la-vie-est-belle-25ml.png,,,5
+BRAND_014,Brand Collection 014 - Inspiração Miss Eau de Toillete - 25ml,"79,10",Brand Collection,,013-014-miss-dior-edt-25ml.png,,,5
+BRAND_015,Brand Collection 015 - Inspiração Miss Tradicional - 25ml,"79,10",Brand Collection,,014-015-miss-dior-25ml.png,,,5
+BRAND_017,Brand Collection 017 - Inspiração Nina - 25ml,"85,88",Brand Collection,,015-017-nina-ricci.png,,,0
+BRAND_021,Brand Collection 021 Inspiração Coco mademoiselle - 25ml,"79,10",Brand Collection,,069-021-coco-mademoiselle-25ml.png,,,5
+BRAND_023,Brand Collection 023 Inspiração Versace Crystal Noir - 25ml,"85,88",Brand Collection,,109-023-versace-crystal-noir-25ml.png,,,0
+BRAND_024,Brand Collection 024 - Inspiração Versace Crystal Bright - 25ml,"85,88",Brand Collection,,110-024-versace-crystal-bright.png,,,0
+BRAND_026,Brand Collection 026 - Inspiração Irresistible - 25ml,"90,40",Brand Collection,,017-026-givenvhy-irresistiblle-25ml.png,,,5
+BRAND_027,Brand Collection 027 Inspiração Hypnotic Poison - 25ml,"79,10",Brand Collection,,018-027-hypnotic-poison-25ml.png,,,5
+BRAND_034,Brand Collection 034 - Inspiração 212 Vip Rose - 25ml,"79,10",Brand Collection,,070-034-212-vip-rose-25ml.png,,,5
+BRAND_046,Brand Collection 046 Inspiração Mademoiselle Ricci - 25ml,"85,88",Brand Collection,,111-046-mademoseille-ricci-25ml.png,,,5
+BRAND_055,Brand Collection 055 - Inspiração Black Opium - 25ml,"85,88",Brand Collection,,112-055-black-opium-25ml.png,,,5
+BRAND_070,Brand Collection 070 - Inspiração Bleu de Chanel -25 ml,"79,10",Brand Collection,,071-070-bleu-de-chanel-25ml.png,,,0
+BRAND_084,Brand Collection 084 - Inspiração Legend Montblanc - 25ml,"85,88",Brand Collection,,096-084-montblanc-legend-25ml.png,,,0
+BRAND_094,Brand Collection 094 - Inspiração Valentina Poudre - 25ml,"90,40",Brand Collection,,113-094-valentino-valentina-poudre-25ml.png,,,5
+BRAND_095,Brand Collection 095 - Inspiração Gucci Bloom - 25ml,"90,40",Brand Collection,,188-095-gucci-bloom.png,,,0
+BRAND_100,Brand Collection 100 - Inspiração Sauvage - 25ml,"79,10",Brand Collection,,072-100-sauvage-25ml.png,,,5
+BRAND_105,Brand Collection 105 - Inspiração Lady Million - 25ml,"79,10",Brand Collection,,073-105-lady-million-25ml.png,,,5
+BRAND_107,Brand Collection 107 - Inspiração Halloween Feminino - 25ml,"85,88",Brand Collection,,098-107-halloween-fem-25ml.png,,,0
+BRAND_113,Brand Collection 113 - Inspiração Mon Guerlain - 25ml,"85,88",Brand Collection,,099-113-mon-guerlain.png,,,0
+BRAND_115,Brand Collection 115 - Inspiração Miu Miu - 25ml,"85,88",Brand Collection,,114-115-miu-miu.png,,,0
+BRAND_116,Brand Collection 116 - Inspiração Invictus - 25ml,"79,10",Brand Collection,,100-116-invictus-25ml.png,,,5
+BRAND_128,Brand Collection 128 - Inspiração The Tragedy of Lord George - 25ml,"85,88",Brand Collection,,101-128-pengaligons-the-traged-25ml.png,,,5
+BRAND_134,Brand Collection 134 - Inspiração Gabrielle - 25ml,"85,88",Brand Collection,,102-134-chanel-gabrielle-f-25ml.png,,,0
+BRAND_136,Brand Collection 136 - Inspiração Scandal - 25ml,"79,10",Brand Collection,,074-136-scandal-25ml.png,,,0
+BRAND_153,Brand Collection 153 - Inspiração Jean Paul Lê male - 25ml,"85,88",Brand Collection,,116-153-jpg-le-male-25ml.png,,,5
+BRAND_159,Brand Collection 159 - Inspiração Libre - 25ml,"79,10",Brand Collection,,075-159-libre-25ml.png,,,5
+BRAND_164,Brand Collection 164 - Inspiração Armani Code Masculino - 25ml,"85,88",Brand Collection,,117-164-armani-code-m-25ml.png,,,0
+BRAND_165,Brand Collection 165 - Inspiração Armani Code Feminino - 25ml,"85,88",Brand Collection,,118-165-armani-code-fem-25ml.png,,,0
+BRAND_175,Brand Collection 175 - Inspiração Azzaro Pour Homme - 25ml,"90,40",Brand Collection,,119-175-azzaro-m.png,,,0
+BRAND_197,Brand Collection 197 - Inspiração Alien Flora - 25ml,"85,88",Brand Collection,,103-197-alien-flora-futura-f-25ml.png,,,5
+BRAND_214,Brand Collection 214 - Inspiração Invictus Victory - 25ml,"79,10",Brand Collection,,,,,5
+BRAND_224,Brand Collection 224 - Inspiração Dolce Gabanna King Men - 25ml,"85,88",Brand Collection,,121-224-d-g-king-25ml.png,,,5
+BRAND_234,Brand Collection 234 - Inspiração Bvlgari Petits Et Mamans - 25ml,"79,10",Brand Collection,,000-234-bvlgari-petitis-et-mamans-25ml.png,,,5
+BRAND_235,Brand Collection 235 - Inspiração Bvlgari Rose Goldea Blossom - 25ml,"85,88",Brand Collection,,104-235-bvlgari-rose-goldea-blossom.png,,,5
+BRAND_246,Brand Collection 246 - Inspiração Burberry Her - 25ml,"79,10",Brand Collection,,076-246-burberry-her-25ml.png,,,5
+BRAND_250,Brand Collection 250 - Inspiração Wanted boy - 25 ml,"85,88",Brand Collection,,122-250-azzaro-wanted-25ml.png,,,5
+BRAND_253,Brand Collection 253 - Inspiração La Vie Est Belle L'Éclat - 25ml,"85,88",Brand Collection,,105-253-la-vie-eclat-25ml.png,,,0
+BRAND_292,Brand Collection 292 - Inspiração La Vie Est Belle - 25ml,"90,40",Brand Collection,,124-292-la-vie-25ml.png,,,5
+BRAND_294,Brand Collection 294 - Inspiração L'Interdit Rouge - 25ml,"90,40",Brand Collection,,125-294-linterdit-rouge-f-25ml.png,,,0
+BRAND_295,Brand Collection 295 - Inspiração Cloud Ariana Grande - 25ml,"90,40",Brand Collection,,126-295-ariana-grande-cloud-25ml.png,,,5
+BRAND_311,Brand Collection 311 - Inspiração Versace Eros Pour Femme - 25ml,"90,40",Brand Collection,,127-311-versace-eros-pour-femme.png,,,5
+BRAND_320,Brand Collection 320 - Inspiração Chloé Naturelle - 25ml,"90,40",Brand Collection,,128-320-chloe-naturelle-25ml.png,,,0
+BRAND_323,Brand Collection 323 - Inspiração JPG Le Male Elixir - 25ml,"90,40",Brand Collection,,129-323-jpg-le-male-elixir-25ml.png,,,5
+BRAND_325,Brand Collection 325 - Inspiração JPG Le Male Le Parfum - 25ml,"90,40",Brand Collection,,130-325-jgp-le-male-parfum-25ml.png,,,5
+BRAND_329,Brand Collection 329 - Inspiração Fame Couture - 25ml,"90,40",Brand Collection,,131-329-fame-couture-edp-25ml.png,,,0
+BRAND_335,Brand Collection 334 - Inspiração My Way Floral - 25ml,"90,40",Brand Collection,,132-335-my-way-floral-25ml.png,,,0
+BRAND_341,Brand Collection 341 - Inspiração Chloé Nomade - 25ml,"90,40",Brand Collection,,133-341-chloe-nomade-25ml.png,,,5
+BRAND_366,Brand Collection 366 - Inspiração Angel Elixir - 25ml,"90,40",Brand Collection,,134-366-angel-elixir-25ml.png,,,0
+BRAND_373,Brand Collection 373 - Inspiração Q by Dolce & Gabbana - 25ml,"90,40",Brand Collection,,135-373-queen-d-g-25ml.png,,,5
+BRAND_384,Brand Collection 384 - Inspiração Miss Dior Blooming Bouquet - 25ml,"90,40",Brand Collection,,136-384-miss-dior-blooming-bouquet.png,,,0
+BRAND_391,Brand Collection 391 - Inspiração Donna Born In Roma - 25ml,"85,88",Brand Collection,,159-391-valentino-born-in-roma-25ml.png,,,5
+BRAND_420,Brand Collection 420 - Inspiração Bonnie Étoile Pink - 25ml,"90,40",Brand Collection,,137-420-bonnie-etoile-pink-25ml.png,,,0
+BRAND_BODY_10,Body Splash Brand Shimmer Pure Seduction 250ml,"90,40",Brand Collection,,165-brand-body-splash-shimmer-pure-seduction-250ml.png,,,5
+BRAND_BODY_11,Body Splash Brand Velvet Shimmer 250ml,"90,40",Brand Collection,,166-brand-body-splash-velvet-shimmer-250ml.png,,,5
+BRAND_BODY_13,Brand Collection 007 - Inspiração J'adore - Body Splash,"101,70",Brand Collection,,190-body-splash-007-jadore.png,,,5
+BRAND_BODY_14,Brand Collection 012 - Inspiração La Vie Est Belle - Body Splash,"101,70",Brand Collection,,191-body-splash-012-la-vie-est-belle.png,,,5
+BRAND_BODY_15,Brand Collection 021 - Inspiração Coco Mademoiselle - Body Splash,"101,70",Brand Collection,,192-body-splash-021-coco-mademoiselle.png,,,5
+BRAND_BODY_16,Brand Collection 034 - Inspiração 212 Vip Rosé - Body Splash,"101,70",Brand Collection,,193-body-splash-034-212-vip-rose.png,,,5
+BRAND_BODY_17,Brand Collection 087 - Inspiração Olympéa - Body Splash,"101,70",Brand Collection,,194-body-splash-087-olympea.png,,,5
+ARABE_24,Club De Nuit Intense Woman Edp 105ml,"330,00",Árabes,,507-club-de-nuit-intense-woman-edp-105ml.png,,,5
+ARABE_29,Sabah Al Ward Valentine 100ml,"345,00",Árabes,,,,,5
+ARABE_40,Hawas Fire 100ml,"375,00",Árabes,,539-hawas-fire-100ml.png,,,5
+ARABE_46,Vulcan Feu 100ml,"435,00",Árabes,,,,,5
+ARABE_51,Afeef 100ml,"570,00",Árabes,,613-afeef-100ml.png,,,0
+ARABE_57,Kit Tharwah Gold 100ml + Mini 20ml + Desodorante 200ml,"450,00",Árabes,,566-kit-tharwah-gold-100ml-mini-20ml-desodorante-200ml.png,,,0
+ARABE_58,Island Breeze Rosa 100ml Armaf,"495,00",Árabes,,564-island-breeze-rosa-100ml-armaf.png,,,5
+ARABE_73,Selena Edp 100ml,"150,00",Árabes,,405-selena-edp-100ml.png,,,5
+ARABE_82,Ameerat Al Arab Vermelho 100ml,"165,00",Árabes,,455-ameerat-al-arab-vermelho-100ml.png,,,5
+ARABE_136,Amber Rouge Orientica 80ml,"570,00",Árabes,,586-amber-rouge-orientica-80ml.png,,,0
+ARABE_137,Fakhar Black 100ml,"270,00",Árabes,,502-fakhar-black-100ml.png,,,5
+MINI_ARABE_1,Inspiração A003 Yara Tous 25ml,"79,10",Mini Árabe,,,,,5
+MINI_ARABE_16,Inspiração A002 Yara 25ml,"79,10",Mini Árabe,,,,,5
+MINI_ARABE_2,Inspiração A004 Yara Moi 25ml,"79,10",Mini Árabe,,156-inspira-o-a004-yara-moi-25ml.png,,,5
+MINI_ARABE_32,Inspiração A028 Club De Nuit Intense Man 25ml,"79,10",Mini Árabe,,189-inspira-o-a028-club-de-nuit-intense-men-25ml.png,,,0
+MINI_ARABE_7,Inspiração A013 Attar al Wesal 25ml,"79,10",Mini Árabe,,157-inspira-o-a013-attar-al-wesal-25ml.png,,,5
+MINI_ARABE_9,Inspiração A025 Noble Blush 25ml,"79,10",Mini Árabe,,158-inspira-o-a025-noble-blush-25ml.png,,,0
+IMPORTADO_2,Maleta Cici Mel,"90,50",Importados,,222-maleta-cici-mel.png,,,5
+IMPORTADO_3,Ciclo Mini Baby Pingucho 100ml,"99,55",Importados,,004-ciclo-mini-baby-pingucho-100ml.png,,,5
+IMPORTADO_7,Ciclo Mini Baby Rino 100ml,"99,55",Importados,,,,,5
+IMPORTADO_18,Uniq One 150ml,"135,75",Importados,,289-uniq-one-150ml.png,,,0
+IMPORTADO_19,Uniq One 150ml Coco,"135,75",Importados,,290-uniq-one-150ml-coco.png,,,5
+IMPORTADO_20,Uniq One 150ml Lotus Flower,"135,75",Importados,,291-uniq-one-150ml-lotus-flower.png,,,5
+IMPORTADO_22,Gabriela Sabatini 60ml,"144,80",Importados,,,,,5
+IMPORTADO_35,Kit Gabriela Sabatini 60ml,"165,00",Importados,,410-kit-gabriela-sabatini-60ml.png,,,5
+IMPORTADO_39,Arsenal Blue Edp 100ml,"210,00",Importados,,468-arsenal-blue-edp-100ml.png,,,5
+IMPORTADO_40,Arsenal Gold 100ml,"210,00",Importados,,469-arsenal-gold-100ml.png,,,0
+IMPORTADO_41,Arsenal Grey Edp 100ml,"210,00",Importados,,470-arsenal-grey-edp-100ml.png,,,5
+IMPORTADO_42,Arsenal Red (vermelho),"210,00",Importados,,471-arsenal-red-vermelho.png,,,5
+IMPORTADO_52,Joop! Homme 125ml,"240,00",Importados,,496-joop-homme-125ml.png,,,0
+IMPORTADO_54,Animale Animale Masculino 100ml,"247,50",Importados,,492-animale-animale-masculino-100ml.png,,,5
+IMPORTADO_56,The Golden Secret Masc 200ml,"255,00",Importados,,498-the-golden-secret-masc-200ml.png,,,5
+IMPORTADO_57,Animale Masc 100 Ml,"262,50",Importados,,500-animale-masc-100-ml.png,,,5
+IMPORTADO_61,Kit Silver Scent EDT 100ml + Desodorante 200ml,"285,00",Importados,,503-kit-silver-scent-edt-100ml-desodorante-200ml.png,,,5
+IMPORTADO_63,Nazareno Gabrielli Edt Pour Femme 100ml,"285,00",Importados,,505-nazareno-gabrielli-edt-pour-femme-100ml.png,,,5
+IMPORTADO_67,Kit Silver Scent Intense EDT 100ml + Desodorante 200ml,"300,00",Importados,,509-kit-silver-scente-edt-intense-100ml-desodorante-200ml.png,,,5
+IMPORTADO_70,Tommy Girl Vibrant Summer Edt 100ml,"300,00",Importados,,,,,5
+IMPORTADO_71,Tommy Mas Vibrant Summer Edt 100ml,"300,00",Importados,,514-tommy-mas-vibrant-summer-edt-100ml.png,,,5
+IMPORTADO_90,Azzaro Edt 200 Ml,"406,00",Importados,,002-azzaro-edt-200-ml.png,,,5
+IMPORTADO_94,Montblanc Legend Edt 100ml,"406,00",Importados,,562-montblanc-legend-edp-100ml.png,,,5
+IMPORTADO_106,J.p.g Le Male Pride Edt 125ml,"462,00",Importados,,565-j-p-g-le-male-pride-edt-125ml.png,,,5
+IMPORTADO_108,Invictus Victory 50ml,"476,00",Importados,,571-invictus-victory-50ml.png,,,5
+IMPORTADO_118,Ysl Kouros Pour Homme Edt 100ml,"490,00",Importados,,584-ysl-kouros-pour-homme-edt-100ml.png,,,5
+IMPORTADO_122,Versace Eros Edt 100ml,"511,00",Importados,,595-versace-eros-edt-100ml.png,,,5
+IMPORTADO_123,"J.p.g ""le Male"" Edt 125ml","518,00",Importados,,,,,5
+IMPORTADO_130,Versace Dylan Blue 100ml,"525,00",Importados,,585-versace-dylan-blue-100ml.png,,,5
+IMPORTADO_140,Dolce E Gabbana Pour Homme 125ml,"546,00",Importados,,590-dolce-e-gabbana-pour-homme-125ml.png,,,5
+IMPORTADO_143,Myslf Edp 60ml,"546,00",Importados,,,,,5
+IMPORTADO_146,212 Sexy Masculino 100ml,"560,00",Importados,,596-212-sexy-masculino-100ml.png,,,0
+IMPORTADO_148,"J.p.g ""le Beau"" Edt 125ml","560,00",Importados,,597-j-p-g-le-beau-edt-125ml.png,,,5
+IMPORTADO_150,Scandal 100ml Edt Masculino,"560,00",Importados,,625-scandal-edt-100ml-masculino.png,,,5
+IMPORTADO_152,Versace Eros Pour Femme Edp 100ml,"560,00",Importados,,,,,5
+IMPORTADO_153,Acqua Di Gio Edt 100ml,"574,00",Importados,,621-acqua-di-gio-edt-100ml.png,,,5
+IMPORTADO_159,Phantom Edt 100ml,"574,00",Importados,,661-phantom-in-red-100ml.png,,,5
+IMPORTADO_160,Pure Xs Feminino 80ml,"574,00",Importados,,617-pure-xs-feminino-80ml.png,,,5
+IMPORTADO_163,Versace Eros Edp M 100ml,"574,00",Importados,,,,,5
+IMPORTADO_164,Versace Eros Flame Edp 100ml,"574,00",Importados,,611-versace-eros-flame-edp-100ml.png,,,5
+IMPORTADO_165,Kit Jean Paul Gaultier Classique Feminino EDT 50ml + Body Lotion,"581,00",Importados,,612-kit-jean-paul-classic-fem-edt-50-ml-body-lotion.png,,,5
+IMPORTADO_166,Invictus Victory 100ml,"588,00",Importados,,636-invictus-victory-100ml.png,,,5
+IMPORTADO_170,212 Vip Feminino 80ml,"602,00",Importados,,671-212-vip-feminino-80ml.png,,,0
+IMPORTADO_171,Bvlgari Omnia Coral Edt 100ml,"602,00",Importados,,656-bvlgari-omnia-coral-edt-100ml.png,,,5
+IMPORTADO_172,Chloe Nomade Edp 75ml,"602,00",Importados,,635-chloe-nomade-edp-75ml.png,,,5
+IMPORTADO_177,Million Gold Elixir Masc 50ml,"602,00",Importados,,624-million-gold-elixir-masc-50ml.png,,,5
+IMPORTADO_179,Chloé Edp 75ml,"616,00",Importados,,650-chlo-edp-75ml.png,,,5
+IMPORTADO_181,J.p.g Le Male Le Parfum 125ml,"616,00",Importados,,651-j-p-g-le-male-le-parfum-125ml.png,,,5
+IMPORTADO_183,One Million Parfum 100ml,"616,00",Importados,,,,,0
+IMPORTADO_184,One Million Royal 100ml,"616,00",Importados,,632-one-million-royal-100ml.png,,,5
+IMPORTADO_185,212 Nyc Feminino 100ml,"630,00",Importados,,642-212-nyc-feminino-100ml.png,,,5
+IMPORTADO_188,Invictus Victory Elixir 100ml,"630,00",Importados,,,,,5
+IMPORTADO_193,Mr Burberry Men 100ml,"630,00",Importados,,638-mr-burberry-men-100ml.png,,,5
+IMPORTADO_194,Phantom Intense 100ml,"630,00",Importados,,640-phantom-intense-100ml.png,,,5
+IMPORTADO_197,Acqua Di Gio Profondo Edt 100ml,"637,00",Importados,,643-acqua-di-gio-profondo-edt-100ml.png,,,5
+IMPORTADO_200,Burberry Her Edp 100ml,"644,00",Importados,,668-burberry-her-edp-100ml.png,,,5
+IMPORTADO_212,Ch Hc Feminino 100ml,"658,00",Importados,,649-ch-hc-feminino-100ml.png,,,5
+IMPORTADO_218,Jimmy Choo Parfum 100ml,"658,00",Importados,,652-jimmy-choo-parfum-100ml.png,,,5
+IMPORTADO_224,Olympea Parfum 80ml,"672,00",Importados,,660-olympea-parfum-80ml.png,,,5
+IMPORTADO_228,Million Gold Elixir Masc 100ml,"679,00",Importados,,,,,5
+IMPORTADO_231,Phantom Intense 150ml,"686,00",Importados,,,,,5
+IMPORTADO_233,Bvlgari Man Terrae Essence Edp 100ml,"700,00",Importados,,673-bvlgari-man-terrae-essence-edp-100ml.png,,,5
+IMPORTADO_234,Chloé Edp 100ml,"700,00",Importados,,674-chlo-edp-100ml.png,,,0
+IMPORTADO_235,Coco Mademoiselle Edt 50ml,"700,00",Importados,,,,,5
+IMPORTADO_237,Good Girl Blush 80ml,"700,00",Importados,,683-good-girl-blush-80ml.png,,,5
+IMPORTADO_242,La Vie Est Belle 100ml,"700,00",Importados,,676-la-vie-est-belle-100ml.png,,,5
+IMPORTADO_247,Fame Paco Rabanne Edp 80ml,"714,00",Importados,,,,,5
+IMPORTADO_249,"J.p.g ""la Belle"" Edp 100ml","714,00",Importados,,679-j-p-g-la-belle-edp-100ml.png,,,5
+IMPORTADO_253,Idole L'eau De Parfum 100ml,"728,00",Importados,,697-idole-l-eau-de-parfum-100ml.png,,,5
+IMPORTADO_255,My Way Edp 90ml,"735,00",Importados,,698-my-way-edp-90ml.png,,,5
+IMPORTADO_257,Fame Paco Rabanne Parfum 80ml,"742,00",Importados,,685-fame-paco-rabanne-parfum-80ml.png,,,5
+IMPORTADO_258,Giorgio Armani Sí 100ml,"742,00",Importados,,703-giorgio-armani-s-100ml.png,,,5
+IMPORTADO_262,Versace Eros Edp 200ml,"742,00",Importados,,,,,5
+IMPORTADO_268,Good Girl Blush Elixir 80ml,"770,00",Importados,,694-good-girl-blush-elixir-80ml.png,,,5
+IMPORTADO_271,Myslf Edp 100ml,"770,00",Importados,,711-myslf-edp-100ml.png,,,5
+IMPORTADO_273,Libre Edp 90ml,"777,00",Importados,,710-libre-edp-90ml.png,,,5
+IMPORTADO_276,One Million Parfum 200ml,"784,00",Importados,,,,,0
+IMPORTADO_277,Acqua Di Gioia Edp 100ml,"798,00",Importados,,702-acqua-di-gioia-edp-100ml.png,,,0
+IMPORTADO_278,Good Girl Blush 150ml,"798,00",Importados,,,,,5
+IMPORTADO_282,Invictus Victory Absolu 100ml,"812,00",Importados,,705-invictus-victory-absolu-100ml.png,,,5
+IMPORTADO_287,Black Opium Edp 90ml,"840,00",Importados,,708-black-opium-edp-90ml.png,,,0
+IMPORTADO_292,Prada Paradigme 100ml,"840,00",Importados,,712-prada-paradigme-100ml.png,,,0
+IMPORTADO_293,Dior Addict Eau Faiche Edt 100ml,"823,50",Importados,,714-dior-addict-eau-faiche-edt-100ml.png,,,0
+IMPORTADO_295,Sauvage Dior Edp 100ml,"864,00",Importados,,726-sauvage-dior-edp-100ml.png,,,5
+IMPORTADO_299,Myslf Le Parfum 100 Ml,"877,50",Importados,,732-myslf-le-parfum-100-ml.png,,,5
+IMPORTADO_300,Prada Paradoxe Edp 90ml,"877,50",Importados,,720-prada-paradoxe-edp-90ml.png,,,5
+IMPORTADO_302,Allure Homme Edt 100ml,"904,50",Importados,,723-allure-homme-edt-100ml.png,,,5
+IMPORTADO_303,Allure Homme Sport Edt Chanel 100ml,"918,00",Importados,,,,,0
+IMPORTADO_304,Bleu De Chanel Edt 100ml,"918,00",Importados,,728-bleu-de-chanel-edt-100ml.png,,,5
+IMPORTADO_305,J'adore Eau De Parfum 100Ml,"918,00",Importados,,,,,5
+IMPORTADO_311,Prada Paradoxe Intense 90ml,"945,00",Importados,,730-prada-paradoxe-intense-90ml.png,,,5
+IMPORTADO_316,Allure Homme Sport Eau Extreme Chanel 100ml,"1134,00",Importados,,742-allure-homme-sport-eau-extreme-chanel-100ml.png,,,0
+IMPORTADO_317,Bleu De Chanel Edp 100ml,"1147,50",Importados,,,,,5
+IMPORTADO_318,Miss Dior Essence 80ml,"1147,50",Importados,,743-miss-dior-essence-80ml.png,,,5
+IMPORTADO_319,Chanel Coco Mademoiselle Edp 100ml,"1161,00",Importados,,756-coco-mademoiselle-edp-200ml.png,,,5
+IMPORTADO_320,Allure Homme Sport Edt Chanel 150ml,"1188,00",Importados,,744-allure-homme-sport-edt-chanel-150ml.png,,,0
+IMPORTADO_322,Bleu De Chanel Edt 150ml,"1201,50",Importados,,,,,5
+IMPORTADO_323,Chance Chanel Edp 100ml,"1201,50",Importados,,746-chance-chanel-tendre-edp-100ml.png,,,5
+IMPORTADO_324,Chance Chanel Edp Tendre 100ml,"1201,50",Importados,,737-chance-chanel-tendre-edt-100ml.png,,,5
+IMPORTADO_325,Chance Chanel Eau Fraiche Edp 100ml,"1215,00",Importados,,735-chance-chanel-eau-fraiche-edt-100ml.png,,,5
+IMPORTADO_326,Chanel N°5 Edp 100ml,"1215,00",Importados,,748-chanel-n-5-edp-100ml.png,,,0
+IMPORTADO_328,Bleu De Chanel Edp 150ml,"1336,50",Importados,,,,,5
+VICTORIAS_16,Victoria's Secret - Body Splash Amber Romance,"144,80",Victoria's Secret,,371-body-splash-amber-romance.png,,,5
+VICTORIAS_17,Victoria's Secret - Body Splash Aqua Kiss,"144,80",Victoria's Secret,,381-body-splash-aqua-kiss.png,,,5
+VICTORIAS_18,Victoria's Secret - Body Splash Coconut Passion,"144,80",Victoria's Secret,,372-body-splash-coconut-passion.png,,,5
+VICTORIAS_20,Victoria's Secret - Body Splash Love Spell,"144,80",Victoria's Secret,,373-body-splash-love-spell.png,,,5
+VICTORIAS_21,Victoria's Secret - Body Splash Midnight Bloom,"144,80",Victoria's Secret,,,,,0
+VICTORIAS_22,Victoria's Secret - Body Splash Pure Seduction,"144,80",Victoria's Secret,,374-body-splash-pure-seduction.png,,,5
+VICTORIAS_23,Victoria's Secret - Body Splash Romantic,"144,80",Victoria's Secret,,375-body-splash-romantic.png,,,5
+VICTORIAS_24,Victoria's Secret - Body Splash Rush,"144,80",Victoria's Secret,,376-body-splash-rush.png,,,5
+VICTORIAS_26,Victoria's Secret - Body Splash Temptation,"144,80",Victoria's Secret,,377-body-splash-temptation.png,,,5
+VICTORIAS_27,Victoria's Secret - Body Splash Velvet Petals,"144,80",Victoria's Secret,,378-body-splash-velvet-petals.png,,,5
+VICTORIAS_29,Victoria's Secret - Creme Amber Romance,"144,80",Victoria's Secret,,382-creme-amber-romance.png,,,5
+VICTORIAS_30,Victoria's Secret - Creme Aqua Kiss,"144,80",Victoria's Secret,,383-creme-aqua-kiss.png,,,5
+VICTORIAS_32,Victoria's Secret - Creme Coconut Passion,"144,80",Victoria's Secret,,385-creme-coconut-passion.png,,,5
+VICTORIAS_33,Victoria's Secret - Creme Lavender & Vanilla,"144,80",Victoria's Secret,,386-creme-lavender-vanilla.png,,,5
+VICTORIAS_34,Victoria's Secret - Creme Love Spell,"144,80",Victoria's Secret,,387-creme-love-spell.png,,,5
+VICTORIAS_53,Victoria's Secret - Creme Midnight Bloom,"144,80",Victoria's Secret,,388-creme-midnight-bloom.png,,,5
+VICTORIAS_38,Victoria's Secret - Creme Pure Seduction,"144,80",Victoria's Secret,,389-creme-pure-seduction.png,,,5
+VICTORIAS_40,Victoria's Secret - Creme Romantic,"144,80",Victoria's Secret,,390-creme-romantic.png,,,5
+VICTORIAS_43,Victoria's Secret - Creme Velvet Petals,"171,95",Victoria's Secret,,393-creme-velvet-petals.png,,,5
+VICTORIAS_46,Victoria's Secret - Body Splash Shimmer Amber Romance,"171,95",Victoria's Secret,,,,,5
+VICTORIAS_48,Victoria's Secret - Body Splash Shimmer Coconut Passion,"171,95",Victoria's Secret,,,,,5
+VICTORIAS_50,Victoria's Secret - Body Splash Shimmer Midnight Bloom,"171,95",Victoria's Secret,,408-body-splash-shimmer-midnight-bloom.png,,,0
+VICTORIAS_51,Victoria's Secret - Body Splash Shimmer Pure Seduction,"171,95",Victoria's Secret,,,,,5
+VICTORIAS_55,Victoria's Secret - Body Splash Shimmer Velvet Petals,"171,95",Victoria's Secret,,,,,5
+VICTORIAS_62,Victoria's Secret - Body Splash Coconut Passion Brulee,"171,95",Victoria's Secret,,,,,5
+VICTORIAS_63,Victoria's Secret - Body Splash Love Spell Brulee,"171,95",Victoria's Secret,,,,,5
+VICTORIAS_64,Victoria's Secret - Body Splash Mango Temptation,"171,95",Victoria's Secret,,,,,5
+VICTORIAS_65,Victoria's Secret - Body Splash Pure Seduction Brulee,"171,95",Victoria's Secret,,,,,5
+VICTORIAS_67,Victoria's Secret - Body Splash Velvet Petals Brulee,"171,95",Victoria's Secret,,,,,5
+VICTORIAS_71,Creme Midnight Bloom Shimmer,"171,95",Victoria's Secret,,436-creme-midnight-bloom-shimmer.png,,,0
+VICTORIAS_77,Kit Travel Pure Seduction + Velvet Petals,"171,95",Victoria's Secret,,555-kit-travel-pure-seduction-velvet-petals.png,,,5
+IMPORTADO_329,Sauvage Elixir Dior 100ml,"1485,00",Importados,,752-sauvage-elixir-dior-100ml.png,,,0
+IMPORTADO_335,Valaya Parfums De Marly 75ml,"2160,00",Importados,,762-valaya-parfums-de-marly-75ml.png,,,5
+BRAND_BODY_18,Brand Collection 100 - Inspiração Sauvage - Body Splash,"101,70",Brand Collection,,195-body-splash-100-sauvage.png,,,5
+BRAND_BODY_19,Brand Collection 105 - Inspiração Lady Million - Body Splash,"101,70",Brand Collection,,196-body-splash-105-lady-million.png,,,0
+BRAND_BODY_20,Brand Collection 116 - Inspiração Invictus - Body Splash,"101,70",Brand Collection,,197-body-splash-116-invictus.png,,,5
+BRAND_BODY_21,Brand Collection 126 - Inspiração Good Girl - Body Splash,"101,70",Brand Collection,,198-body-splash-126-good-girl.png,,,5
+BRAND_BODY_22,Brand Collection 136 - Inspiração Scandal - Body Splash,"101,70",Brand Collection,,199-body-splash-136-scandal.png,,,5
+BRAND_BODY_23,Brand Collection 151 - Inspiração Delina - Body Splash,"101,70",Brand Collection,,200-body-splash-151-delina.png,,,5
+BRAND_BODY_24,Brand Collection 177 - Inspiração Chloé - Body Splash,"101,70",Brand Collection,,201-body-splash-177-chloe.png,,,5
+BRAND_BODY_26,Brand Collection 402 - Inspiração Erba Pura - Body Splash,"101,70",Brand Collection,,202-body-splash-402-erba-pura.png,,,5
+BRAND_BODY_28,Brand Collection 445 - Inspiração Prada Paradoxe - Body Splash,"101,70",Brand Collection,,203-body-splash-445-prada-paradoxe.png,,,5
+BRAND_BODY_29,Brand Collection Body Splash Shimmer Coconut - 250ml,"101,70",Brand Collection,,162-brand-body-splash-shimmer-coconut-250ml.png,,,5
+BRAND_BODY_30,Brand Collection Body Splash Shimmer Pear Glacé - 250ml,"101,70",Brand Collection,,164-brand-body-splash-shimmer-pear-glace-250ml.png,,,0
+BRAND_BODY_8,Body Splash Brand Bare Vanilla Shimmer 250ml,"90,40",Brand Collection,,161-brand-body-splash-bare-vanilla-shimmer-250ml.png,,,5
+BRAND_BODY_9,Body Splash Brand Shimmer Love Spell 250ml,"90,40",Brand Collection,,163-brand-body-splash-shimmer-love-spell-250ml.png,,,5
+BRAND_G_11,Brand Collection 116 - Inspiração Invictus - 100ml,"199,10",Brand Collection 80ML - 100ML,,445-g-008-212-vip-men-80ml.png,,,5
+BRAND_G_3,Brand Collection 007 - Inspiração J'adore - 100ml,"199,10",Brand Collection 80ML - 100ML,,,,,5
+BRAND_G_4,Brand Collection 008 - Inspiração 212 Vip Men - 80ml,"199,10",Brand Collection 80ML - 100ML,,442-g-181-bad-boy-100ml.png,,,0
+BRAND_G_5,Brand Collection 012 - Inspiração La Vie Est Belle - 100ml,"199,10",Brand Collection 80ML - 100ML,,443-g-001-allure-100ml.png,,,5
+ISABELLE_1,Amber Rouge Isabelle La Belle 15ml,"45,20",Isabelle La Belle,,001-amber-rouge-15ml.png,,,0
+ISABELLE_2,Yara Candy Isabelle La Belle 15ml,"45,20",Isabelle La Belle,,007-yara-candy-15ml.png,,,5
+ISABELLE_10,Perfume de Bolso Afeef Isabelle La Belle 15ml,"45,20",Isabelle La Belle,,,,,0
+ISABELLE_11,Perfume de Bolso Asad Isabelle La Belle 15ml,"45,20",Isabelle La Belle,,037-perfume-de-bolso-afeef-15ml.png,,,0
+ISABELLE_21,Perfume de Bolso Fakhar Rose Isabelle La Belle 15ml,"56,50",Isabelle La Belle,,047-perfume-de-bolso-fakhar-rose-15ml.png,,,5
+ISABELLE_26,Creme Inspiração Lady Million Isabelle La Belle,"90,50",Isabelle La Belle,,204-creme-inspira-o-lady-million.png,,,5
+ISABELLE_33,Body Asad Bourbon Isabelle La Belle 300ml,"99,55",Isabelle La Belle,,231-body-asad-bourbon-afeer-200ml.png,,,5
+BRAND_018,018 - Hugo Boss Just Different 25ml,"68,78",Brand Collection,,016-018-hugo-boss-just-different-25ml.png,,,0
+BRAND_028,028 - Hugo Boss Man 25ml,"68,78",Brand Collection,,019-028-hugo-boss-men-25ml.png,,,5
+BRAND_092,092 - Mon Paris YSL 25ml,"68,78",Brand Collection,,097-092-mon-paris-ysl-25ml.png,,,0
+BRAND_143,143 - Tom Ford Neroli Portofino 25ml,"72,40",Brand Collection,,115-143-tom-ford-portofino-neroli-25ml.png,,,0
+BRAND_192,192 - One Million Lucky 25ml,"72,40",Brand Collection,,120-192-million-lucky-25ml.png,,,5
+BRAND_266,266 - Diesel Only The Brave 25ml,"72,40",Brand Collection,,123-266-diesel-only-the-brave-25ml.png,,,0
+BRAND_285,285 - Joop! Homme 25ml,"63,35",Brand Collection,,077-285-joop-25ml.png,,,5
+BRAND_289,289 - Marina Rouge Royal 25ml,"68,78",Brand Collection,,106-289-marina-rouge-royal-25ml.png,,,0
+BRAND_438,438 - Scandal Absolu Feminino 25ml,"81,45",Brand Collection,,160-438-scandal-absolu-fem-25ml.png,,,5
+BRAND_440,440 - Phantom Elixir 25ml,"68,78",Brand Collection,,107-440-phantom-elixir-25ml.png,,,0
+BRAND_504,504 - Moschino Toy 2 Pearl (Pista Crush),"72,40",Brand Collection,,138-504-toy-pista-crush.png,,,5
+BRAND_506,506 - Moschino Toy Mango Tango,"72,40",Brand Collection,,139-506-toy-mango-tango.png,,,5
+BRAND_507,507 - Moschino Toy Marshmallow,"72,40",Brand Collection,,140-507-toy-marshmallow.png,,,5
+BRAND_508,508 - Moschino Toy Fruity Fizz,"72,40",Brand Collection,,141-508-toy-fruity-fizz.png,,,5
+BRAND_510,510 - Moschino Toy Cherry Bubbles,"72,40",Brand Collection,,142-510-toy-cherry-bubbles.png,,,5
+DECANT_1,Decant 10ml - Ameerat Al Arab Asdaaf,"79,10",Decants,,,,,5
+DECANT_2,Decant 10ml - Dalal,"101,70",Decants,,168-decante-10-ml-dalal.png,,,5
+DECANT_3,Decant 10ml - Noble Blush,"90,40",Decants,,143-decante-10-ml-noble-blush.png,,,5
+DECANT_4,Decant 10ml - 212 VIP Rosé,"169,50",Decants,,282-decante-212-vip-ros-10ml.png,,,5
+DECANT_5,Decant 10ml - A Thousand Wishes,"33,90",Decants,,023-decante-a-thousand-whises-10ml.png,,,5
+DECANT_6,Decant 10ml - Afeef,"135,60",Decants,,245-decante-afeef-10ml.png,,,5
+DECANT_7,Decant 10ml - Al Noble Wazeer,"101,70",Decants,,169-decante-al-noble-wazeer.png,,,5
+DECANT_8,Decant 10ml - Allure Homme Sport,"214,70",Decants,,394-decante-allure-homme-sport-10ml.png,,,5
+DECANT_9,Decant 10ml - Amber Oud,"113,00",Decants,,215-decante-amber-oud-10ml.png,,,5
+DECANT_10,Decant 10ml - Ameer,"90,40",Decants,,144-decante-ameer.png,,,5
+DECANT_11,Decant 10ml - Amethyst,"79,10",Decants,,079-decante-amethsyt.png,,,5
+DECANT_12,Decant 10ml - Omnia,"101,70",Decants,,170-decante-amnia-10ml.png,,,5
+DECANT_13,Decant 10ml - Animale,"56,50",Decants,,042-decante-animale-10-ml.png,,,5
+DECANT_14,Decant 10ml - Asad Elixir,"101,70",Decants,,,,,0
+DECANT_15,Decant 10ml - Asad Zanzibar,"67,80",Decants,,051-decante-asad-zanzibar-10ml.png,,,5
+DECANT_16,Decant 10ml - Asad Elixir,"101,70",Decants,,172-decante-asas-elixir.png,,,5
+DECANT_17,Decant 10ml - Attar Al Wesal Gold,"101,70",Decants,,167-decante-atar-al-wesal-gold-10-ml.png,,,5
+DECANT_18,Decant 10ml - Atheeri,"124,30",Decants,,227-decante-atheeri-10ml.png,,,5
+DECANT_19,Decant 10ml - Attar,"79,10",Decants,,080-decante-attar-10ml.png,,,5
+DECANT_20,Decant 10ml - Bad Boy,"158,20",Decants,,278-decante-bad-boy.png,,,5
+DECANT_21,Decant 10ml - Body Atheeri Isabelle,"22,60",Decants,,021-decante-body-atheeri-isabelle.png,,,5
+DECANT_22,Decant 10ml - Chants,"79,10",Decants,,081-decante-chants-10ml.png,,,5
+DECANT_23,Decant 10ml - Chloé Tradicional,"169,50",Decants,,283-decante-chloe-tradicional.png,,,5
+DECANT_24,Decant 10ml - Cleopatra,"101,70",Decants,,173-decante-cleopatra-10-ml.png,,,5
+DECANT_25,Decant 10ml - Club De Nuit Masculino,"79,10",Decants,,082-decante-club-de-niut-masc.png,,,5
+DECANT_26,Decant 10ml - Club De Nuit Feminino,"79,10",Decants,,083-decante-club-de-nuit-fem-10ml.png,,,5
+DECANT_27,Decant 10ml - Coco Mademoiselle,"248,60",Decants,,438-decante-coco-mademoiselle-10ml.png,,,5
+DECANT_28,Decant 10ml - Coco Mademoiselle,"79,10",Decants,,084-decante-como-moiselle-10ml.png,,,5
+DECANT_29,Decant 15ml - Creme Vanilla,"45,20",Decants,,033-decante-creme-vanilla-15ml.png,,,5
+DECANT_30,Decant 10ml - Delilah,"79,10",Decants,,085-decante-delilah-10ml.png,,,5
+DECANT_31,Decant 10ml - Delilah Blanc,"101,70",Decants,,174-decante-delilah-blanc-10-ml.png,,,5
+DECANT_32,Decant 10ml - Delina,"372,90",Decants,,493-decante-delina-10ml.png,,,5
+DECANT_33,Decant 10ml - Duha,"79,10",Decants,,086-decante-duha.png,,,5
+DECANT_34,Decant 10ml - Durrat Love,"101,70",Decants,,175-decante-durrat-love-10-ml.png,,,5
+DECANT_35,Decant 10ml - Eclaire,"113,00",Decants,,216-decante-eclaire.png,,,5
+DECANT_36,Decant 10ml - Emeer,"101,70",Decants,,176-decante-emeer.png,,,5
+DECANT_37,Decant 10ml - Erba Gold,"339,00",Decants,,474-decante-erba-gold-10ml.png,,,5
+DECANT_38,Decant 10ml - Fakhar Black,"90,40",Decants,,145-decante-fakhar-black-10ml.png,,,5
+DECANT_39,Decant 10ml - Fakhar Gold,"90,40",Decants,,146-decante-fakhar-gold-10ml.png,,,5
+DECANT_40,Decant 10ml - Fakhar Platinum,"101,70",Decants,,177-decante-fakhar-platin-10ml.png,,,5
+DECANT_41,Decant 10ml - Fakhar Rose,"90,40",Decants,,147-decante-fakhar-rose-10ml.png,,,5
+DECANT_42,Decant 10ml - Fantasy,"67,80",Decants,,052-decante-fantasy-10ml.png,,,5
+DECANT_43,Decant 10ml - Ferrari Black,"67,80",Decants,,053-decante-ferrari-black.png,,,5
+DECANT_44,Decant 10ml - Ferrari Red,"67,80",Decants,,054-decante-ferrari-red-10-ml.png,,,5
+DECANT_45,Decant 10ml - Good Girl Dazzling,"180,80",Decants,,319-decante-good-girl-dazziling-10-ml.png,,,5
+DECANT_46,Decant 10ml - Good Girl Sparkling Ice,"192,10",Decants,,337-decante-good-girl-sparkling-ice-10-ml.png,,,5
+DECANT_47,Decant 10ml - Hawas Black,"101,70",Decants,,178-decante-hawas-black-10ml.png,,,5
+DECANT_48,Decant 10ml - Haya,"101,70",Decants,,179-decante-haya.png,,,5
+DECANT_49,Decant 10ml - L'Interdit,"79,10",Decants,,087-decante-intrude-10ml.png,,,5
+DECANT_50,Decant 10ml - J'adore EDP,"192,10",Decants,,338-decante-jadore-edp-10-ml.png,,,5
+DECANT_51,Decant 10ml - Jo Malone Blackberry,"237,30",Decants,,428-decante-j-malone-blackberry-10-ml.png,,,5
+DECANT_52,Decant 10ml - Jo Malone English Pear,"237,30",Decants,,427-decante-jo-malone-english-pear-10ml.png,,,5
+DECANT_53,Decant 10ml - Kenz Al Malik,"79,10",Decants,,088-decante-kenz-al-malik.png,,,5
+DECANT_54,Decant 10ml - Khamrah Qahwa,"135,60",Decants,,246-decante-khamrah-waha.png,,,5
+DECANT_55,Decant 10ml - La Bomba,"226,00",Decants,,409-decante-la-bomba-10ml.png,,,5
+DECANT_56,Decant 10ml - La Vie Est Belle Vanilla Nude,"214,70",Decants,,395-decante-l-vie-est-belle-vanille-nude.png,,,5
+DECANT_57,Decant 10ml - La Vie Est Belle,"169,50",Decants,,284-decante-lavie-est-belle.png,,,5
+DECANT_58,Decant 10ml - Leoni,"79,10",Decants,,089-decante-leoni-10ml.png,,,5
+DECANT_59,Decant 10ml - Libre EDP,"192,10",Decants,,339-decante-libre-edp-10ml.png,,,5
+DECANT_60,Decant 10ml - Light Blue Feminino,"113,00",Decants,,217-decante-light-blue-fem-10ml.png,,,5
+DECANT_61,Decant 10ml - Liquid Brun,"113,00",Decants,,218-decante-liquid-brun-10ml.png,,,5
+DECANT_62,Decant 10ml - Love Spell,"33,90",Decants,,024-decante-love-spel-10-ml.png,,,5
+DECANT_63,Decant 10ml - Marshmallow Blush,"113,00",Decants,,219-decante-marshimallon-blush-10-ml.png,,,5
+DECANT_64,Decant 10ml - Musaman,"113,00",Decants,,220-decante-musaman.png,,,5
+DECANT_65,Decant 10ml - Naxos,"339,00",Decants,,475-decante-naxos-10ml.png,,,5
+DECANT_66,Decant 10ml - Nebras,"79,10",Decants,,090-decante-nebras.png,,,5
+DECANT_67,Decant 10ml - Nishane Hacivat,"384,20",Decants,,495-decante-nishane-hacivat-10-ml.png,,,5
+DECANT_68,Decant 10ml - Olympea Elixir (Lançamento),"192,10",Decants,,340-decante-olympea-elixir-10-ml-lan-amento.png,,,5
+DECANT_69,Decant 10ml - Bade'e Al Oud Oud For Glory,"90,40",Decants,,148-decante-oud-for-glory-10ml.png,,,5
+DECANT_70,Decant 10ml - Philos Pura,"79,10",Decants,,091-decante-philos-pura-10-ml.png,,,5
+DECANT_71,Decant 10ml - Prada Intense,"248,60",Decants,,439-decante-prada-intense-10-ml.png,,,5
+DECANT_72,Decant 10ml - Prada Paradoxe,"214,70",Decants,,396-decante-prada-paradoxe.png,,,5
+DECANT_73,Decant 10ml - Pure Seduction Brulee,"33,90",Decants,,,,,5
+DECANT_74,Decant 10ml - Pure Wonder,"33,90",Decants,,026-decante-pure-wonder.png,,,5
+DECANT_75,Decant 10ml - Royal Amber,"180,80",Decants,,320-decante-royal-amber.png,,,0
+DECANT_76,Decant 10ml - Sabah Al Ward Sugar,"101,70",Decants,,180-decante-sabah-al-ward-sugar-10ml.png,,,5
+DECANT_77,Decant 10ml - Sabah Delilah,"101,70",Decants,,181-decante-sabah-delilah-10ml.png,,,5
+DECANT_78,Decant 10ml - Sabah Gardenia Eden,"101,70",Decants,,182-decante-sabah-gard-nia-den.png,,,5
+DECANT_79,Decant 10ml - Sabah Al Ward,"101,70",Decants,,183-decante-sabha-al-ward.png,,,5
+DECANT_80,Decant 10ml - Sabha Valentine,"101,70",Decants,,184-decante-sabha-valentine-10-ml.png,,,5
+DECANT_81,Decant 10ml - Safeer,"90,40",Decants,,,,,5
+DECANT_82,Decant 10ml - Sakeena,"79,10",Decants,,092-decante-sakeena.png,,,5
+DECANT_83,Decant 10ml - Sauvage EDP,"248,60",Decants,,440-decante-sauvage-eau-de-parfum.png,,,5
+DECANT_84,Decant 10ml - Sauvage Elixir,"248,60",Decants,,441-decante-sauvage-elixir-10ml.png,,,5
+DECANT_85,Decant 10ml - Selena,"67,80",Decants,,055-decante-selena-10-ml.png,,,5
+DECANT_86,Decant 10ml - Silver Scent Intense,"79,10",Decants,,093-decante-silver-scent-intense-10ml.png,,,5
+DECANT_87,Decant 10ml - Sophia,"67,80",Decants,,056-decante-sophia-10-ml.png,,,5
+DECANT_88,Decant 10ml - Sospiro Vibrato,"361,60",Decants,,488-decante-sospiro-vibrat-10-ml.png,,,5
+DECANT_89,Decant 10ml - Sultan,"79,10",Decants,,094-decante-sultan-10-mo.png,,,5
+DECANT_90,Decant 10ml - Tibyan (Good Girl Blush),"67,80",Decants,,057-decante-tibyan-good-girl-blush-10ml.png,,,5
+DECANT_91,Decant 10ml - Tiffany,"135,60",Decants,,247-decante-tiffany-10ml.png,,,5
+DECANT_92,Decant 10ml - Valaya,"339,00",Decants,,476-decante-valaya-10ml.png,,,5
+DECANT_93,Decant 10ml - Valentino Born In Roma,"192,10",Decants,,341-decante-valentino-born-in-roma-10-ml.png,,,5
+DECANT_94,Decant 10ml - Watani,"90,40",Decants,,150-decante-watani-10ml.png,,,5
+DECANT_95,Decant 10ml - Watani Pink,"101,70",Decants,,185-decante-watani-pink-10ml.png,,,5
+DECANT_96,Decant 10ml - Yara,"90,40",Decants,,151-decante-yara.png,,,5
+DECANT_97,Decant 10ml - Yara Candy,"90,40",Decants,,152-decante-yara-candy.png,,,5
+DECANT_98,Decant 10ml - Yara Elixir,"101,70",Decants,,186-decante-yara-elixir-10ml.png,,,5
+DECANT_99,Decant 10ml - Yara Moi,"79,10",Decants,,095-decante-yara-m-i.png,,,5
+DECANT_100,Decant 10ml - Yara Tous,"90,40",Decants,,153-decante-yara-tous-10ml.png,,,5
+DECANT_101,Decant 10ml - Pink Eclipse,"101,70",Decants,,187-decantes-pink-eclipse-10-ml.png,,,5
+ARABE_144,Body Cream Asad Elixir Afeer 200ml,"90,00",Árabes,,232-body-asad-elixir-afeer-200ml.png,,,5
+ARABE_145,Body Cream Asad Tradicional Afeer,"90,00",Árabes,,233-body-asad-tradicional-afeer.png,,,5
+ARABE_146,Body Cream Asad Zanzibar Limited Afeer 200ml,"90,00",Árabes,,234-body-asad-zanzibar-limited-200ml-afeer.png,,,0
+ARABE_147,Body Cream Club De Nuit Feminino Shimmer Afeer 200ml,"90,00",Árabes,,235-body-club-de-nuit-f-shimmer-200ml-afeer.png,,,5
+ARABE_148,Body Cream Alien 200g,"142,50",Árabes,,003-body-cream-alien-200g.png,,,5
+ARABE_149,Body Cream La Bomba (Original) 200ml,"615,00",Árabes,,604-body-cream-la-bomba-200ml-original.png,,,5
+ARABE_150,Body Cream Delilah Shimmer Afeer 200ml,"90,00",Árabes,,236-body-delilah-shimmer-200ml-afeer.png,,,5
+ARABE_151,Body Cream Fakhar Rose Shimmer Afeer 200ml,"90,00",Árabes,,237-body-fakhar-rose-shimmer-200ml-afeer.png,,,0
+ARABE_152,Body Lotion Into The Night 236ml,"120,00",Árabes,,292-body-lotion-into-the-night-236ml.png,,,5
+ARABE_153,Body Lotion Pure Wonder 236ml,"120,00",Árabes,,293-body-lotion-pure-wonder-236ml.png,,,0
+ARABE_154,Body Lotion Mediterranean Mirage (Erba Pura) 236ml,"150,00",Árabes,,406-body-mediterranean-mirage-236ml-erba-pura.png,,,0
+ARABE_155,Body Cream Musaman Shimmer Afeer 200ml,"90,00",Árabes,,238-body-musaman-shimmer-200ml-afeer.png,,,5
+ARABE_156,Body Cream Royal Amber Shimmer Afeer 200ml,"90,00",Árabes,,239-body-royal-amber-shimmer-200ml-afeer.png,,,0
+ARABE_157,Body Cream Sabah Shimmer Afeer 200ml,"90,00",Árabes,,240-body-sabah-shimmer-200ml-afeer.png,,,0
+ARABE_158,Body Cream Sabah Sugar Shimmer Afeer 200ml,"90,00",Árabes,,241-body-sabah-sugar-shimmer-200ml-afeer.png,,,0
+ARABE_159,Body Shimmer Afeef 200ml,"97,50",Árabes,,257-body-shimmer-afeef-200ml.png,,,5
+ARABE_160,Body Shimmer In The Stars 145ml,"120,00",Árabes,,294-body-shimmer-in-the-stars-145ml.png,,,0
+ARABE_161,Body Shimmer Into The Night 145ml,"120,00",Árabes,,295-body-shimmer-into-the-night-145ml.png,,,0
+ARABE_162,Body Shimmer A Thousand Wishes 145ml,"120,00",Árabes,,296-body-shimmer-thousand-wishes-145ml.png,,,0
+ARABE_163,Body Splash Alive Now Maison Alhambra,"97,50",Árabes,,258-body-splash-alive-now-maison-alhambra.png,,,0
+ARABE_164,Body Splash At The Beach 236ml,"120,00",Árabes,,297-body-splash-at-the-beach-236ml.png,,,0
+ARABE_165,Body Splash Bare Sueded Vanilla 250ml,"180,00",Árabes,,450-body-splash-bare-sueded-vanilla-250ml.png,,,5
+ARABE_166,Body Splash Beach Shimmer,"165,00",Árabes,,430-body-splash-beach-shimmer.png,,,5
+ARABE_167,Body Splash Butterfly 236ml,"120,00",Árabes,,298-body-splash-butterfly-236ml.png,,,5
+ARABE_168,Body Splash Champagne Toast 236ml,"120,00",Árabes,,299-body-splash-champagne-toast-236ml.png,,,5
+ARABE_169,Body Splash Chants Tenderina Maison Alhambra,"97,50",Árabes,,259-body-splash-chants-tenderina-maison-alhambra.png,,,0
+ARABE_170,Body Splash Delilah Maison Alhambra,"97,50",Árabes,,260-body-splash-delilah-maison-alhambra.png,,,5
+ARABE_171,Body Splash Desirable Maison Alhambra,"97,50",Árabes,,261-body-splash-desirable-maison-alhambra.png,,,5
+ARABE_172,Body Splash Gingham 236ml,"120,00",Árabes,,300-body-splash-gingham-236ml.png,,,5
+ARABE_173,Body Splash Gingham Gorgeous 236ml,"120,00",Árabes,,301-body-splash-gingham-gorgeous-236ml.png,,,0
+ARABE_174,Body Splash Glacier Bella Maison Alhambra,"97,50",Árabes,,262-body-splash-glacier-bella-maison-alhambra.png,,,5
+ARABE_175,Body Splash Good Girl (Original) 100ml,"352,50",Árabes,,528-body-splash-good-girl-original-100ml.png,,,5
+ARABE_176,Body Splash In The Stars 236ml,"120,00",Árabes,,302-body-splash-in-the-stars-236ml.png,,,5
+ARABE_177,Body Splash Into The Night 236ml,"120,00",Árabes,,303-body-splash-into-the-night-236ml.png,,,0
+ARABE_178,Body Splash Japanese Cherry Blossom 236ml,"120,00",Árabes,,304-body-splash-japanese-cherry-blossom-236ml.png,,,5
+ARABE_179,Body Splash La Vivacite Maison Alhambra,"97,50",Árabes,,263-body-splash-la-vivacite-maison-alhambra.png,,,0
+ARABE_180,Body Splash La Voie Maison Alhambra,"97,50",Árabes,,264-body-splash-la-voie-maison-alhambra.png,,,5
+ARABE_181,Body Splash Love Spell Vacation,"165,00",Árabes,,431-body-splash-love-spell-vacation.png,,,5
+ARABE_182,Body Splash Mia Dolcezza Maison Alhambra,"97,50",Árabes,,265-body-splash-mia-dolcezza-maison-alhambra.png,,,5
+ARABE_183,Body Splash Pink Eclipse Maison Alhambra,"97,50",Árabes,,266-body-splash-pink-eclipse-maison-alhambra.png,,,5
+ARABE_184,Body Splash Pink Obsessed (Valentino Born In Roma) 236ml,"150,00",Árabes,,407-body-splash-pink-obsessed-236ml-valentino-born-in-roma.png,,,0
+ARABE_185,Body Splash Pink Shimmer Secret Maison Alhambra,"97,50",Árabes,,267-body-splash-pink-shimmer-secret-maison-alhambra.png,,,0
+ARABE_186,Body Splash Pure Seduction Vacation,"165,00",Árabes,,432-body-splash-pure-seduction-vacation.png,,,0
+ARABE_187,Body Splash Pure Wonder 236ml,"120,00",Árabes,,305-body-splash-pure-wonder-236ml.png,,,5
+ISABELLE_40,Body Splash Sabah Delilah Isabelle,"99,55",Isabelle La Belle,,223-body-splash-sabah-delilah-isabelle.png,,,5
+ARABE_188,Body Splash Seashell Shimmer,"165,00",Árabes,,433-body-splash-seashell-shimmer.png,,,5
+ARABE_189,Body Splash So Candid Maison Alhambra,"97,50",Árabes,,268-body-splash-so-candid-maison-alhambra.png,,,0
+ARABE_190,Body Splash Strawberries & Champagne,"165,00",Árabes,,434-body-splash-strawberries-champagne.png,,,0
+ARABE_191,Body Splash Supremacia 300ml,"82,50",Árabes,,224-body-splash-supremacia-300ml.png,,,5
+ARABE_192,Body Splash A Thousand Wishes 236ml,"120,00",Árabes,,306-body-splash-thousand-wishes-236ml.png,,,5
+ARABE_193,Body Splash Tidal Shimmer,"165,00",Árabes,,435-body-splash-tidal-shimmer.png,,,0
+ARABE_194,Body Splash Wazeer 300ml,"82,50",Árabes,,225-body-splash-wazeer-300ml.png,,,5
+ARABE_195,Body Splash Winterberry Wonder 236ml,"120,00",Árabes,,307-body-splash-winterberry-wonder-236ml.png,,,5
+ARABE_196,Body Splash Sweet Pea 236ml,"120,00",Árabes,,308-body-sweet-pea-236ml.png,,,0
+ARABE_197,Body Cream Tharwah Gold Shimmer Afeer 200ml,"90,00",Árabes,,242-body-tharwah-gold-shimmer-afeer-200ml.png,,,5
+ARABE_198,Body Cream Yara Moi Shimmer Afeer 200ml,"90,00",Árabes,,243-body-yara-m-i-shimmer-afeer-200ml.png,,,5
+ARABE_199,Body Cream Yara Shimmer Afeer 200ml,"90,00",Árabes,,244-body-yara-shimmer-200ml-afeer.png,,,0
+IMPORTADO_337,24 Carat Pure Gold 100ml (One Million Parfum),"187,50",Importados,,453-24-carat-pure-gold-100ml-one-million-parfum.png,,,5
+IMPORTADO_338,24 Carat White Gold 100ml (D&G Light Blue Masculino),"187,50",Importados,,454-24-carat-white-gold-100ml-d-g-light-blue-masc.png,,,5
+IMPORTADO_339,Alien EDP Mugler 90ml,"700,00",Importados,,672-alien-edp-mugler-90ml.png,,,5
+IMPORTADO_340,Alpine Homme Sport 100ml,"240,00",Importados,,487-alpine-homme-sport-100ml.png,,,5
+IMPORTADO_341,Angham Second Song 100ml,"300,00",Importados,,506-angham-second-song-100ml.png,,,0
+IMPORTADO_342,Animale Black Masculino 100ml,"232,50",Importados,,483-animale-black-masc-100-ml.png,,,5
+IMPORTADO_343,Animale Gold Masculino 100ml,"262,50",Importados,,499-animale-gold-masc-100-ml.png,,,5
+IMPORTADO_344,Armani Code EDT 125ml,"679,00",Importados,,666-armani-code-edt-125ml.png,,,5
+IMPORTADO_345,Atheeri 15ml,"37,50",Importados,,041-atheeri-15ml.png,,,5
+IMPORTADO_346,"Attar Gold (Amostra 4,5ml)","30,00",Importados,,031-attar-gold-amostra-de-4-5.png,,,5
+IMPORTADO_347,Azzaro The Most Wanted Parfum 100ml,"644,00",Importados,,644-azzaro-the-most-wanted-parfum-100ml.png,,,5
+IMPORTADO_348,Azzaro Wanted By Night EDP,"602,00",Importados,,622-azzaro-wanted-by-night-edp.png,,,5
+IMPORTADO_349,Azzaro Wanted Forever Parfum Elixir 100ml,"770,00",Importados,,693-azzaro-wanted-forever-parfum-elixir-100ml.png,,,5
+IMPORTADO_350,Bidaya Maktub Gold 100ml,"364,00",Importados,,545-bidaya-maktub-gold-100ml.png,,,0
+IMPORTADO_351,Bidaya Maktub La Vie 100ml,"364,00",Importados,,546-bidaya-maktub-la-vie-100ml.png,,,5
+IMPORTADO_352,Bleu De Chanel Parfum L'Exclusif 100ml,"1957,50",Importados,,758-bleu-de-chanel-parfum-l-exclusif-100ml.png,,,0
+IMPORTADO_353,Blush Dolce & Gabbana Cheeks & Eyes Match,"462,00",Importados,,563-blush-dolce-gabbana-cheeks-e-eyes-match.png,,,0
+IMPORTADO_354,Burberry Brit Sheer Feminino 100ml,"392,00",Importados,,553-burberry-brit-sheer-fem-100ml.png,,,0
+IMPORTADO_355,Burberry Her EDP Petals Limited Edition 88ml,"728,00",Importados,,681-burberry-her-edp-petals-limited-edition-88ml.png,,,5
+IMPORTADO_356,Burberry Her Elixir EDP 100ml,"742,00",Importados,,684-burberry-her-elixir-edp-100ml.png,,,5
+IMPORTADO_357,Burberry Her Parfum 100ml,"728,00",Importados,,682-burberry-her-parfum-100ml.png,,,5
+IMPORTADO_358,Bvlgari Man In Black EDP 150ml,"918,00",Importados,,725-bvlgari-man-in-black-edp-150ml.png,,,5
+IMPORTADO_359,Bvlgari Man In Black Parfum 150ml,"1012,50",Importados,,733-bvlgari-man-in-black-parfum-150ml.png,,,5
+IMPORTADO_360,Bvlgari Omnia Amethyste EDT 100ml,"672,00",Importados,,655-bvlgari-omnia-amethyste-edt-100ml.png,,,0
+IMPORTADO_361,Bvlgari Omnia Crystalline EDT 100ml,"756,00",Importados,,690-bvlgari-omnia-crystalline-edt-100-ml.png,,,5
+IMPORTADO_362,Castilla EDP 100ml Al Wataniah,"195,00",Importados,,457-castilla-edp-100ml-al-wataniah.png,,,5
+IMPORTADO_363,Chance Chanel Eau Splendide EDP 100ml,"1201,50",Importados,,745-chance-chanel-eau-splendide-edp-100ml.png,,,5
+IMPORTADO_364,Chanel Nº5 EDT 100ml,"877,50",Importados,,719-chanel-n5-edt-100ml.png,,,5
+IMPORTADO_365,Club De Nuit Intense Overdose 100ml,"504,00",Importados,,579-club-de-nuit-intense-overdose-100ml.png,,,5
+IMPORTADO_366,Creed Carmina EDP 75ml,"2295,00",Importados,,765-creed-carmina-edp-75ml.png,,,5
+IMPORTADO_367,Creed Eladaria EDP 75ml,"2295,00",Importados,,766-creed-eladaria-edp-75ml.png,,,0
+Cremes_2,Creme A Thousand Wishes,"120,00",Cremes,,309-creme-a-thousand-wishes.png,,,0
+Cremes_3,Creme Asad Zanzibar (Bisnaga) 200ml,"97,50",Cremes,,269-creme-asad-zanzibar-bisnaga-200ml.png,,,5
+Cremes_4,Creme Butterfly (Bisnaga) 226g,"120,00",Cremes,,310-creme-butterfly-bisnaga-226g.png,,,5
+Cremes_5,Creme Cashmere Fleur 236ml,"142,50",Cremes,,384-creme-cashmere-fleur-236ml.png,,,0
+Cremes_6,Creme Champagne Toast,"120,00",Cremes,,311-creme-champagne-toast.png,,,0
+Cremes_7,Creme Club De Nuit Feminino (Bisnaga) 200ml,"97,50",Cremes,,270-creme-club-de-nuit-fem-bisnaga-200ml.png,,,0
+Cremes_8,Creme Gingham (Bisnaga) 226g,"120,00",Cremes,,312-creme-gingham-bisnaga-226g.png,,,5
+Cremes_9,Creme Gingham Gorgeous (Bisnaga) 226g,"120,00",Cremes,,313-creme-gingham-gorgeous-bisnaga-226g.png,,,0
+Cremes_10,Creme Idole (Bisnaga) 200ml,"399,00",Cremes,,557-creme-idole-200ml-bisnaga.png,,,0
+Cremes_11,Creme In The Stars (Bisnaga) 226g,"120,00",Cremes,,314-creme-in-the-stars-bisnaga-226g.png,,,5
+Cremes_12,Creme Inspiração Club De Nuit Intense Man 200ml,"105,00",Cremes,,277-creme-inspira-o-club-de-nuit-intense-man-200ml.png,,,0
+Cremes_13,Creme Inspiração My Way (Bisnaga) 200ml,"82,50",Cremes,,226-creme-inspira-o-my-way-bisnaga-200ml.png,,,5
+Cremes_14,Creme Into The Night (Bisnaga) 226g,"120,00",Cremes,,315-creme-into-the-night-bisnaga-226g.png,,,5
+Cremes_15,Creme Pure Wonder,"120,00",Cremes,,316-creme-pure-wonder.png,,,0
+Cremes_16,Creme Rush,"142,50",Cremes,,391-creme-rush.png,,,5
+Cremes_17,Creme Strawberries & Champagne Archives Collection,"165,00",Cremes,,437-creme-strawberries-champagne-archives-collection.png,,,5
+Cremes_18,Creme Sweet Pea,"120,00",Cremes,,317-creme-sweet-pea.png,,,0
+Cremes_19,Creme Temptation,"142,50",Cremes,,392-creme-temptation.png,,,5
+Cremes_20,Creme Warm Vanilla Sugar 226ml,"120,00",Cremes,,318-creme-warm-vanilla-sugar-226ml.png,,,5
+IMPORTADO_368,Cuba Altus Masculino EDT 100ml,"75,00",Importados,,205-cuba-altus-m-edt-100ml.png,,,0
+IMPORTADO_369,Cuba Black 100ml (Azzaro),"75,00",Importados,,206-cuba-black-100ml-azzaro.png,,,5
+IMPORTADO_370,Cuba Exclusive Feminino EDP 100ml (Prada / Montale),"75,00",Importados,,207-cuba-exclusive-f-edp-100ml-prada-montale.png,,,5
+IMPORTADO_371,Cuba Blossom Feminino 100ml (Gucci Bloom),"75,00",Importados,,208-cuba-f-blossom-100ml-gucci-bloom.png,,,5
+IMPORTADO_372,Cuba Fierce Masculino 100ml (Abercrombie),"75,00",Importados,,209-cuba-fierce-m-100ml-abercrombie.png,,,5
+IMPORTADO_373,Cuba Gold 100ml (Le Male),"75,00",Importados,,210-cuba-gold-100ml-le-male.png,,,0
+IMPORTADO_374,Cuba VIP Masculino 100ml (212 VIP Men),"75,00",Importados,,211-cuba-m-vip-100ml-vip-men.png,,,0
+IMPORTADO_375,Cuba Royal 100ml (One Million),"75,00",Importados,,212-cuba-royal-100ml-one-million.png,,,0
+IMPORTADO_376,Cuba Trouble Feminino 100ml (Good Girl),"75,00",Importados,,213-cuba-trouble-f-100ml-good-girl.png,,,0
+IMPORTADO_377,Cuba Winner 100ml,"75,00",Importados,,214-cuba-winner-100ml.png,,,5
+IMPORTADO_378,D&G The One Masculino EDP 100ml,"616,00",Importados,,631-d-g-the-one-edp-masculino-100ml.png,,,5
+IMPORTADO_379,Delina Exclusif Parfums De Marly 75ml,"2295,00",Importados,,767-delina-exclusif-parfums-de-marly-75ml.png,,,5
+IMPORTADO_380,Delina Parfums De Marly 75ml,"2268,00",Importados,,763-delina-parfums-de-marly-75ml.png,,,5
+IMPORTADO_381,Dior Addict Lip Glow Oil,"300,00",Importados,,508-dior-addict-lip-glow-oil.png,,,0
+IMPORTADO_382,Dolce & Gabbana Pour Homme Intenso 200ml,"672,00",Importados,,657-dolce-e-gabbana-pour-homme-intenso-200ml.png,,,5
+IMPORTADO_383,Dolce & Gabbana Light Blue 100ml (Nova Embalagem),"644,00",Importados,,645-dolce-gabbana-lighit-blue-100-ml-nova-embalagem.png,,,5
+IMPORTADO_384,Versace Dylan Blue Pour Femme 30ml,"343,00",Importados,,538-dylan-blue-pour-femme-30ml.png,,,5
+TESTER_1,Tester 212 Sexy Feminino 100ml,"574,00",Testers,,609-tester-212-sexy-feminino-100ml.png,,,5
+TESTER_2,Tester 212 VIP Feminino 80ml,"560,00",Testers,,600-tester-212-vip-feminino-80ml.png,,,5
+TESTER_3,Tester Bad Boy EDT 100ml,"532,00",Testers,,588-tester-bad-boy-edt-100ml.png,,,0
+TESTER_4,Tester Bade'e Al Oud Oud For Glory 100ml,"157,50",Testers,,,,,0
+TESTER_5,Tester Burberry Her EDP Intense 100ml,"602,00",Testers,,626-tester-burberry-her-edp-intense-100ml.png,,,5
+TESTER_6,Tester Burberry Her Parfum 100ml,"602,00",Testers,,627-tester-burberry-her-parfum-100ml.png,,,5
+TESTER_7,Tester Bvlgari Aqva EDT 100ml,"588,00",Testers,,618-tester-bvlgari-aqua-edt-100ml.png,,,5
+TESTER_8,Tester Bvlgari Man In Black 100ml,"700,00",Testers,,678-tester-bvlgari-man-in-black-100ml.png,,,5
+TESTER_9,Tester Bvlgari Pour Homme EDP 100ml,"630,00",Testers,,641-tester-bvlgari-pour-homme-edp-100ml.png,,,5
+TESTER_10,Tester Bvlgari Pour Homme EDT 100ml,"532,00",Testers,,589-tester-bvlgari-pour-homme-edt-100ml.png,,,5
+TESTER_11,Tester Bvlgari Rose Goldea Blossom Delight 75ml,"588,00",Testers,,619-tester-bvlgari-rose-goldea-blossom-delight-75ml.png,,,5
+TESTER_12,Tester CH Men 100ml,"504,00",Testers,,581-tester-ch-men-100ml.png,,,5
+TESTER_13,Tester Ciclo Mini Bee (Ovelha) 100ml,"45,00",Testers,,058-tester-ciclo-mini-bee-ovelha-100ml.png,,,0
+TESTER_14,Tester Ciclo Mini Bela 100ml,"45,00",Testers,,059-tester-ciclo-mini-bela-100ml.png,,,0
+TESTER_15,Tester Ciclo Mini Mel 100ml,"45,00",Testers,,060-tester-ciclo-mini-mel-100ml.png,,,0
+TESTER_16,Tester Ciclo Mini Pinguim 100ml,"45,00",Testers,,061-tester-ciclo-mini-pinguim-100ml.png,,,5
+TESTER_17,Tester Ciclo Mini Quequé 100ml,"45,00",Testers,,062-tester-ciclo-mini-quequ-100ml.png,,,0
+TESTER_18,Tester Ciclo Mini Raposete 100ml,"45,00",Testers,,063-tester-ciclo-mini-raposete-100ml.png,,,5
+TESTER_19,Tester Ciclo Mini Rino 100ml,"45,00",Testers,,064-tester-ciclo-mini-rino-100ml.png,,,5
+TESTER_20,Tester Ciclo Mini Ursolina 100ml,"45,00",Testers,,065-tester-ciclo-mini-ursolina-100ml.png,,,5
+TESTER_21,Tester D&G Pour Homme 125ml,"420,00",Testers,,561-tester-d-g-pour-homme-125ml.png,,,5
+TESTER_22,Tester Fakhar Rose 100ml,"225,00",Testers,,482-tester-fakhar-ros-100-ml.png,,,5
+TESTER_23,Tester Fame EDP 80ml,"560,00",Testers,,601-tester-fame-edp-80ml.png,,,0
+TESTER_24,Tester Fame In Love EDP 80ml,"658,00",Testers,,654-tester-fame-in-love-edp-80ml.png,,,5
+TESTER_25,Tester Gucci Guilty Elixir De Parfum Masculino 60ml,"616,00",Testers,,633-tester-gucci-guilty-elixir-de-parfum-masculino-60ml.png,,,5
+TESTER_26,Tester Idole EDP 50ml,"476,00",Testers,,575-tester-idole-edp-50ml.png,,,0
+TESTER_27,Tester Invictus Elixir 100ml,"574,00",Testers,,610-tester-invictus-elixir-100ml.png,,,0
+TESTER_28,Tester Issey Miyake Pour Homme 125ml,"329,00",Testers,,531-tester-issey-miyake-pour-homme-125ml.png,,,5
+TESTER_29,Tester Jo Malone English Pear 100ml,"877,50",Testers,,721-tester-j-malone-english-pear-100-ml.png,,,0
+TESTER_30,Tester Jean Paul Gaultier La Belle 100ml,"588,00",Testers,,620-tester-jpg-la-belle-100ml.png,,,0
+TESTER_31,Tester La Belle Rosea EDP 100ml,"672,00",Testers,,662-tester-la-belle-rosea-edp-100ml.png,,,0
+TESTER_32,Tester La Vie Est Belle 75ml,"546,00",Testers,,593-tester-la-vie-est-belle-75ml.png,,,5
+TESTER_33,Tester Le Beau Le Parfum 125ml,"560,00",Testers,,602-tester-le-beau-le-parfum-125ml.png,,,5
+TESTER_34,Tester Le Male Elixir Absolu 125ml,"602,00",Testers,,628-tester-le-male-elixir-absolu-125ml.png,,,5
+TESTER_35,Tester Le Male Le Parfum 125ml,"546,00",Testers,,594-tester-le-male-le-parfum-125ml.png,,,0
+TESTER_36,Tester Libre Absolu Platine 90ml,"972,00",Testers,,731-tester-libre-absolu-platine-90ml.png,,,5
+TESTER_37,Tester Libre Berry Crush EDP 90ml,"877,50",Testers,,722-tester-libre-berry-crush-edp-90ml.png,,,5
+TESTER_38,Tester Libre EDP 90ml,"756,00",Testers,,691-tester-libre-edp-90ml.png,,,0
+TESTER_39,Tester My Way EDP 90ml,"686,00",Testers,,669-tester-my-way-edp-90ml.png,,,5
+TESTER_40,Tester Nautica Voyage 100ml,"120,00",Testers,,333-tester-nautica-voyage-100ml.png,,,5
+TESTER_41,Tester Olympea Elixir EDP 80ml,"644,00",Testers,,648-tester-olympea-elixir-edp-80ml.png,,,5
+TESTER_42,Tester One Million Royal 100ml,"476,00",Testers,,576-tester-one-million-royal-100ml.png,,,5
+TESTER_43,Tester Phantom Elixir Masculino 100ml,"560,00",Testers,,603-tester-phantom-elixir-masc-100ml.png,,,5
+TESTER_44,Tester Phantom In Red 100ml,"602,00",Testers,,629-tester-phantom-in-red-100ml.png,,,5
+TESTER_45,Tester Scandal Elixir Masculino 100ml,"672,00",Testers,,663-tester-scandal-elixir-masc-100ml.png,,,5
+TESTER_46,Tester Silver Scent 100ml,"180,00",Testers,,452-tester-silver-scent-100ml.png,,,5
+TESTER_47,Tester Silver Scent Intense 100ml,"195,00",Testers,,462-tester-silver-scent-intense-100ml.png,,,5
+TREE_HURT_1,Esfoliante Aurora Nights,"127,50",Tree Hurt,,342-esfoliante-aurora-nigths.png,,,5
+TREE_HURT_2,Esfoliante Coco Colada,"127,50",Tree Hurt,,343-esfoliante-coco-colada.png,,,0
+TREE_HURT_3,Esfoliante Desert Haze,"127,50",Tree Hurt,,344-esfoliante-desert-haze.png,,,5
+TREE_HURT_4,Esfoliante Dragon Fruit,"127,50",Tree Hurt,,345-esfoliante-dragon-fruit.png,,,5
+TREE_HURT_5,Esfoliante Electric Beach,"127,50",Tree Hurt,,346-esfoliante-eletric-beach.png,,,5
+TREE_HURT_6,Esfoliante Jelly Bear,"127,50",Tree Hurt,,347-esfoliante-jelly-bear.png,,,5
+TREE_HURT_7,Esfoliante Lotus Water,"127,50",Tree Hurt,,348-esfoliante-lotus-water.png,,,5
+TREE_HURT_8,Esfoliante Moonlight Glow,"127,50",Tree Hurt,,349-esfoliante-moonlight-glow.png,,,5
+TREE_HURT_9,Esfoliante Ocean Glow,"127,50",Tree Hurt,,350-esfoliante-ocean-glow.png,,,5
+TREE_HURT_10,Esfoliante Papaya Paradise,"127,50",Tree Hurt,,351-esfoliante-papaya-paradise.png,,,5
+TREE_HURT_11,Esfoliante Passionfruit Sol,"127,50",Tree Hurt,,352-esfoliante-passionfruit-sol.png,,,5
+TREE_HURT_12,Esfoliante Peach Sorbet,"127,50",Tree Hurt,,353-esfoliante-peach-sorbet.png,,,0
+TREE_HURT_13,Esfoliante Peppermint Pearl,"127,50",Tree Hurt,,354-esfoliante-peppermint-pearl.png,,,0
+TREE_HURT_14,Esfoliante Raspberry,"127,50",Tree Hurt,,355-esfoliante-raspberry.png,,,5
+TREE_HURT_15,Esfoliante Sunkissed Poppy,"127,50",Tree Hurt,,356-esfoliante-sunkissed-poppy.png,,,5
+TREE_HURT_16,Esfoliante Tangerine,"127,50",Tree Hurt,,357-esfoliante-tangerine.png,,,5
+TREE_HURT_17,Esfoliante Tropic Glow,"127,50",Tree Hurt,,358-esfoliante-tropic-glow.png,,,5
+TREE_HURT_18,Esfoliante Tropical Mango,"127,50",Tree Hurt,,359-esfoliante-tropical-mango.png,,,5
+TREE_HURT_19,Esfoliante Blue Lagoon,"127,50",Tree Hurt,,360-esfoliantes-blue-lagoon.png,,,0
+TREE_HURT_20,Sabonete Butterfly 295ml,"120,00",Tree Hurt,,325-sabonete-butterfly-295ml.png,,,5
+TREE_HURT_21,Sabonete Champagne Toast 295ml,"120,00",Tree Hurt,,326-sabonete-champagne-toast-295ml.png,,,5
+TREE_HURT_22,Sabonete Gingham 295ml,"120,00",Tree Hurt,,327-sabonete-gingham-295ml.png,,,5
+TREE_HURT_23,Sabonete Gingham Gorgeous 295ml,"120,00",Tree Hurt,,328-sabonete-gingham-gorgeous-295ml.png,,,5
+TREE_HURT_24,Sabonete Into The Night 295ml,"120,00",Tree Hurt,,329-sabonete-into-the-night-295ml.png,,,5
+TREE_HURT_25,Sabonete Pink Hibiscus 532ml,"127,50",Tree Hurt,,370-sabonete-pink-hibiscus-532ml.png,,,0
+TREE_HURT_26,Sabonete Pure Wonder 295ml,"120,00",Tree Hurt,,330-sabonete-pure-wonder-295ml.png,,,5
+TREE_HURT_27,Sabonete Warm Vanilla Sugar 295ml,"120,00",Tree Hurt,,331-sabonete-warm-vanilla-sugar-295ml.png,,,5
+TREE_HURT_28,Esfoliante Pink Hibiscus,"127,50",Tree Hurt,,361-esofiliante-pink-hibiscus.png,,,5
+BRAND_G_18,G-069 Tresor La Nuit 80ml,"199,10",Brand Collection 80ML - 100ML,,444-g-069-tresor-la-nuit-80ml.png,,,5
+IMPORTADO_385,Euphoria Feminino EDP 100ml,"504,00",Importados,,580-euphoria-feminino-edp-100ml.png,,,0
+IMPORTADO_386,Eva Aura Arqus,"195,00",Importados,,458-eva-aura-arqus.png,,,0
+ARABE_200,Fakhar Gold 100ml,"225,00",Árabes,,477-fakhar-gold-100ml.png,,,5
+IMPORTADO_387,Fame Feline EDP 80ml,"1107,00",Importados,,740-fame-feline-edp-80ml.png,,,0
+IMPORTADO_388,Fantasy Did It Again 100ml,"294,00",Importados,,515-fantasy-did-it-again-100ml.png,,,5
+IMPORTADO_389,Fayora Oshino 100ml (La Bomba),"329,00",Importados,,529-fayora-oshino-100ml-la-bomba.png,,,5
+IMPORTADO_390,Gabrielle Chanel Essence EDP 100ml,"1282,50",Importados,,749-gabrielle-chanel-essence-edp-100ml.png,,,0
+IMPORTADO_391,God Of Fire 50ml Stephane Humbert Lucas,"2025,00",Importados,,760-god-of-fire-50ml-stephane-humbert-lucas.png,,,5
+IMPORTADO_392,Good Girl Polka Paradise 80ml,"812,00",Importados,,704-good-girl-polka-paradise-80ml.png,,,5
+IMPORTADO_393,Gucci Flora EDP Intense 100ml,"770,00",Importados,,695-gucci-flora-edp-intense-100ml.png,,,5
+IMPORTADO_394,Gucci Flora EDP Intense Feminino 50ml,"672,00",Importados,,658-gucci-flora-edp-intense-50ml-fem.png,,,5
+IMPORTADO_395,Habik 100ml,"301,00",Importados,,521-habik-100ml.png,,,5
+IMPORTADO_396,Hawas Elixir EDP 100ml,"329,00",Importados,,530-hawas-elixir-edp-100ml.png,,,5
+IMPORTADO_397,Carolina Herrera EDT 100ml,"546,00",Importados,,591-herrera-edt-100ml.png,,,5
+IMPORTADO_398,Carolina Herrera For Men EDT 100ml,"406,00",Importados,,558-herrera-for-men-edt-100ml.png,,,5
+IMPORTADO_399,Hidratante Moonlight Glow,"127,50",Importados,,362-hidratante-moonlight-glow.png,,,5
+IMPORTADO_400,Hidratante Moroccan Rose,"127,50",Importados,,363-hidratante-moroccan-rose.png,,,5
+IMPORTADO_401,Hidratante Passion Fruit,"127,50",Importados,,364-hidratante-passion-fruit.png,,,0
+IMPORTADO_402,Hidratante Tropic Glow,"127,50",Importados,,365-hidratante-tropic-glow.png,,,0
+IMPORTADO_403,Hidratante Vanilla 240g,"127,50",Importados,,366-hidratante-vanilla-240g.png,,,5
+IMPORTADO_404,Hidratante Watermelon (Melancia),"127,50",Importados,,367-hidratante-watermelon-melancia.png,,,5
+IMPORTADO_405,Hugo Boss Bottled Elixir 100ml,"672,00",Importados,,659-hugo-boss-bottled-elixir-100ml.png,,,5
+IMPORTADO_406,Hugo Boss Bottled Night EDT 100ml,"392,00",Importados,,554-hugo-boss-bottled-night-edt-100ml.png,,,5
+IMPORTADO_407,Hugo Man Hugo Boss EDT 125ml,"378,00",Importados,,549-hugo-man-hugo-boss-edt-125ml.png,,,5
+IMPORTADO_408,Idole Peach'N Roses 100ml,"904,50",Importados,,724-idole-peach-n-roses-100ml.png,,,5
+IMPORTADO_409,Inspiração Atheeri EDP 30ml Afeer,"60,00",Importados,,154-inspira-o-atheeri-edp-30ml-afeer.png,,,0
+IMPORTADO_410,Irresistible EDP 80ml,"763,00",Importados,,692-irresistible-edp-80ml.png,,,5
+IMPORTADO_411,Irresistible Nectar 80ml,"742,00",Importados,,686-irresistible-nectar-80ml.png,,,5
+IMPORTADO_412,Island Bliss 15ml,"30,00",Importados,,005-island-bliss-15ml.png,,,5
+IMPORTADO_413,Jean Paul Gaultier Le Male Elixir 125ml + Sabonete 75ml,"742,00",Importados,,687-j-p-g-le-male-elixir-125ml-sabonete-75ml.png,,,5
+IMPORTADO_414,Jean Paul Gaultier Ultra Male Masculino 125ml,"574,00",Importados,,605-j-p-g-ultra-male-m-125ml.png,,,5
+IMPORTADO_415,Jorge Di Profumo 100ml (Acqua Di Gio Parfum),"202,50",Importados,,463-jorge-di-profumo-100ml-acqua-di-gio-parfum.png,,,0
+IMPORTADO_416,Jorge Di Profumo Deep Blue 100ml,"180,00",Importados,,451-jorge-di-profumo-deep-blue-100ml.png,,,0
+IMPORTADO_417,Khamrah Qahwa EDP 100ml,"476,00",Importados,,572-khamrah-waha-edp-100ml.png,,,0
+IMPORTADO_418,King Of Arabia 100ml (+ 4 Decants),"308,00",Importados,,523-king-of-arabia-100ml-4-decants.png,,,5
+IMPORTADO_419,Kit 12 Vidros Para Decant 10ml,"90,00",Importados,,248-kit-12-vidros-pra-decante-10-ml.png,,,5
+IMPORTADO_420,Kit Adidas Goal EDT 100ml + Desodorante 150ml,"165,00",Importados,,447-kit-adidas-goal-edt-100ml-desod-150ml.png,,,5
+IMPORTADO_421,Kit Azzaro Wanted EDT Masculino,"644,00",Importados,,646-kit-azzaro-wanted-edt-masculino.png,,,5
+IMPORTADO_422,Kit Cabotine EDT 100ml + Creme 200ml,"225,00",Importados,,478-kit-cabotine-edt-100ml-creme-200ml.png,,,5
+IMPORTADO_423,"Kit Chloé Travel 5ml (Chloé EDP e EDT, Nomade EDP e EDT)","378,00",Importados,,550-kit-chloe-travel-5ml-chloe-edp-e-edt-nomade-edp-e-edt.png,,,0
+IMPORTADO_424,Kit Decant Bare Vanilla 10ml + Creme 25ml,"60,00",Importados,,155-kit-decante-bare-vanila-10-ml-creme-25-ml.png,,,5
+IMPORTADO_425,Kit Fame: Perfume EDP 80ml + Hidratante 100ml,"770,00",Importados,,696-kit-fame-perfume-edp-80ml-hidratante-100ml.png,,,5
+IMPORTADO_426,Kit Good Girl Very Elixir 80ml + Creme,"791,00",Importados,,701-kit-good-girl-very-elixir-80ml-creme.png,,,5
+IMPORTADO_427,Kit La Vie Est Belle: Perfume 100ml + Miniatura 10ml + Hidratante 50ml,"870,75",Importados,,718-kit-la-vie-est-belle-perfume-100ml-caneta-10ml-hidratante-50ml.png,,,5
+IMPORTADO_428,Kit Marina Classique 100ml,"308,00",Importados,,524-kit-marina-classique-100ml.png,,,5
+IMPORTADO_429,Kit Michael Kors Feminino 50ml,"511,00",Importados,,582-kit-michael-kors-feminino-50ml.png,,,5
+IMPORTADO_430,Kit Michael Kors Masculino 50ml,"511,00",Importados,,583-kit-michael-kors-masculino-50ml.png,,,5
+IMPORTADO_431,Kit Mont'Anne My Way,"150,00",Importados,,411-kit-mont-anne-my-way.png,,,5
+IMPORTADO_432,Kit Moschino Toy 2 Pearl Unissex,"560,00",Importados,,598-kit-moschino-toy-2-pearl-unissex.png,,,5
+IMPORTADO_433,Kit My Way 90ml + Shower Gel 50ml,"830,25",Importados,,715-kit-my-way-90ml-shower-gel-50ml.png,,,5
+IMPORTADO_434,Kit Nebras EDP,"336,00",Importados,,532-kit-nebras-edp.png,,,0
+IMPORTADO_435,Kit Polo Blue EDT 125ml + 40ml,"679,00",Importados,,667-kit-polo-blue-edt-125ml-40ml.png,,,5
+IMPORTADO_436,Kit Signature Absolue 50ml + 100ml,"469,00",Importados,,570-kit-signature-absolue-50ml-100ml.png,,,5
+IMPORTADO_437,Kit UFC Takedown,"378,00",Importados,,551-kit-ufc-takedown.png,,,5
+IMPORTADO_438,Kit UFC Ultimate K.O,"378,00",Importados,,552-kit-ufc-ultimate-k-o.png,,,5
+IMPORTADO_439,Kit Uniq One Shampoo 150ml + Tratamento 100ml + Necessaire,"172,50",Importados,,449-kit-uniq-one-shampoo-150ml-tratamento-100ml-necessaire.png,,,0
+IMPORTADO_440,Kit Versace Bright Crystal EDT 50ml + Creme 100ml,"560,00",Importados,,599-kit-versace-bright-crystal-edt-50ml-creme-100ml.png,,,5
+IMPORTADO_441,Kit Versace Crystal Noir Feminino 50ml,"574,00",Importados,,606-kit-versace-crystal-noir-fem-50ml.png,,,5
+IMPORTADO_442,Kit Versace Eros Flame,"588,00",Importados,,614-kit-versace-eros-flame.png,,,0
+IMPORTADO_443,Kit Yara Collection (4x5ml),"165,00",Importados,,448-kit-yara-collection-4x5ml.png,,,5
+IMPORTADO_444,La Bomba 15ml,"30,00",Importados,,035-la-bomba-15ml.png,,,0
+IMPORTADO_445,La Charmante Eclatant 100ml,"187,50",Importados,,456-la-charmante-eclatant-100ml.png,,,0
+IMPORTADO_446,La Charmante EDP 100ml,"195,00",Importados,,460-la-charmante-edp-100ml.png,,,5
+IMPORTADO_447,La Vie Est Belle EDP 150ml,"843,75",Importados,,716-la-vie-est-belle-edp-150ml.png,,,5
+IMPORTADO_448,La Vie Est Belle Sparkling Edition 50ml,"644,00",Importados,,647-la-vie-est-belle-sparkling-edition-50ml.png,,,5
+IMPORTADO_449,Lady Million Royal 80ml,"602,00",Importados,,623-lady-million-royal-80ml.png,,,5
+IMPORTADO_450,Laguna 100ml,"285,00",Importados,,504-laguna-100ml.png,,,5
+IMPORTADO_451,Lattafa Maahir Honor 100ml,"336,00",Importados,,533-lattafa-maahir-honor-100ml.png,,,5
+IMPORTADO_452,Layaan 100ml,"336,00",Importados,,534-layaan-100ml.png,,,5
+IMPORTADO_453,Le Male In Blue 125ml,"700,00",Importados,,677-le-male-in-blue-125ml.png,,,5
+IMPORTADO_454,Legend Blue Montblanc 100ml,"392,00",Importados,,556-legend-blue-montblanc-100ml.png,,,0
+IMPORTADO_455,Light Blue Feminino EDP 100ml,"588,00",Importados,,615-light-blue-fem-edp-100ml.png,,,0
+IMPORTADO_456,Light Blue Masculino EDP 100ml,"574,00",Importados,,607-light-blue-masc-edp-100ml.png,,,5
+IMPORTADO_457,L'Interdit Givenchy EDP 80ml,"658,00",Importados,,653-linterdit-givenchy-edp-80ml.png,,,5
+IMPORTADO_458,Maahir Legacy,"255,00",Importados,,497-maahir-legacy.png,,,0
+IMPORTADO_459,Maleta Cici Bela,"75,00",Importados,,221-maleta-cici-bela.png,,,5
+IMPORTADO_460,Maleta De Maquiagem Completa Resistente À Água,"90,00",Importados,,250-maleta-de-maquiagem-completa-resistente-gua.png,,,0
+IMPORTADO_461,Marc Jacobs Absolute EDP 100ml,"1039,50",Importados,,736-marc-jacobs-absolute-edp-100ml.png,,,5
+IMPORTADO_462,Marshmallow Blush 15ml,"30,00",Importados,,036-marshmallow-blush-15ml.png,,,5
+IMPORTADO_463,Mawwal Fantasy Basir 100ml,"322,00",Importados,,527-mawwal-fantasy-basir-100ml.png,,,0
+IMPORTADO_464,Meliora Parfums De Marly 75ml,"2268,00",Importados,,764-meliora-parfums-de-marly-75ml.png,,,5
+IMPORTADO_465,Mercedes-Benz EDT 120ml,"350,00",Importados,,540-mercedes-benz-edt-120ml.png,,,5
+IMPORTADO_466,Mercedes-Benz EDT Intense 100ml,"350,00",Importados,,541-mercedes-benz-edt-intense-100ml.png,,,5
+IMPORTADO_467,Mercedes-Benz EDT Intense 120ml,"364,00",Importados,,547-mercedes-benz-edt-intense-120ml.png,,,5
+IMPORTADO_468,Mercedes-Benz For Women EDP 90ml,"364,00",Importados,,548-mercedes-benz-for-women-edp-90ml.png,,,5
+IMPORTADO_469,Mercedes-Benz Select EDT 100ml,"350,00",Importados,,542-mercedes-benz-select-edt-100ml.png,,,5
+IMPORTADO_470,Mercedes-Benz Ultimate EDP 120ml,"350,00",Importados,,543-mercedes-benz-ultimate-edp-120ml.png,,,5
+IMPORTADO_471,Michael Kors Sexy Amber EDP 100ml,"300,00",Importados,,510-michael-kors-sexy-amber-edp-100ml.png,,,0
+IMPORTADO_472,Million Gold Pure Diamond EDP 90ml,"843,75",Importados,,006-million-gold-pure-diamond-90ml-edp.png,,,5
+IMPORTADO_473,Mindset 100ml (MYSLF),"294,00",Importados,,516-mindset-100ml-myself.png,,,5
+IMPORTADO_474,Miniatura 212 VIP Black EDP 8ml,"117,65",Importados,,271-miniatura-212-vip-black-edp-8ml.png,,,5
+IMPORTADO_475,Miniatura Bad Boy Cobalt Absolute 8ml,"117,65",Importados,,272-miniatura-bad-boy-cobalt-absolute-8ml.png,,,5
+IMPORTADO_476,Miniatura Caneta 10ml,"135,75",Importados,,285-miniatura-caneta-10ml.png,,,5
+IMPORTADO_477,Miniatura Daisy Wild Eau So Intense 4ml,"126,70",Importados,,279-miniatura-daisy-wild-eau-so-intense-4ml.png,,,5
+IMPORTADO_478,Miniatura Euphoria 15ml,"135,75",Importados,,286-miniatura-euphoria-15ml.png,,,0
+IMPORTADO_479,Miniatura Gucci Flora Intense 5ml,"126,70",Importados,,280-miniatura-gucci-flora-intense-5ml.png,,,5
+IMPORTADO_480,Miniatura Invictus EDT 5ml,"117,65",Importados,,273-miniatura-invictus-edt-5ml.png,,,5
+IMPORTADO_481,Miniatura Invictus Elixir 5ml,"135,75",Importados,,287-miniatura-invictus-elixir-5ml.png,,,5
+IMPORTADO_482,Miniatura Le Male Elixir Absolu 7ml,"117,65",Importados,,274-miniatura-le-male-elixir-absolu-7ml.png,,,0
+IMPORTADO_483,Miniatura Olympea Elixir 6ml,"135,75",Importados,,288-miniatura-olympea-elixir-6ml.png,,,0
+IMPORTADO_484,Miniatura Phantom In Red 5ml,"153,85",Importados,,368-miniatura-phantom-in-red-5ml.png,,,5
+IMPORTADO_485,Miracle EDP 100ml Lancôme,"630,00",Importados,,637-miracle-edp-100ml-lancome.png,,,5
+IMPORTADO_486,Montblanc Explorer Extreme Parfum Masculino 100ml,"546,00",Importados,,592-montblanc-explorer-extreme-parfum-masc-100ml.png,,,5
+IMPORTADO_487,Montblanc Legend Red EDP 100ml,"336,00",Importados,,535-montblanc-legend-red-edp-100ml.png,,,5
+IMPORTADO_488,Montblanc Legend Spirit EDT 100ml,"336,00",Importados,,536-montblanc-legend-spirit-edt-100ml.png,,,5
+IMPORTADO_489,Montblanc Signature Elixir EDP 90ml,"532,00",Importados,,587-montblanc-signature-elixir-edp-90ml.png,,,5
+IMPORTADO_490,Moschino Toy 2 Bubble Gum 100ml,"490,00",Importados,,577-moschino-toy-2-bubble-gum-100ml.png,,,5
+IMPORTADO_491,My Devotion EDP Intense 100ml,"864,00",Importados,,717-my-devotion-edp-intense-100ml.png,,,5
+IMPORTADO_492,My Devotion EDP Intense 30ml,"476,00",Importados,,573-my-devotion-edp-intense-30ml.png,,,5
+IMPORTADO_493,MYSLF L'Absolu 100ml,"1208,25",Importados,,747-myslf-l-absolu-100-ml.png,,,5
+IMPORTADO_494,Nishane Ani 100ml,"2119,50",Importados,,761-nishane-ani-100ml.png,,,5
+IMPORTADO_495,Nishane Hacivat X 100ml,"1687,50",Importados,,754-nishane-hacivat-x-100ml.png,,,0
+IMPORTADO_496,Nishane Hundred Silent Ways 100ml,"2295,00",Importados,,768-nishane-hundred-silent-ways-100ml.png,,,0
+IMPORTADO_497,Nishane Wulong Cha 100ml,"1917,00",Importados,,757-nishane-wulong-cha-100ml.png,,,5
+IMPORTADO_498,Olivia 80ml (Olympea),"240,00",Importados,,489-olivia-80ml-olympea.png,,,5
+IMPORTADO_499,Olympea Elixir 80ml,"812,00",Importados,,706-olympea-elixir-80ml.png,,,5
+IMPORTADO_500,Ophidian Mango Bliss 100ml,"336,00",Importados,,537-ophidian-mango-bliss-100ml.png,,,5
+IMPORTADO_501,Pacific Blue 80ml (Tom Ford Porto Neroli),"225,00",Importados,,481-pacific-blue-80ml-porto-neroli-tom-ford.png,,,0
+IMPORTADO_502,Paco Rabanne Pour Homme 100ml,"350,00",Importados,,544-paco-rabanne-pour-homme-100ml.png,,,5
+Cremes_21,Pasta Angel Afeer 250ml,"142,50",Cremes,,398-pasta-angel-afeer-250ml.png,,,0
+Cremes_22,Pasta Candid 200g (Scandal),"142,50",Cremes,,399-pasta-candid-200g-scandal.png,,,5
+Cremes_23,Pasta Club De Nuit Maleka,"142,50",Cremes,,400-pasta-club-de-nuit-maleka.png,,,5
+Cremes_24,Pasta Queen Of Arabia 200g,"142,50",Cremes,,401-pasta-queen-of-ar-bia-200g.png,,,5
+Cremes_25,Pasta Shimmer Atheeri 90g,"90,00",Cremes,,251-pasta-shimmer-atheeri-90g.png,,,5
+Cremes_26,Pasta Shimmer Fakhar Rose 90g,"90,00",Cremes,,252-pasta-shimmer-fakhar-rose-90g.png,,,5
+Cremes_27,Pasta Shimmer Royal Amber 90g,"90,00",Cremes,,253-pasta-shimmer-royal-amber-90g.png,,,5
+Cremes_28,Pasta Shimmer Sabah 90g,"90,00",Cremes,,254-pasta-shimmer-sabah-90g.png,,,5
+Cremes_29,Pasta Shimmer Yara 90g,"90,00",Cremes,,255-pasta-shimmer-yara-90g.png,,,5
+Cremes_30,Pasta Supremacia 200g,"142,50",Cremes,,402-pasta-supremacia-200g.png,,,5
+Cremes_31,Pasta Victoria 200g (Devotion),"142,50",Cremes,,403-pasta-victoria-200g-devotion.png,,,5
+Cremes_32,Pasta Yara Afeer,"142,50",Cremes,,404-pasta-yara-afeer.png,,,5
+IMPORTADO_505,Phantom Elixir 100ml,"630,00",Importados,,639-phantom-elixir-100ml.png,,,5
+IMPORTADO_506,Philos Messenger EDP 100ml,"210,00",Importados,,472-philos-messenger-edp-100ml.png,,,0
+IMPORTADO_507,Philos Opus Noir 100ml (Xerjoff Opera),"195,00",Importados,,461-philos-opus-noir-100ml-xerjoff-opera.png,,,5
+IMPORTADO_508,Philos Pura EDP 100ml,"240,00",Importados,,490-philos-pura-edp-100ml.png,,,5
+IMPORTADO_509,Pink Eclipse EDP 100ml,"301,00",Importados,,522-pink-eclipse-edp-100ml.png,,,0
+IMPORTADO_510,Platinum Égoïste Chanel EDT 100ml,"972,00",Importados,,729-platinum-egoiste-chanel-edt-100ml.png,,,5
+IMPORTADO_511,Polo Blue EDT 125ml,"588,00",Importados,,616-polo-blue-edt-125ml.png,,,0
+IMPORTADO_512,Polo Verde EDT 118ml,"574,00",Importados,,608-polo-verde-edt-118ml.png,,,5
+IMPORTADO_513,Porta Joias Gucci Pequena,"150,00",Importados,,415-porta-joias-gucci-pequena.png,,,5
+IMPORTADO_514,Prada Candy Kiss Feminino 80ml,"728,00",Importados,,680-prada-candy-kiss-fem-80ml.png,,,0
+IMPORTADO_515,Prada Paradoxe Radical Essence 90ml,"1127,25",Importados,,741-prada-paradoxe-radical-essence-90ml.png,,,5
+IMPORTADO_516,Queen Check Mate Armaf 100ml (Scandal Intense),"308,00",Importados,,525-queen-check-mate-armaf-100ml-scandal-intense.png,,,5
+IMPORTADO_517,Queen Of Arabia 15ml,"30,00",Importados,,038-queen-of-ar-bia-15ml.png,,,0
+IMPORTADO_518,Rayhaan Divine EDP 100ml,"420,00",Importados,,560-rayhaan-divine-edp-100ml.png,,,5
+IMPORTADO_519,Rayhaan EDP 100ml (Ultra Male),"300,00",Importados,,513-rayhaan-edp-100ml-ultra-male.png,,,0
+IMPORTADO_520,Rayhaan Kiss EDP 100ml,"462,00",Importados,,569-rayhaan-kiss-edp-100ml.png,,,0
+IMPORTADO_521,Refil Prada Paradoxe EDP 100ml,"784,00",Importados,,700-refil-prada-paradoxe-edp-100ml.png,,,5
+IMPORTADO_522,Rose Seduction VIP Maison Alhambra 100ml,"247,50",Importados,,494-rose-seduction-vip-maison-alhambra-100-ml.png,,,5
+IMPORTADO_523,Salvador Dali Dalissime 100ml,"294,00",Importados,,517-salvador-dali-dalissime-100ml.png,,,5
+IMPORTADO_524,Scandal Elixir Masculino 100ml,"812,00",Importados,,707-scandal-elixir-masc-100ml.png,,,0
+IMPORTADO_525,Sospiro Vibranna 100ml,"1957,50",Importados,,759-sospiro-vibranna-100ml.png,,,5
+IMPORTADO_526,Spectre Wraith 80ml,"315,00",Importados,,526-spectre-wraith-80ml.png,,,0
+IMPORTADO_527,Supremacy Collection Edition 100ml,"476,00",Importados,,574-supremacy-collection-edition-100ml.png,,,0
+IMPORTADO_528,Supremacy Not Only Intense 100ml,"406,00",Importados,,559-supremacy-not-only-intense-100ml.png,,,0
+IMPORTADO_529,Sweet Tooth Caramel Dream 75ml Sabrina Carpenter,"294,00",Importados,,518-sweet-tooth-caramel-dream-75ml-sabrina-carpenter.png,,,5
+IMPORTADO_530,Sweet Tooth Cherry Baby 75ml Sabrina Carpenter,"294,00",Importados,,519-sweet-tooth-chenny-baby-75ml-sabrina-carpenter.png,,,5
+IMPORTADO_531,Sweet Tooth Rosa EDP 75ml Sabrina Carpenter,"294,00",Importados,,520-sweet-tooth-rosa-edp-75ml-sabrina-carpenter.png,,,5
+IMPORTADO_532,The One Gold Feminino EDP Intense 75ml,"686,00",Importados,,670-the-one-gold-fem-edp-intense-75ml.png,,,5
+IMPORTADO_533,The One Gold Masculino EDP Intense 100ml,"616,00",Importados,,634-the-one-gold-masc-edp-intense-100ml.png,,,5
+IMPORTADO_534,The White Cloud 100ml,"262,50",Importados,,501-the-white-cloud-100ml.png,,,0
+IMPORTADO_535,Tubbees Infantil Bubble Gum 50ml,"120,00",Importados,,334-tubbees-infantil-bubble-gum-50ml.png,,,5
+IMPORTADO_536,Tubbees Infantil Chocolate Fudge 50ml,"120,00",Importados,,335-tubbees-infantil-chocolate-fudge-50ml.png,,,0
+IMPORTADO_537,Tubbees Infantil Pink Sugar 50ml,"120,00",Importados,,336-tubbees-infantil-pink-sugar-50ml.png,,,0
+IMPORTADO_538,Tubbees Lemon A Licious 50ml,"150,00",Importados,,417-tubbees-lemon-a-licious-50ml.png,,,5
+IMPORTADO_539,Tubbees Passion Fruit Mojito EDP 50ml (Lata),"150,00",Importados,,418-tubbees-passion-fruit-mojito-50ml-edp-lata.png,,,5
+IMPORTADO_540,Valaya Exclusif Parfums De Marly 75ml,"2295,00",Importados,,769-valaya-exclusif-parfums-de-marly-75ml.png,,,5
+IMPORTADO_541,Valentino Donna Born In Roma Extradose 100ml,"1066,50",Importados,,738-valentino-donna-born-in-roma-extradose-100ml.png,,,5
+IMPORTADO_542,Valentino Donna Born In Roma Intense 100ml,"1026,00",Importados,,734-valentino-donna-born-in-roma-intense-100ml.png,,,5
+IMPORTADO_543,Valentino Donna Born In Roma Purple Melancholia 100ml,"1080,00",Importados,,739-valentino-donna-born-in-roma-purple-melacholia-100ml.png,,,0
+IMPORTADO_544,Valentino Green Stravaganza Feminino EDP 100ml,"918,00",Importados,,727-valentino-green-stravaganza-edp-100ml-femme.png,,,5
+IMPORTADO_545,Valentino Uomo Born In Roma Intense Masculino 50ml,"749,00",Importados,,689-valentino-uomo-born-in-roma-intense-50ml-masc.png,,,5
+IMPORTADO_546,Vanilla Powder EDP 100ml,"2592,00",Importados,,771-vanilla-powder-edp-100ml.png,,,0
+IMPORTADO_547,Vela Cactus Blossom 3 Pavios 411g,"202,50",Importados,,465-vela-cactus-blossom-3-pavios-411g.png,,,0
+IMPORTADO_548,Vela Eucalyptus Mint 3 Pavios 411g,"202,50",Importados,,466-vela-eucalyptus-mint-3-pavios-411g.png,,,0
+IMPORTADO_549,Vela Mahogany Teakwood 3 Pavios 411g,"202,50",Importados,,467-vela-mahogany-teakwood-3-pavios-411g.png,,,0
+IMPORTADO_550,Versace Crystal Emerald Pour Femme 90ml,"672,00",Importados,,664-versace-crystal-emerald-pour-femme-90ml.png,,,5
+IMPORTADO_551,Versace Crystal Noir EDP 90ml,"602,00",Importados,,630-versace-crystal-noir-edp-90ml.png,,,5
+IMPORTADO_552,Victorio & Lucchino Nº1 Azahar Radiante EDT 150ml,"181,00",Importados,,419-victorio-lucchino-n1-azahar-radiante-edt-150ml.png,,,5
+IMPORTADO_553,Victorio & Lucchino Nº15 Flor Oriental EDP 150ml,"181,00",Importados,,420-victorio-lucchino-n15-flor-oriental-edp-150ml.png,,,5
+IMPORTADO_554,Victorio & Lucchino Nº16 Flor Exótica EDP 150ml,"181,00",Importados,,421-victorio-lucchino-n16-flor-ex-tica-edp-150ml.png,,,5
+IMPORTADO_555,Victorio & Lucchino Nº19 Vitamina Apasionada EDT 150ml,"181,00",Importados,,422-victorio-lucchino-n19-vai-tamina-a-pasionada-edt-150ml.png,,,5
+IMPORTADO_556,Victorio & Lucchino Nº20 Vitamina Exótica EDT 150ml,"181,00",Importados,,423-victorio-lucchino-n20-vitamina-e-xotica-edt-150ml.png,,,5
+IMPORTADO_557,Victorio & Lucchino Nº3 Íris Luminoso EDT 150ml,"181,00",Importados,,424-victorio-lucchino-n3-iris-luminoso-edt-150ml.png,,,5
+IMPORTADO_558,Victorio & Lucchino Nº5 Jazmín Exótico EDT 150ml,"181,00",Importados,,425-victorio-lucchino-n5-jazmin-ex-tico-edt-150ml.png,,,5
+IMPORTADO_559,Victorio & Lucchino Nº6 Magnolia Sensual EDT 150ml,"181,00",Importados,,426-victorio-lucchino-n6-magn-lia-sensual-edt-150ml.png,,,5
+IMPORTADO_560,Victorioso 100ml,"240,00",Importados,,491-victorioso-100ml.png,,,5
+IMPORTADO_561,Victorioso Nero EDP 100ml (Invictus Victory),"217,50",Importados,,473-victorioso-nero-edp-100ml-invictus-victory.png,,,0
+IMPORTADO_562,Xerjoff Alexandria II 100ml,"2322,00",Importados,,770-xerjoff-alexandria-2-100ml.png,,,0
+IMPORTADO_563,Xerjoff Dama Bianca 100ml,"1552,50",Importados,,753-xerjoff-dama-bianca-100ml.png,,,5
+IMPORTADO_564,Xerjoff Mefisto 100ml,"1309,50",Importados,,750-xerjoff-mefisto-100ml.png,,,5
+IMPORTADO_565,Xerjoff Purple Accento 100ml,"1687,50",Importados,,755-xerjoff-purple-accento-100ml.png,,,5
+IMPORTADO_566,Xerjoff Uden Overdose 50ml,"1350,00",Importados,,751-xerjoff-uden-overdose-50ml.png,,,5
+IMPORTADO_567,Y Yves Saint Laurent EDP 100ml,"840,00",Importados,,713-y-yves-sant-laurent-edp-100ml.png,,,5
+IMPORTADO_568,Y Yves Saint Laurent EDT 100ml,"672,00",Importados,,665-y-yves-sant-laurent-edt-100ml.png,,,5
