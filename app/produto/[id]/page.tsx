@@ -2,13 +2,10 @@ import { getProducts } from '@/lib/products';
 import Image from 'next/image';
 import Link from 'next/link';
 
-interface PageProps {
-  params: {
-    id: string;
-  };
-}
+type PageParams = Promise<{ id: string }>;
 
-export default async function ProductPage({ params }: PageProps) {
+export default async function ProductPage(props: { params: PageParams }) {
+  const params = await props.params;
   const { id } = params;
 
   const products = await getProducts();
