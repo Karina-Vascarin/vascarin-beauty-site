@@ -1,49 +1,47 @@
-import { getProducts } from '@/lib/products';
-import Image from 'next/image';
-import Link from 'next/link';
+import fs from 'fs';
+import path from 'path';
+import Papa from 'papaparse';
 
-type PageParams = Promise<{ id: string }>;
+export interface Product {
+  id: string;
+  nome: string;
+  preco: number;
+  categoria: string;
+  marca: string;
+  imagem: string;
+  descricao_resumida: string;
+  descricao_completa: string;
+  disponibilidade: string;
+}
 
-export default async function ProductPage(props: { params: PageParams }) {
-  const params = await props.params;
-  const { id } = params;
+export async function getProducts(): Promise<Product[]> {
+  // Ajuste o caminho dependendo de onde o produtos.csv está salvo!
+  // Se estiver na raiz do projeto: 'produtos.csv'. Se estiver na pasta data: 'data/produtos.csv'
+  const csvFilePath = path.join(process.cwd(), 'produtos.csv'); 
+  
+  try {
+    const file = fs.readFileSync(csvFilePath, 'utf8');
+    
+    const { data } = Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+    });
 
-  const products = await getProducts();
-  const product = products.find((p) => p.id === id || p.nome === id);
-
-  if (!product) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-xl font-bold mb-4">Produto não encontrado</h1>
-        <Link href="/" className="text-xs uppercase font-bold underline">Voltar para o catálogo</Link>
-      </div>
-    );
+    return data.map((row: any) => ({
+      // Traduzindo as colunas do CSV para o que o site da Vascarin Beauty precisa:
+      id: row['SKU'] || Math.random().toString(36).substring(7),
+      nome: row['Nome'] || '',
+      // Limpando o "R$" e transformando a vírgula em ponto para o sistema entender como número
+      preco: parseFloat((row['Venda'] || '0').toString().replace('R$', '').replace(',', '.').trim()),
+      categoria: row['Categoria'] || '',
+      marca: 'Brand Collection', 
+      imagem: row['Imagem'] || '',
+      descricao_resumida: row['Nome de cadastro'] || '',
+      descricao_completa: `Fragrância: ${row['Nome de cadastro']}. Produto premium de alta fixação.`,
+      disponibilidade: parseInt(row['Estoque'] || '0') > 0 ? 'Em Estoque' : 'Esgotado',
+    }));
+  } catch (error) {
+    console.error("Erro ao ler o arquivo CSV:", error);
+    return [];
   }
-
-  return (
-    <main className="max-w-7xl mx-auto px-4 py-12">
-      <Link href="/" className="text-xs uppercase font-bold text-gray-500 hover:text-black mb-8 inline-block">
-        &larr; Voltar ao Início
-      </Link>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-        <div className="relative w-full h-[400px] bg-gray-50 flex items-center justify-center">
-          {product.imagem ? (
-            <Image src={`/produtos/${product.imagem}`} alt={product.nome} fill className="object-contain p-4" />
-          ) : (
-            <span>Sem foto</span>
-          )}
-        </div>
-        
-        <div className="flex flex-col justify-center">
-          <span className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">{product.marca || product.categoria}</span>
-          <h1 className="text-2xl font-black text-black uppercase mb-4">{product.nome}</h1>
-          <span className="text-xl font-bold text-black mb-6">
-            R$ {Number(product.preco || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-          </span>
-          <p className="text-sm text-gray-600 mb-6">{product.descricao_completa}</p>
-        </div>
-      </div>
-    </main>
-  );
 }
