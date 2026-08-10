@@ -15,10 +15,14 @@ export interface Product {
 }
 
 export async function getProducts(): Promise<Product[]> {
-  // Busca o arquivo produtos.csv solto na raiz do site-vascarin
-  const csvFilePath = path.join(process.cwd(), 'data', 'produtos.csv'); 
-  
   try {
+    const csvFilePath = path.join(process.cwd(), 'produtos.csv'); 
+    
+    if (!fs.existsSync(csvFilePath)) {
+      console.warn("Arquivo produtos.csv não encontrado no diretório.");
+      return [];
+    }
+
     const file = fs.readFileSync(csvFilePath, 'utf8');
     
     const { data } = Papa.parse(file, {
@@ -27,17 +31,15 @@ export async function getProducts(): Promise<Product[]> {
     });
 
     return data.map((row: any) => ({
-      id: row.id || Math.random().toString(36).substring(7),
-      nome: row.nome || 'Produto sem nome',
-      // Garante que o preço vire um número válido, aceitando vírgula ou ponto
-      preco: parseFloat((row.preco || '0').toString().replace('R$', '').replace(',', '.').trim()),
-      categoria: row.categoria || 'Geral',
-      marca: row.marca || 'Vascarin Beauty', 
-      imagem: row.imagem || '',
-      descricao_resumida: row.descricao_resumida || '',
-      descricao_completa: row.descricao_completa || '',
-      // Se o estoque for maior que zero, mostra "Em Estoque", senão "Esgotado"
-      disponibilidade: parseInt(row.estoque || '0') > 0 ? 'Em Estoque' : 'Esgotado',
+      id: row['SKU'] || Math.random().toString(36).substring(7),
+      nome: row['Nome'] || '',
+      preco: parseFloat((row['Venda'] || '0').toString().replace('R$', '').replace(',', '.').trim()) || 0,
+      categoria: row['Categoria'] || '',
+      marca: 'Brand Collection', 
+      imagem: row['Imagem'] || '',
+      descricao_resumida: row['Nome de cadastro'] || '',
+      descricao_completa: `Fragrância: ${row['Nome de cadastro'] || ''}. Produto premium de alta fixação.`,
+      disponibilidade: parseInt(row['Estoque'] || '0') > 0 ? 'Em Estoque' : 'Esgotado',
     }));
   } catch (error) {
     console.error("Erro ao ler o arquivo CSV:", error);
