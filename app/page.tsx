@@ -9,19 +9,20 @@ export default async function Home() {
   const products = await getProducts();
 
   return (
-    <main className="min-h-screen bg-white dark:bg-zinc-950 relative flex flex-col justify-between">
-      <div>
+    <main className="min-h-screen bg-white dark:bg-zinc-950 flex flex-col">
+      {/* Container principal que empurra o conteúdo */}
+      <div className="flex-1">
         <Catalog initialProducts={products} />
         
-        {/* Botões flutuantes no canto da tela */}
+        {/* Botões flutuantes */}
         <FloatingActions />
         
-        {/* Painéis laterais da sacola e favoritos (controlados pelo Zustand) */}
+        {/* Painéis laterais */}
         <FloatingCart />
         <FloatingFavorites />
       </div>
 
-      {/* Rodapé fixo com a política de trocas, devoluções e pop-up */}
+      {/* O rodapé agora é forçado a aparecer no final da página */}
       <Footer />
     </main>
   );
