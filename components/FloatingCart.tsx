@@ -23,7 +23,6 @@ export default function FloatingCart() {
 
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [customerEmail, setCustomerEmail] = useState('');
 
   useEffect(() => {
     setIsMounted(true);
@@ -40,7 +39,6 @@ export default function FloatingCart() {
         try {
           const parsed = JSON.parse(savedData);
           setCustomerName(parsed.name || '');
-          setCustomerEmail(parsed.email || '');
         } catch (err) {
           console.error("Erro ao recuperar dados salvos", err);
         }
@@ -97,8 +95,8 @@ export default function FloatingCart() {
       alert("Por favor, leia e aceite os Termos de Troca e Devolução para prosseguir.");
       return;
     }
-    if (!customerName || !customerPhone || !customerEmail) {
-      alert("Por favor, preencha seus dados de Nome, Telefone e E-mail.");
+    if (!customerName || !customerPhone) {
+      alert("Por favor, preencha seus dados de Nome e Telefone.");
       return;
     }
 
@@ -108,7 +106,6 @@ export default function FloatingCart() {
       if (cleanPhone) {
         localStorage.setItem(`client_${cleanPhone}`, JSON.stringify({
           name: customerName,
-          email: customerEmail,
           phone: customerPhone
         }));
       }
@@ -127,7 +124,7 @@ export default function FloatingCart() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             items: itemsToPay,
-            customer: { name: customerName, phone: customerPhone, email: customerEmail }
+            customer: { name: customerName, phone: customerPhone, email: "cliente@vascarinbeauty.com" }
           })
         });
         const data = await response.json();
@@ -141,7 +138,6 @@ export default function FloatingCart() {
       message += "👤 DADOS DO CLIENTE\n";
       message += `• Nome: ${customerName}\n`;
       message += `• Telefone: ${customerPhone}\n`;
-      message += `• E-mail: ${customerEmail}\n`;
       message += "━━━━━━━━━━━━━━━━━━━━━\n\n";
 
       message += "🛒 ITENS SELECIONADOS\n";
@@ -256,7 +252,7 @@ export default function FloatingCart() {
                     <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">Seus Dados</h3>
                     <input 
                       type="text" 
-                      placeholder="WhatsApp (ex: 11 99999-9999)" 
+                      placeholder="Telefone" 
                       value={customerPhone}
                       onChange={handlePhoneChange}
                       className="w-full border border-gray-200 p-2.5 text-xs text-black focus:outline-none focus:border-black"
@@ -266,13 +262,6 @@ export default function FloatingCart() {
                       placeholder="Nome Completo" 
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full border border-gray-200 p-2.5 text-xs text-black focus:outline-none focus:border-black"
-                    />
-                    <input 
-                      type="email" 
-                      placeholder="Seu E-mail (para o recibo e envio da InfinitePay)" 
-                      value={customerEmail}
-                      onChange={(e) => setCustomerEmail(e.target.value)}
                       className="w-full border border-gray-200 p-2.5 text-xs text-black focus:outline-none focus:border-black"
                     />
                   </div>
