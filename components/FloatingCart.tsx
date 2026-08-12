@@ -1,10 +1,13 @@
 "use client";
 
 import { useCartStore } from '@/store/cart';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 export default function FloatingCart() {
+  const [isMounted, setIsMounted] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const cartStore = useCartStore() as any;
   const items = cartStore.items || [];
   const isOpen = cartStore.isOpen;
@@ -14,62 +17,163 @@ export default function FloatingCart() {
 
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'credit'>('pix');
   const [selectedInstallment, setSelectedInstallment] = useState<number>(1);
-  const [deliveryOption, setDeliveryOption] = useState<'fixed' | 'combine'>('fixed');
   const [step, setStep] = useState<'cart' | 'checkout'>('cart');
 
-  // Taxas oficiais exatas da InfinitePay
+  // Campos de Cadastro do Cliente (Com memória inteligente por telefone)
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Memória inteligente: ao digitar o telefone, preenche os dados automaticamente se já existir
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const phone = e.target.value;
+    setCustomerPhone(phone);
+
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.length >= 8) {
+      const savedData = localStorage.getItem(`client_${cleanPhone}`);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          setCustomerName(parsed.name || '');
+          setCustomerEmail(parsed.email || '');
+        } catch (err) {
+          console.error("Erro ao recuperar dados salvos", err);
+        }
+      }
+    }
+  };
+
   const getInfinitePayRate = (installments: number) => {
     switch (installments) {
-      case 1: return 0.0420; // 4.20%
-      case 2: return 0.0609; // 6.09%
-      case 3: return 0.0701; // 7.01%
-      case 4: return 0.0791; // 7.91%
-      case 5: return 0.0880; // 8.80%
-      case 6: return 0.0967; // 9.67%
+      case 1: return 0.0420;
+      case 2: return 0.0609;
+      case 3: return 0.0701;
+      case 4: return 0.0791;
+      case 5: return 0.0880;
+      case 6: return 0.0967;
+      case 7: return 0.1259;
+      case 8: return 0.1342;
+      case 9: return 0.1425;
+      case 10: return 0.1506;
+      case 11: return 0.1587;
+      case 12: return 0.1666;
       default: return 0.0420;
     }
   };
 
-  // 1. Subtotais puros dos produtos
   const totalProducts = items.reduce((acc: number, item: any) => {
     const qty = item.quantity || item.amount || 1;
     return acc + (Number(item.preco) * qty);
   }, 0);
 
-  // 2. Frete só é somado no checkout
-  const deliveryFee = step === 'checkout' ? (deliveryOption === 'fixed' ? 15.00 : 0) : 0;
+  const baseTotal = totalProducts; 
   
-  // 3. Taxa da InfinitePay só é aplicada no checkout se escolher crédito
   const taxRate = (step === 'checkout' && paymentMethod === 'credit') ? getInfinitePayRate(selectedInstallment) : 0;
-  const subtotalWithTax = taxRate > 0 ? (totalProducts / (1 - taxRate)) : totalProducts;
-  
-  const finalTotal = subtotalWithTax + deliveryFee;
+  const simulatedTotalWithTax = taxRate > 0 ? (totalProducts / (1 - taxRate)) : baseTotal;
   const installmentValue = (step === 'checkout' && paymentMethod === 'credit' && selectedInstallment > 1) 
-    ? finalTotal / selectedInstallment 
-    : finalTotal;
+    ? simulatedTotalWithTax / selectedInstallment 
+    : simulatedTotalWithTax;
 
   const formatPrice = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
   };
 
-  const telefoneLoja = "5511999999999"; // Substitua pelo seu WhatsApp
+  const telefoneLoja = "5511992465042"; 
 
-  const handleCheckoutWhatsApp = () => {
-    let message = `*Novo Pedido - Vascarin Beauty*\n\n`;
-    items.forEach((item: any) => {
-      const qty = item.quantity || item.amount || 1;
-      message += `• ${qty}x ${item.nome} - ${formatPrice(Number(item.preco) * qty)}\n`;
-    });
-    
-    const pagInfo = paymentMethod === 'pix' ? 'PIX' : `Cartão de Crédito (${selectedInstallment}x de ${formatPrice(installmentValue)})`;
-    message += `\n*Pagamento (InfinitePay):* ${pagInfo}`;
-    message += `\n*Frete:* ${deliveryOption === 'fixed' ? 'Fixo (R$ 15,00)' : 'A combinar'}`;
-    message += `\n\n*Total Geral:* *${formatPrice(finalTotal)}*`;
+  const handleCheckoutUnificado = async () => {
+    if (!customerName || !customerPhone || !customerEmail) {
+      alert("Por favor, preencha seus dados de Nome, Telefone e E-mail.");
+      return;
+    }
 
-    const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/${telefoneLoja}?text=${encodedMessage}`, '_blank');
+    setIsProcessing(true);
+    try {
+      // Salva os dados na memória do navegador vinculados ao telefone
+      const cleanPhone = customerPhone.replace(/\D/g, '');
+      if (cleanPhone) {
+        localStorage.setItem(`client_${cleanPhone}`, JSON.stringify({
+          name: customerName,
+          email: customerEmail,
+          phone: customerPhone
+        }));
+      }
+
+      const itemsToPay = items.map((item: any) => ({
+        nome: item.nome,
+        quantity: item.quantity || item.amount || 1,
+        preco: Number(item.preco) 
+      }));
+
+      let paymentUrl = "";
+      try {
+        const response = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            items: itemsToPay,
+            customer: { name: customerName, phone: customerPhone, email: customerEmail }
+          })
+        });
+        const data = await response.json();
+        paymentUrl = data.url || "";
+      } catch (e) {
+        console.error("Erro ao gerar link:", e);
+      }
+
+      // Mensagem formatada para o WhatsApp
+      let message = "✨ NOVO PEDIDO - VASCARIN BEAUTY ✨\n\n";
+      message += "━━━━━━━━━━━━━━━━━━━━━\n";
+      message += "👤 DADOS DO CLIENTE\n";
+      message += `• Nome: ${customerName}\n`;
+      message += `• Telefone: ${customerPhone}\n`;
+      message += `• E-mail: ${customerEmail}\n`;
+      message += "━━━━━━━━━━━━━━━━━━━━━\n\n";
+
+      message += "🛒 ITENS SELECIONADOS\n";
+      items.forEach((item: any) => {
+        const qty = item.quantity || item.amount || 1;
+        message += `• ${qty}x ${item.nome} — ${formatPrice(Number(item.preco) * qty)}\n`;
+      });
+      
+      message += "\n⏱️ Prazo de envio/entrega: De 2 a 3 dias úteis após a confirmação do pagamento.\n";
+      message += "━━━━━━━━━━━━━━━━━━━━━\n";
+      message += `💰 TOTAL DO PEDIDO: *${formatPrice(baseTotal)}*\n`;
+
+      if (paymentMethod === 'credit' && selectedInstallment > 1) {
+        message += `💳 Simulação no Cartão: ${selectedInstallment}x de ${formatPrice(installmentValue)} (Total com taxas: ${formatPrice(simulatedTotalWithTax)})\n`;
+      }
+
+      if (paymentUrl) {
+        message += `\n🔗 Link de Pagamento Seguro (InfinitePay):\n${paymentUrl}\n`;
+      }
+      
+      message += "\n⚠️ ATENÇÃO: Por favor, não se esqueça de realizar o pagamento pelo link acima. Caso contrário, o pedido será desconsiderado.\n";
+      message += "━━━━━━━━━━━━━━━━━━━━━";
+
+      const encodedMessage = encodeURIComponent(message);
+      window.open(`https://wa.me/${telefoneLoja}?text=${encodedMessage}`, '_blank');
+
+      if (paymentUrl) {
+        setTimeout(() => {
+          window.location.href = paymentUrl;
+        }, 1000);
+      } else {
+        alert("Pedido gerado! Conclua o atendimento pelo WhatsApp.");
+      }
+
+    } catch (error) {
+      alert("Erro ao processar. Tente novamente.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
+  if (!isMounted) return null;
   if (!isOpen) return null;
 
   const totalItemsCount = items.reduce((acc: number, item: any) => acc + (item.quantity || item.amount || 1), 0);
@@ -138,15 +242,47 @@ export default function FloatingCart() {
                   })}
                 </div>
               ) : (
-                <div className="flex flex-col gap-6">
-                  {/* OPÇÕES DE PAGAMENTO INFINITEPAY */}
+                <div className="flex flex-col gap-5">
+                  
+                  {/* CADASTRO DO CLIENTE */}
+                  <div className="flex flex-col gap-3">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">Seus Dados</h3>
+                    <input 
+                      type="text" 
+                      placeholder="WhatsApp (ex: 11 99999-9999)" 
+                      value={customerPhone}
+                      onChange={handlePhoneChange}
+                      className="w-full border border-gray-200 p-2.5 text-xs text-black focus:outline-none focus:border-black"
+                    />
+                    <input 
+                      type="text" 
+                      placeholder="Nome Completo" 
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      className="w-full border border-gray-200 p-2.5 text-xs text-black focus:outline-none focus:border-black"
+                    />
+                    <input 
+                      type="email" 
+                      placeholder="Seu E-mail (para o recibo e envio da InfinitePay)" 
+                      value={customerEmail}
+                      onChange={(e) => setCustomerEmail(e.target.value)}
+                      className="w-full border border-gray-200 p-2.5 text-xs text-black focus:outline-none focus:border-black"
+                    />
+                  </div>
+
+                  {/* ALERTA DE PRAZO DE ENVIO/ENTREGA */}
+                  <div className="p-2.5 bg-amber-50 border border-amber-200 text-amber-900 text-[11px] flex items-center gap-2 rounded">
+                    <span>📦 Prazo de envio/entrega: De 2 a 3 dias úteis após a confirmação do pagamento.</span>
+                  </div>
+
+                  {/* SIMULADOR DE PAGAMENTO */}
                   <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Forma de Pagamento (InfinitePay)</h3>
-                    <div className="grid grid-cols-2 gap-2 mb-4">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Forma de Pagamento</h3>
+                    <div className="grid grid-cols-2 gap-2 mb-3">
                       <button 
                         type="button"
                         onClick={() => setPaymentMethod('pix')}
-                        className={`p-3 text-xs font-bold uppercase border transition-colors ${paymentMethod === 'pix' ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-700 bg-white'}`}
+                        className={`p-2.5 text-xs font-bold uppercase border transition-colors ${paymentMethod === 'pix' ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-700 bg-white'}`}
                       >
                         PIX
                       </button>
@@ -155,50 +291,34 @@ export default function FloatingCart() {
                         onClick={() => setPaymentMethod('credit')}
                         className={`p-3 text-xs font-bold uppercase border transition-colors ${paymentMethod === 'credit' ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-700 bg-white'}`}
                       >
-                        Cartão de Crédito
+                        Cartão
                       </button>
                     </div>
 
                     {paymentMethod === 'credit' && (
-                      <div className="mt-2">
-                        <label className="text-[11px] font-bold text-gray-500 uppercase block mb-1">Parcelamento:</label>
+                      <div className="mt-1">
                         <select 
                           value={selectedInstallment} 
                           onChange={(e) => setSelectedInstallment(Number(e.target.value))}
-                          className="w-full border border-gray-200 p-3 text-sm font-bold text-black bg-white focus:outline-none focus:border-black"
+                          className="w-full border border-gray-200 p-2.5 text-xs font-bold text-black bg-white focus:outline-none focus:border-black"
                         >
-                          <option value={1}>1x de {formatPrice((totalProducts / (1 - 0.0420)) + (deliveryOption === 'fixed' ? 15 : 0))} (À vista - Taxa 4,20%)</option>
-                          <option value={2}>2x de {formatPrice(((totalProducts / (1 - 0.0609)) + (deliveryOption === 'fixed' ? 15 : 0)) / 2)} (Taxa 6,09%)</option>
-                          <option value={3}>3x de {formatPrice(((totalProducts / (1 - 0.0701)) + (deliveryOption === 'fixed' ? 15 : 0)) / 3)} (Taxa 7,01%)</option>
-                          <option value={4}>4x de {formatPrice(((totalProducts / (1 - 0.0791)) + (deliveryOption === 'fixed' ? 15 : 0)) / 4)} (Taxa 7,91%)</option>
-                          <option value={5}>5x de {formatPrice(((totalProducts / (1 - 0.0880)) + (deliveryOption === 'fixed' ? 15 : 0)) / 5)} (Taxa 8,80%)</option>
-                          <option value={6}>6x de {formatPrice(((totalProducts / (1 - 0.0967)) + (deliveryOption === 'fixed' ? 15 : 0)) / 6)} (Taxa 9,67%)</option>
+                          <option value={1}>1x de {formatPrice((totalProducts / (1 - 0.0420)))} (Taxa 4,20%)</option>
+                          <option value={2}>2x de {formatPrice(((totalProducts / (1 - 0.0609))) / 2)} (Taxa 6,09%)</option>
+                          <option value={3}>3x de {formatPrice(((totalProducts / (1 - 0.0701))) / 3)} (Taxa 7,01%)</option>
+                          <option value={4}>4x de {formatPrice(((totalProducts / (1 - 0.0791))) / 4)} (Taxa 7,91%)</option>
+                          <option value={5}>5x de {formatPrice(((totalProducts / (1 - 0.0880))) / 5)} (Taxa 8,80%)</option>
+                          <option value={6}>6x de {formatPrice(((totalProducts / (1 - 0.0967))) / 6)} (Taxa 9,67%)</option>
+                          <option value={7}>7x de {formatPrice(((totalProducts / (1 - 0.1259))) / 7)} (Taxa 12,59%)</option>
+                          <option value={8}>8x de {formatPrice(((totalProducts / (1 - 0.1342))) / 8)} (Taxa 13,42%)</option>
+                          <option value={9}>9x de {formatPrice(((totalProducts / (1 - 0.1425))) / 9)} (Taxa 14,25%)</option>
+                          <option value={10}>10x de {formatPrice(((totalProducts / (1 - 0.1506))) / 10)} (Taxa 15,06%)</option>
+                          <option value={11}>11x de {formatPrice(((totalProducts / (1 - 0.1587))) / 11)} (Taxa 15,87%)</option>
+                          <option value={12}>12x de {formatPrice(((totalProducts / (1 - 0.1666))) / 12)} (Taxa 16,66%)</option>
                         </select>
                       </div>
                     )}
                   </div>
 
-                  {/* ESCOLHA DE FRETE */}
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Opção de Entrega</h3>
-                    <div className="flex flex-col gap-2">
-                      <label className={`flex items-center justify-between border p-3 cursor-pointer transition-colors ${deliveryOption === 'fixed' ? 'border-black bg-gray-50 font-bold' : 'border-gray-200'}`}>
-                        <div className="flex items-center gap-3">
-                          <input type="radio" name="delivery" checked={deliveryOption === 'fixed'} onChange={() => setDeliveryOption('fixed')} />
-                          <span className="text-xs">Frete Fixo</span>
-                        </div>
-                        <span className="text-xs font-bold">R$ 15,00</span>
-                      </label>
-
-                      <label className={`flex items-center justify-between border p-3 cursor-pointer transition-colors ${deliveryOption === 'combine' ? 'border-black bg-gray-50 font-bold' : 'border-gray-200'}`}>
-                        <div className="flex items-center gap-3">
-                          <input type="radio" name="delivery" checked={deliveryOption === 'combine'} onChange={() => setDeliveryOption('combine')} />
-                          <span className="text-xs">A combinar / Retirada</span>
-                        </div>
-                        <span className="text-xs font-bold">Grátis</span>
-                      </label>
-                    </div>
-                  </div>
                 </div>
               )}
             </>
@@ -207,38 +327,42 @@ export default function FloatingCart() {
 
         {/* RODAPÉ DO CARRINHO */}
         {items.length > 0 && (
-          <div className="p-6 border-t border-gray-100 bg-gray-50 flex flex-col gap-4">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-500 font-medium">Total:</span>
-              <span className="text-lg font-black text-black">{formatPrice(finalTotal)}</span>
-            </div>
+          <div className="p-6 border-t border-gray-100 bg-gray-50 flex flex-col gap-3">
             
-            {step === 'checkout' && paymentMethod === 'credit' && selectedInstallment > 1 && (
-              <div className="text-[11px] font-bold text-gray-600 uppercase text-center bg-white p-2 border border-gray-200">
-                Parcelado em {selectedInstallment}x de {formatPrice(installmentValue)}
-              </div>
-            )}
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-gray-500 font-medium">
+                {paymentMethod === 'credit' && step === 'checkout' ? 'Total (com taxas):' : 'Total Base:'}
+              </span>
+              <span className="text-lg font-black text-black">
+                {formatPrice(step === 'checkout' ? simulatedTotalWithTax : baseTotal)}
+              </span>
+            </div>
 
             {step === 'cart' ? (
               <button 
                 onClick={() => setStep('checkout')} 
                 className="w-full bg-black text-white text-xs font-bold uppercase py-4 hover:bg-[#b90000] transition-colors"
               >
-                Avançar para Entrega e Pagamento
+                Avançar para Identificação e Pagamento
               </button>
             ) : (
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2">
+                
+                {/* BOTÃO IR PARA PAGAMENTO */}
+                <button 
+                  onClick={handleCheckoutUnificado} 
+                  disabled={isProcessing}
+                  className="w-full bg-black text-white text-xs font-bold uppercase py-4 hover:bg-[#b90000] transition-colors disabled:opacity-50"
+                >
+                  {isProcessing ? "GERANDO PAGAMENTO..." : "IR PARA PAGAMENTO"}
+                </button>
+
+                {/* BOTÃO VOLTAR */}
                 <button 
                   onClick={() => setStep('cart')} 
-                  className="w-1/3 bg-gray-200 text-black text-xs font-bold uppercase py-4 hover:bg-gray-300 transition-colors"
+                  className="w-full text-gray-500 text-[10px] font-bold uppercase py-2 hover:text-black transition-colors"
                 >
-                  Voltar
-                </button>
-                <button 
-                  onClick={handleCheckoutWhatsApp} 
-                  className="w-2/3 bg-green-600 text-white text-xs font-bold uppercase py-4 hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-                >
-                  Enviar Pedido WhatsApp
+                  Voltar para sacola
                 </button>
               </div>
             )}

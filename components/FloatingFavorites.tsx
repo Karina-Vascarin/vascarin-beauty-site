@@ -3,17 +3,28 @@
 import { useFavoritesStore } from '@/store/favorites';
 import { useCartStore } from '@/store/cart';
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
 
 export default function FloatingFavorites() {
+  // 1. Estado de hidratação
+  const [isMounted, setIsMounted] = useState(false);
+
   const { items, isOpen, toggleFavorites, removeItem } = useFavoritesStore();
   const addItemToCart = useCartStore((state) => state.addItem);
+
+  // 2. Avisar quando montado
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleAddToCart = (item: any) => {
     addItemToCart({ ...item, quantidade: 1 });
     removeItem(item.id || item.nome);
-    toggleFavorites(); // Fecha favoritos ao enviar pro carrinho
+    toggleFavorites(); 
   };
 
+  // 3. Trava de segurança
+  if (!isMounted) return null;
   if (!isOpen) return null;
 
   return (
