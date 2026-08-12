@@ -17,12 +17,12 @@ export default function TermsModal() {
 
       {isOpen && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-          <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+          <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
             
             {/* Cabeçalho */}
             <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
               <h3 className="text-xs font-bold uppercase tracking-wider text-black">
-                Política de Trocas, Devoluções e Lacres
+                Política de Trocas e Devoluções – Vascarin Beauty
               </h3>
               <button 
                 onClick={() => setIsOpen(false)}
@@ -32,14 +32,42 @@ export default function TermsModal() {
               </button>
             </div>
 
-            {/* Conteúdo com texto visível em cinza escuro */}
-            <div className="p-6 overflow-y-auto text-xs text-gray-800 space-y-3 leading-relaxed text-justify">
-              <p><strong>1. DA INVIOLABILIDADE:</strong> A Vascarin Beauty preza pela integridade sanitária dos produtos comercializados. Perfumes e cosméticos são itens de uso pessoal e íntimo.</p>
-              <p><strong>2. PERFUMES COM CELOFANE:</strong> Aceitamos a devolução apenas de produtos cujas embalagens externas (celofane/plástico) não tenham sido violadas, rasgadas ou abertas.</p>
-              <p><strong>3. PRODUTOS SEM LACRE EXTERNO (BODY SPLASH E CREMES):</strong> Body splashes e cremes que não possuem lacre plástico devem ser devolvidos rigorosamente sem indícios de uso. O produto deve apresentar peso, volume e consistência originais.</p>
-              <p><strong>4. PRODUTOS VIOLADOS OU TESTADOS:</strong> É terminantemente proibida a troca ou devolução de qualquer item que apresente sinais de teste, uso ou cuja embalagem tenha sido danificada pelo consumidor.</p>
-              <p><strong>5. DO ARREPENDIMENTO E DEFEITO:</strong> Prazo legal de 7 dias para arrependimento, mediante preservação total do lacre. Defeitos de fabricação devem ser reportados com evidências (vídeos/fotos) no ato do recebimento.</p>
-              <p><strong>6. REENVIO:</strong> A Vascarin Beauty se reserva o direito de não aceitar a devolução de itens que não cumpram estes critérios, sendo o custo de reenvio ao consumidor de responsabilidade deste último.</p>
+            {/* Conteúdo */}
+            <div className="p-6 overflow-y-auto text-xs text-gray-800 space-y-4 leading-relaxed text-justify">
+              <p>
+                A <strong>Vascarin Beauty</strong> preza pela transparência, qualidade e respeito aos nossos clientes. Nossa política de trocas e devoluções foi desenvolvida com base na legislação vigente e em entendimentos jurídicos recentes que asseguram o equilíbrio nas relações de consumo virtuais.
+              </p>
+
+              <div>
+                <strong className="text-black block mb-1">1. Condições Gerais para Devolução por Arrependimento</strong>
+                <p>Conforme o Código de Defesa do Consumidor, o cliente possui o prazo de até 7 (sete) dias corridos, contados a partir da data de recebimento do produto, para manifestar o arrependimento de compras realizadas pela internet.</p>
+                <p className="mt-1">No entanto, o direito de arrependimento não confere ao consumidor a prerrogativa de teste ou uso do produto, servindo exclusivamente para a reflexão sobre a aquisição à distância.</p>
+              </div>
+
+              <div>
+                <strong className="text-black block mb-1">2. Requisitos Obrigatórios para Aceitação de Devolução</strong>
+                <p>Para que a devolução de qualquer item seja aceita e o reembolso processado, o produto deve obrigatoriamente atender aos seguintes critérios:</p>
+                <p className="mt-1">• <strong>Perfumes Importados e Nacionais:</strong> Devem estar estritamente lacrados, na embalagem original intacta, com o invólucro de plástico (cellophane) original sem nenhuma violação, sem sinais de uso, borrifação ou manuseio. Perfumes com lacre rompido, caixa amassada por mau uso ou abertos não serão aceitos para devolução ou troca.</p>
+                <p className="mt-1">• <strong>Body Splashes e Cremes (Itens sem lacre plástico externo):</strong> Devem retornar na embalagem original, perfeitamente lacrados de fábrica (quando aplicável), sem indícios de abertura, violação ou teste de uso. Produtos de higiene e cosméticos cujo lacre interno ou externo tenha sido violado tornam inviável a sua revenda e, portanto, não são passíveis de devolução por simples insatisfação.</p>
+                <p className="mt-2 bg-gray-50 p-3 border-l-2 border-black text-[11px]">
+                  <strong>Aviso Importante:</strong> Conforme jurisprudência aplicável ao comércio eletrônico, o ato de romper o lacre de um produto cosmético/perfumaria descaracteriza a sua condição de novo, equiparando-se ao uso e inviabilizando o retorno do bem ao estoque para comercialização subsequente. Compras &quot;às cegas&quot; não justificam a quebra de lacres para teste. Recomendamos a aquisição prévia de decantes ou amostras quando houver dúvida sobre a fragrância.
+                </p>
+              </div>
+
+              <div>
+                <strong className="text-black block mb-1">3. Produtos com Defeito ou Avariados</strong>
+                <p>Caso você receba um produto que apresente avaria de transporte, embalagem violada antes da entrega ou defeito de fabricação:</p>
+                <p className="mt-1">• A ocorrência deve ser comunicada à nossa central de atendimento em até 7 (sete) dias corridos após o recebimento.</p>
+                <p className="mt-1">• O produto passará por uma análise técnica para verificação do problema relatado. Constatado o defeito, a Vascarin Beauty providenciará a substituição do item ou o reembolso integral dos valores pagos.</p>
+              </div>
+
+              <div>
+                <strong className="text-black block mb-1">4. Como Solicitar a Devolução</strong>
+                <p>Para iniciar o processo de devolução dentro do prazo legal e elegível:</p>
+                <p className="mt-1">• Entre em contato conosco pelos canais oficiais de atendimento da Vascarin Beauty informando o número do pedido e o motivo da solicitação.</p>
+                <p className="mt-1">• Enviei fotos nítidas do produto mostrando que ele se encontra totalmente lacrado e na embalagem original.</p>
+                <p className="mt-1">• Nossa equipe fornecerá as instruções de postagem reversa.</p>
+              </div>
             </div>
 
             {/* Rodapé do Modal */}
