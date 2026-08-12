@@ -2,19 +2,14 @@ import TermsModal from './TermsModal';
 
 export default function Footer() {
   return (
-    <footer className="bg-zinc-100 border-t-2 border-black py-10 px-6 mt-16 shadow-inner">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+    <footer className="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-sm border-t border-gray-100 py-3 px-6 z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+      <div className="max-w-7xl mx-auto flex justify-between items-center text-center">
         
-        <div>
-          <span className="text-xs font-bold uppercase tracking-widest text-black block mb-1">
-            Vascarin Beauty
-          </span>
-          <p className="text-[11px] text-gray-600">
-            © {new Date().getFullYear()} — Todos os direitos reservados.
-          </p>
-        </div>
+        <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+          © {new Date().getFullYear()} Vascarin Beauty
+        </p>
 
-        <div className="bg-white px-4 py-2 border border-gray-300 shadow-sm">
+        <div className="text-[10px]">
           <TermsModal />
         </div>
 
