@@ -5,22 +5,29 @@ import { useFavoritesStore } from '@/store/favorites';
 
 export default function FloatingActions() {
   const cartStore = useCartStore() as any;
+  const items = cartStore.items || [];
   const toggleCart = cartStore.toggleCart;
-  const favoritesStore = useFavoritesStore();
+  
+  const favoritesStore = useFavoritesStore() as any;
+  const favorites = favoritesStore.favorites || [];
   const toggleFavorites = favoritesStore.toggleFavorites;
+
+  const totalItemsCount = items.reduce((acc: number, item: any) => acc + (item.quantity || item.amount || 1), 0);
+  const totalFavoritesCount = favorites.length;
 
   const handleWhatsAppClick = () => {
     const telefoneLoja = "5511992465042";
-    const mensagem = "Olá! Gostaria de falar com o atendimento da Vascarin Beauty.";
+    const mensagem = "Olá! Gostaria de tirar uma dúvida sobre os produtos da Vascarin Beauty.";
     window.open(`https://wa.me/${telefoneLoja}?text=${encodeURIComponent(mensagem)}`, '_blank');
   };
 
   return (
-    <div className="fixed bottom-24 right-4 z-40 flex flex-col gap-3">
-      {/* Botão WhatsApp */}
+    <div className="fixed bottom-24 right-4 z-40 flex flex-col gap-3 items-end">
+      
+      {/* Botão Flutuante do WhatsApp */}
       <button 
         onClick={handleWhatsAppClick}
-        className="bg-green-500 text-white p-3.5 rounded-full shadow-lg hover:bg-green-600 transition-all cursor-pointer"
+        className="relative bg-green-500 text-white w-12 h-12 rounded-full shadow-lg hover:bg-green-600 transition-all flex items-center justify-center cursor-pointer"
         title="Falar no WhatsApp"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
@@ -28,13 +35,40 @@ export default function FloatingActions() {
         </svg>
       </button>
 
-      {/* Botões de Carrinho e Favoritos */}
-      <button onClick={toggleFavorites} className="bg-white border border-gray-200 p-3.5 rounded-full shadow-lg hover:bg-gray-50 transition-all">
-        ❤️
+      {/* Botão de Favoritos */}
+      <button 
+        onClick={toggleFavorites} 
+        className="relative bg-white text-zinc-800 border border-gray-200 w-12 h-12 rounded-full shadow-lg hover:bg-gray-50 transition-all flex items-center justify-center cursor-pointer"
+        title="Favoritos"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        {totalFavoritesCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-md">
+            {totalFavoritesCount}
+          </span>
+        )}
       </button>
-      <button onClick={toggleCart} className="bg-black text-white p-3.5 rounded-full shadow-lg hover:bg-zinc-800 transition-all">
-        🛒
+
+      {/* Botão da Sacola */}
+      <button 
+        onClick={toggleCart} 
+        className="relative bg-black text-white w-12 h-12 rounded-full shadow-lg hover:bg-zinc-800 transition-all flex items-center justify-center cursor-pointer"
+        title="Sacola de Compras"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <path d="M16 10a4 4 0 0 1-8 0"></path>
+        </svg>
+        {totalItemsCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-md">
+            {totalItemsCount}
+          </span>
+        )}
       </button>
+
     </div>
   );
 }
