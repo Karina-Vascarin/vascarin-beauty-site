@@ -3,6 +3,7 @@
 import { useCartStore } from '@/store/cart';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import TermsModal from './TermsModal';
 
 export default function FloatingCart() {
   const [isMounted, setIsMounted] = useState(false);
@@ -317,6 +318,16 @@ export default function FloatingCart() {
                         </select>
                       </div>
                     )}
+                  </div>
+
+                  {/* AVISO E LINK DOS TERMOS ANTES DE FINALIZAR */}
+                  <div className="text-center pt-2">
+                    <p className="text-[11px] text-gray-500 mb-1">
+                      Ao prosseguir, você concorda com a nossa
+                    </p>
+                    <div className="inline-block">
+                      <TermsModal />
+                    </div>
                   </div>
 
                 </div>
