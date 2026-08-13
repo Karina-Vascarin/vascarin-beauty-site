@@ -39,15 +39,24 @@ export default function FloatingCart() {
     }
   }, []);
 
-  // 2. Rastreamento em TEMPO REAL (Garante 100% de captura no Supabase)
+  // 2. Contador de visitas e Rastreamento Inteligente em TEMPO REAL
   useEffect(() => {
     if (!isMounted) return; // Só roda depois que a tela carregou
     
+    // Conta a visita apenas 1 vez por sessão
+    let totalVisitas = parseInt(localStorage.getItem('vascarin_visits') || '0');
+    const sessionCounted = sessionStorage.getItem('vascarin_session');
+    
+    if (!sessionCounted) {
+      totalVisitas += 1;
+      localStorage.setItem('vascarin_visits', totalVisitas.toString());
+      sessionStorage.setItem('vascarin_session', 'true');
+    }
+
     const clientData = localStorage.getItem('vascarin_client');
     if (clientData) {
       try {
         const client = JSON.parse(clientData);
-        
         // Envia para o banco assim que a cliente adiciona ou remove itens
         fetch('/api/carrinho-abandonado', {
           method: 'POST',
@@ -55,7 +64,8 @@ export default function FloatingCart() {
           body: JSON.stringify({
             telefone: client.phone,
             nome: client.name,
-            items: items
+            items: items,
+            visitas: totalVisitas // Envia as visitas para o banco
           })
         });
       } catch (err) {

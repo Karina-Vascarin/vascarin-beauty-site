@@ -3,17 +3,20 @@ import { supabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
-    const { telefone, nome, items } = await request.json();
+    const { telefone, nome, items, visitas } = await request.json();
     if (!telefone) return NextResponse.json({ success: false });
 
-    // Verifica se já tem histórico
-    const { data: existing } = await supabase
+    // A MÁGICA AQUI: maybeSingle() não dá erro se o cliente for novo
+    const { data: existing, error: searchError } = await supabase
       .from('carrinhos_abandonados')
       .select('*')
       .eq('telefone', telefone)
-      .single();
+      .maybeSingle(); 
+
+    if (searchError) throw searchError;
 
     let dbError;
+    const numVisitas = visitas || 1;
 
     if (items && items.length > 0) {
       const itensSummary = items.map((i: any) => `${i.quantity || 1}x ${i.nome}`).join(', ');
@@ -21,21 +24,20 @@ export async function POST(request: Request) {
       if (existing) {
         const { error } = await supabase
           .from('carrinhos_abandonados')
-          .update({ itens_summary: itensSummary, nome, status: 'Com itens na sacola' })
+          .update({ itens_summary: itensSummary, nome, status: 'Com itens na sacola', visitas: numVisitas })
           .eq('telefone', telefone);
         dbError = error;
       } else {
         const { error } = await supabase
           .from('carrinhos_abandonados')
-          .insert([{ telefone, nome, itens_summary: itensSummary, status: 'Com itens na sacola' }]);
+          .insert([{ telefone, nome, itens_summary: itensSummary, status: 'Com itens na sacola', visitas: numVisitas }]);
         dbError = error;
       }
     } else {
-      // Se esvaziou, mantém o resumo dos itens intacto e muda apenas o status!
       if (existing) {
          const { error } = await supabase
           .from('carrinhos_abandonados')
-          .update({ status: 'Esvaziou a sacola (Histórico mantido)' })
+          .update({ status: 'Esvaziou a sacola', visitas: numVisitas })
           .eq('telefone', telefone);
          dbError = error;
       }
@@ -44,6 +46,7 @@ export async function POST(request: Request) {
     if (dbError) throw dbError;
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("Erro na API:", error);
     return NextResponse.json({ success: false }, { status: 500 });
   }
 }
