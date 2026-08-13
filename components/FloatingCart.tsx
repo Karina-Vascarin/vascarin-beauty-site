@@ -28,6 +28,28 @@ export default function FloatingCart() {
     setIsMounted(true);
   }, []);
 
+  // Rastreamento de Carrinho Abandonado corrigido
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      const clientData = localStorage.getItem('vascarin_client');
+      if (clientData && items.length > 0) {
+        try {
+          const client = JSON.parse(clientData);
+          navigator.sendBeacon('/api/carrinho-abandonado', JSON.stringify({
+            telefone: client.phone,
+            nome: client.name,
+            items: items
+          }));
+        } catch (err) {
+          console.error("Erro ao enviar carrinho abandonado", err);
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [items]);
+
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const phone = e.target.value;
     setCustomerPhone(phone);
