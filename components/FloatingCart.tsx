@@ -26,9 +26,21 @@ export default function FloatingCart() {
 
   useEffect(() => {
     setIsMounted(true);
+    
+    // Auto-preencher dados do cliente a partir do cadastro inicial
+    const clientData = localStorage.getItem('vascarin_client');
+    if (clientData) {
+      try {
+        const parsed = JSON.parse(clientData);
+        if (parsed.name) setCustomerName(parsed.name);
+        if (parsed.phone) setCustomerPhone(parsed.phone);
+      } catch (err) {
+        console.error("Erro ao ler dados do cliente", err);
+      }
+    }
   }, []);
 
-  // Rastreamento de Carrinho Abandonado corrigido
+  // Rastreamento de Carrinho Abandonado
   useEffect(() => {
     const handleBeforeUnload = () => {
       const clientData = localStorage.getItem('vascarin_client');
@@ -214,7 +226,7 @@ export default function FloatingCart() {
           <h2 className="text-sm font-black uppercase tracking-wider text-black">
             Sua Sacola ({totalItemsCount})
           </h2>
-          <button onClick={toggleCart} className="text-gray-400 hover:text-black transition-colors">
+          <button onClick={toggleCart} className="text-gray-400 hover:text-black transition-colors cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
@@ -223,7 +235,7 @@ export default function FloatingCart() {
           {items.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center">
               <p className="text-gray-400 text-sm mb-4">Sua sacola está vazia.</p>
-              <button onClick={toggleCart} className="bg-black text-white text-xs font-bold uppercase px-6 py-3 hover:bg-[#b90000] transition-colors">
+              <button onClick={toggleCart} className="bg-black text-white text-xs font-bold uppercase px-6 py-3 hover:bg-[#b90000] transition-colors cursor-pointer">
                 Escolher Perfumes
               </button>
             </div>
@@ -254,11 +266,11 @@ export default function FloatingCart() {
                           
                           <div className="flex items-center gap-3 mt-2">
                             <div className="flex items-center border border-gray-200">
-                              <button onClick={() => updateQuantity(item.id || item.nome, qty - 1)} className="px-2 py-0.5 text-gray-500 hover:bg-gray-100">-</button>
+                              <button onClick={() => updateQuantity(item.id || item.nome, qty - 1)} className="px-2 py-0.5 text-gray-500 hover:bg-gray-100 cursor-pointer">-</button>
                               <span className="px-2 text-xs font-bold">{qty}</span>
-                              <button onClick={() => updateQuantity(item.id || item.nome, qty + 1)} className="px-2 py-0.5 text-gray-500 hover:bg-gray-100">+</button>
+                              <button onClick={() => updateQuantity(item.id || item.nome, qty + 1)} className="px-2 py-0.5 text-gray-500 hover:bg-gray-100 cursor-pointer">+</button>
                             </div>
-                            <button onClick={() => removeItem(item.id || item.nome)} className="text-[10px] uppercase font-bold text-red-500 hover:underline">
+                            <button onClick={() => removeItem(item.id || item.nome)} className="text-[10px] uppercase font-bold text-red-500 hover:underline cursor-pointer">
                               Remover
                             </button>
                           </div>
@@ -298,14 +310,14 @@ export default function FloatingCart() {
                       <button 
                         type="button"
                         onClick={() => setPaymentMethod('pix')}
-                        className={`p-2.5 text-xs font-bold uppercase border transition-colors ${paymentMethod === 'pix' ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-700 bg-white'}`}
+                        className={`p-2.5 text-xs font-bold uppercase border transition-colors cursor-pointer ${paymentMethod === 'pix' ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-700 bg-white'}`}
                       >
                         PIX
                       </button>
                       <button 
                         type="button"
                         onClick={() => setPaymentMethod('credit')}
-                        className={`p-3 text-xs font-bold uppercase border transition-colors ${paymentMethod === 'credit' ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-700 bg-white'}`}
+                        className={`p-3 text-xs font-bold uppercase border transition-colors cursor-pointer ${paymentMethod === 'credit' ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-700 bg-white'}`}
                       >
                         Cartão
                       </button>
@@ -316,7 +328,7 @@ export default function FloatingCart() {
                         <select 
                           value={selectedInstallment} 
                           onChange={(e) => setSelectedInstallment(Number(e.target.value))}
-                          className="w-full border border-gray-200 p-2.5 text-xs font-bold text-black bg-white focus:outline-none focus:border-black"
+                          className="w-full border border-gray-200 p-2.5 text-xs font-bold text-black bg-white focus:outline-none focus:border-black cursor-pointer"
                         >
                           <option value={1}>1x de {formatPrice((totalProducts / (1 - 0.0420)))} (Taxa 4,20%)</option>
                           <option value={2}>2x de {formatPrice(((totalProducts / (1 - 0.0609))) / 2)} (Taxa 6,09%)</option>
@@ -369,7 +381,7 @@ export default function FloatingCart() {
             {step === 'cart' ? (
               <button 
                 onClick={() => setStep('checkout')} 
-                className="w-full bg-black text-white text-xs font-bold uppercase py-4 hover:bg-[#b90000] transition-colors"
+                className="w-full bg-black text-white text-xs font-bold uppercase py-4 hover:bg-[#b90000] transition-colors cursor-pointer"
               >
                 Avançar para Identificação e Pagamento
               </button>
@@ -386,7 +398,7 @@ export default function FloatingCart() {
 
                 <button 
                   onClick={() => setStep('cart')} 
-                  className="w-full text-gray-500 text-[10px] font-bold uppercase py-2 hover:text-black transition-colors"
+                  className="w-full text-gray-500 text-[10px] font-bold uppercase py-2 hover:text-black transition-colors cursor-pointer"
                 >
                   Voltar para sacola
                 </button>
