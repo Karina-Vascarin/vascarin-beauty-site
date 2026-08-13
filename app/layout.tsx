@@ -1,5 +1,6 @@
 import './globals.css';
 import Header from '@/components/Header'; // Importe o componente do cabeçalho
+import AuthModal from '@/components/AuthModal';
 
 export const metadata = {
   title: 'Vascarin Beauty',
@@ -17,6 +18,7 @@ export default function RootLayout({
         <Header /> {/* O logo e o cabeçalho vão renderizar aqui */}
         {children}
       </body>
+      <AuthModal />
     </html>
   );
 }
