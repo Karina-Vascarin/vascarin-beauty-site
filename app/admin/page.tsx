@@ -91,7 +91,18 @@ export default function AdminDashboard() {
     setIsLoggedIn(false);
   };
 
-  // Atualizar Status de Separação de Pedidos e Abrir WhatsApp
+  // Função auxiliar para gerar a mensagem inteligente baseada no status atual
+  const getWhatsAppMessage = (pedido: any) => {
+    if (pedido.status === 'Separado') {
+      return `Olá ${pedido.nome}! Tudo bem? Passando para avisar que o seu pedido #${pedido.id} já foi separado e está sendo preparado para entrega/envio! 📦✨ Em breve ele chegará até você! Qualquer dúvida, estamos à disposição.`;
+    } else if (pedido.status === 'Entregue / Concluído') {
+      return `Olá ${pedido.nome}! 🎉 Vimos que o seu pedido #${pedido.id} foi entregue!\n\nEsperamos muito que você ame os seus produtos! Quando puder, nos mande um feedback contando o que achou ou poste uma foto e nos marque no Instagram *@vascarin.beauty* 📸💖\n\nMuito obrigada por escolher a Vascarin Beauty!`;
+    }
+    // Mensagem padrão para status pendente
+    return `Olá ${pedido.nome}! Informamos sobre o seu pedido #${pedido.id} na Vascarin Beauty.`;
+  };
+
+  // Atualizar Status de Separação de Pedidos e Abrir WhatsApp automático
   const handleUpdateStatus = async (pedido: any, newStatus: string) => {
     const { error } = await supabase.from('pedidos').update({ status: newStatus }).eq('id', pedido.id);
     
@@ -259,7 +270,7 @@ export default function AdminDashboard() {
         {/* Conteúdo das Abas */}
         <div className="p-6 md:p-8">
           
-          {/* 1. ABA DE PEDIDOS (COM SEPARAÇÃO E IMPORTAÇÃO) */}
+          {/* 1. ABA DE PEDIDOS */}
           {activeTab === 'pedidos' && (
             <div>
               <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4 border-b border-gray-100 pb-4">
@@ -299,7 +310,9 @@ export default function AdminDashboard() {
                       </div>
 
                       <div className="flex flex-wrap lg:flex-col gap-2 items-end justify-center min-w-[200px]">
-                        <a href={`https://wa.me/55${p.telefone}?text=Olá ${p.nome}! Informamos sobre o seu pedido #${p.id} na Vascarin Beauty.`} target="_blank" className="w-full text-center px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors">
+                        
+                        {/* BOTÃO DE WHATSAPP COMO RECUPERAÇÃO */}
+                        <a href={`https://wa.me/55${p.telefone}?text=${encodeURIComponent(getWhatsAppMessage(p))}`} target="_blank" className="w-full text-center px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors">
                           WhatsApp
                         </a>
                         
@@ -327,6 +340,7 @@ export default function AdminDashboard() {
                             Excluir
                           </button>
                         </div>
+
                       </div>
                     </div>
                   ))}
