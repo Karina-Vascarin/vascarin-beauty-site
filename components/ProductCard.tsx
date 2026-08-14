@@ -5,6 +5,7 @@ import { useCartStore } from '@/store/cart';
 import Image from 'next/image';
 import { useState } from 'react';
 import ProductModal from './ProductModal';
+import { supabase } from '@/lib/supabase';
 
 interface ProductCardProps {
   product: any;
@@ -30,12 +31,38 @@ export default function ProductCard({ product }: ProductCardProps) {
   const estoqueNum = Number(product.estoque ?? 1);
   const isEsgotado = estoqueNum <= 0;
 
-  // Função para abrir o WhatsApp consultando o produto
-  const handleConsultaWhatsApp = () => {
-    const telefoneLoja = "5511992465042";
-    const mensagem = `Olá! Gostaria de tirar uma dúvida sobre o produto: *${product.nome}* que vi no site da Vascarin Beauty. Ele está disponível?`;
-    const url = `https://wa.me/${telefoneLoja}?text=${encodeURIComponent(mensagem)}`;
-    window.open(url, '_blank');
+  // NOVO: Função para registrar o cliente na Fila de Espera (Avise-me)
+  const handleAviseMe = async () => {
+    // Tenta pegar os dados salvos do cliente no navegador
+    let clientName = null;
+    let clientPhone = null;
+    
+    try {
+      const localData = localStorage.getItem('vascarin_client');
+      if (localData) {
+        const parsed = JSON.parse(localData);
+        clientName = parsed.name;
+        clientPhone = parsed.phone;
+      }
+    } catch (e) {}
+
+    // Se não tiver salvo, pede via prompt
+    const nome = clientName || prompt("Digite seu nome:");
+    if (!nome) return;
+
+    const telefone = clientPhone || prompt("Digite seu WhatsApp para avisarmos quando chegar:");
+    if (!telefone) return;
+
+    try {
+      await supabase.from('fila_espera').insert([{
+        nome: nome,
+        telefone: telefone.replace(/\D/g, ''),
+        produto: product.nome
+      }]);
+      alert(`Pronto, ${nome}! Vamos te avisar no WhatsApp assim que o ${product.nome} estiver disponível.`);
+    } catch (err) {
+      alert("Erro ao registrar na fila de espera.");
+    }
   };
 
   let imageSrc = "";
@@ -103,7 +130,6 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Detalhes do Produto */}
         <div className="flex flex-col flex-1 justify-between">
           <div>
-            {/* Exibe a categoria real vinda da planilha ou marca */}
             <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
               {product.categoria || product.marca || 'Perfumes'}
             </span>
@@ -116,20 +142,19 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
 
           <div>
-            {/* Exibe somente o valor puro */}
             <div className="mb-3">
               <span className="text-sm font-bold text-black">
                 R$ {Number(product.preco || product.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </div>
 
-            {/* BOTÃO CONDICIONAL: Consulta no WhatsApp em cinza escuro se esgotado, ou Comprar se houver estoque */}
+            {/* BOTÃO CONDICIONAL: Avise-me se esgotado, ou Comprar se houver estoque */}
             {isEsgotado ? (
               <button
-                onClick={handleConsultaWhatsApp}
-                className="w-full bg-zinc-700 text-white text-[11px] font-bold uppercase py-2.5 hover:bg-zinc-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                onClick={handleAviseMe}
+                className="w-full bg-zinc-800 text-white text-[11px] font-bold uppercase py-2.5 hover:bg-black transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
               >
-                Consultar no WhatsApp
+                ⏳ Avise-me quando chegar
               </button>
             ) : (
               <button
