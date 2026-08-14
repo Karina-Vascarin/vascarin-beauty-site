@@ -9,12 +9,16 @@ export default function AuthModal() {
   const [phone, setPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Função da Máscara (Não altera o layout)
+  const formatPhone = (value: string) => {
+    return value.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2").slice(0, 15);
+  };
+
   useEffect(() => {
     const savedClient = localStorage.getItem('vascarin_client');
     if (!savedClient) {
       setIsOpen(true);
     } else {
-      // Já cadastrado: registra nova visita no banco
       try {
         const client = JSON.parse(savedClient);
         registrarAcesso(client.name, client.phone);
@@ -24,12 +28,7 @@ export default function AuthModal() {
 
   const registrarAcesso = async (clienteNome: string, clienteTelefone: string) => {
     try {
-      const { data: existing } = await supabase
-        .from('clientes')
-        .select('visitas')
-        .eq('telefone', clienteTelefone)
-        .maybeSingle();
-
+      const { data: existing } = await supabase.from('clientes').select('visitas').eq('telefone', clienteTelefone).maybeSingle();
       const totalVisitas = (existing?.visitas || 0) + 1;
 
       await supabase.from('clientes').upsert({
@@ -55,8 +54,10 @@ export default function AuthModal() {
     const clientData = { name, phone: cleanPhone };
     localStorage.setItem('vascarin_client', JSON.stringify(clientData));
 
-    // Salva no banco de dados imediatamente
     await registrarAcesso(name, cleanPhone);
+    
+    // Grava o Histórico de Acesso com data/hora
+    await supabase.from('historico_acessos').insert([{ nome: name, telefone: cleanPhone }]);
 
     setIsSubmitting(false);
     setIsOpen(false);
@@ -92,7 +93,7 @@ export default function AuthModal() {
               type="text" 
               placeholder="(11) 99999-9999" 
               value={phone} 
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(formatPhone(e.target.value))} // Máscara aplicada aqui
               className="w-full border border-gray-300 p-3 text-xs rounded-lg focus:outline-none focus:border-black"
               required
             />

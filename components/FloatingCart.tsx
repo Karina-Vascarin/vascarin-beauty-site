@@ -25,7 +25,11 @@ export default function FloatingCart() {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
 
-  // 1. Carrega dados do cliente
+  // Máscara
+  const formatPhone = (value: string) => {
+    return value.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2").slice(0, 15);
+  };
+
   useEffect(() => {
     setIsMounted(true);
     const clientData = localStorage.getItem('vascarin_client');
@@ -38,7 +42,6 @@ export default function FloatingCart() {
     }
   }, []);
 
-  // 2. Grava no Supabase em Tempo Real (Carrinho Abandonado)
   useEffect(() => {
     if (!isMounted) return;
 
@@ -88,8 +91,6 @@ export default function FloatingCart() {
   const baseTotal = totalProducts; 
   const taxRate = (step === 'checkout' && paymentMethod === 'credit') ? getInfinitePayRate(selectedInstallment) : 0;
   const simulatedTotalWithTax = taxRate > 0 ? (totalProducts / (1 - taxRate)) : baseTotal;
-  const installmentValue = (step === 'checkout' && paymentMethod === 'credit' && selectedInstallment > 1) 
-    ? simulatedTotalWithTax / selectedInstallment : simulatedTotalWithTax;
 
   const formatPrice = (value: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
@@ -130,7 +131,6 @@ export default function FloatingCart() {
         console.error("Erro ao gerar InfinitePay:", e);
       }
 
-      // 1. GRAVA O PEDIDO NO SUPABASE IMEDIATAMENTE COMO PENDENTE / A SEPARAR
       await supabase.from('pedidos').insert([{
         id: orderId,
         nome: customerName,
@@ -143,10 +143,8 @@ export default function FloatingCart() {
         tipo: 'Site'
       }]);
 
-      // 2. Limpa o carrinho do Supabase
       await supabase.from('carrinhos_abandonados').delete().eq('telefone', cleanPhone);
 
-      // 3. Prepara mensagem para o WhatsApp
       let msg = `✨ NOVO PEDIDO #${orderId} ✨\n\n`;
       msg += `👤 Cliente: ${customerName}\n📱 WhatsApp: ${customerPhone}\n\n`;
       msg += `🛒 ITENS:\n`;
@@ -253,7 +251,7 @@ export default function FloatingCart() {
                       type="text" 
                       placeholder="WhatsApp" 
                       value={customerPhone} 
-                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      onChange={(e) => setCustomerPhone(formatPhone(e.target.value))} // Máscara aplicada aqui
                       className="w-full border border-gray-300 p-3 text-xs rounded-lg focus:outline-none focus:border-black"
                     />
                   </div>
@@ -351,4 +349,4 @@ export default function FloatingCart() {
       </div>
     </div>
   );
-} 
+}
