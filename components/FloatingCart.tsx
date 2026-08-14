@@ -154,6 +154,9 @@ export default function FloatingCart() {
       });
       msg += `\n💰 Total: *${formatPrice(baseTotal)}*\n`;
       if (paymentUrl) msg += `\n🔗 Link InfinitePay: ${paymentUrl}\n`;
+      
+      // NOVA MENSAGEM ADICIONADA AQUI:
+      msg += `\n⚠️ *Atenção:* Se o pagamento não for realizado, o pedido será desconsiderado.`;
 
       window.open(`https://wa.me/5511992465042?text=${encodeURIComponent(msg)}`, '_blank');
 
@@ -251,7 +254,7 @@ export default function FloatingCart() {
                       type="text" 
                       placeholder="WhatsApp" 
                       value={customerPhone} 
-                      onChange={(e) => setCustomerPhone(formatPhone(e.target.value))} // Máscara aplicada aqui
+                      onChange={(e) => setCustomerPhone(formatPhone(e.target.value))}
                       className="w-full border border-gray-300 p-3 text-xs rounded-lg focus:outline-none focus:border-black"
                     />
                   </div>
