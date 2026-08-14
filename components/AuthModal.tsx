@@ -58,8 +58,15 @@ export default function AuthModal() {
       return;
     }
 
-    setIsSubmitting(true);
     const cleanPhone = phone.replace(/\D/g, '');
+
+    // VALIDAÇÃO EXATA DE 11 DÍGITOS (DDD + 9º DÍGITO + 8 NÚMEROS)
+    if (cleanPhone.length !== 11) {
+      alert("Por favor, digite um número de WhatsApp válido contendo exatamente 11 dígitos (com DDD e o 9º dígito).");
+      return;
+    }
+
+    setIsSubmitting(true);
     const clientData = { name, phone: cleanPhone };
     localStorage.setItem('vascarin_client', JSON.stringify(clientData));
 
