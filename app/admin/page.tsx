@@ -9,8 +9,9 @@ export default function AdminDashboard() {
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  // Navegação das Abas - Adicionado 'mensagens'
+  // Navegação das Abas e Pesquisa
   const [activeTab, setActiveTab] = useState<'pedidos' | 'abandonados' | 'favoritos' | 'clientes' | 'historico' | 'novo' | 'mensagens'>('pedidos');
+  const [searchQuery, setSearchQuery] = useState(''); // NOVO: Estado da pesquisa
 
   // Estados dos Dados do Banco
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -38,27 +39,21 @@ export default function AdminDashboard() {
   }, []);
 
   const carregarTudo = async () => {
-    // 1. Busca Pedidos
     const { data: ped } = await supabase.from('pedidos').select('*').order('created_at', { ascending: false });
     if (ped) setPedidos(ped);
 
-    // 2. Busca Carrinhos Abandonados
     const { data: aban } = await supabase.from('carrinhos_abandonados').select('*').order('updated_at', { ascending: false });
     if (aban) setAbandonados(aban);
 
-    // 3. Busca Favoritos
     const { data: fav } = await supabase.from('favoritos').select('*').order('updated_at', { ascending: false });
     if (fav) setFavoritos(fav);
 
-    // 4. Busca Clientes que acessaram
     const { data: cli } = await supabase.from('clientes').select('*').order('updated_at', { ascending: false });
     if (cli) setClientes(cli);
 
-    // 5. Busca Histórico
     const { data: hist } = await supabase.from('historico_acessos').select('*').order('acessado_em', { ascending: false });
     if (hist) setHistorico(hist);
 
-    // 6. Busca Produtos CSV
     try {
       const res = await fetch('/api/produtos');
       if (res.ok) setStoreProducts(await res.json());
@@ -102,10 +97,8 @@ export default function AdminDashboard() {
 
   const handleUpdateStatus = async (pedido: any, newStatus: string, isSilent: boolean = false) => {
     const { error } = await supabase.from('pedidos').update({ status: newStatus }).eq('id', pedido.id);
-    
     if (!error) {
       setPedidos(pedidos.map(p => p.id === pedido.id ? { ...p, status: newStatus } : p));
-
       if (!isSilent) {
         if (newStatus === 'Separado') {
           const msg = `Olá ${pedido.nome}! Tudo bem? Passando para avisar que o seu pedido #${pedido.id} já foi separado e está sendo preparado para entrega/envio! 📦✨ Em breve ele chegará até você! Qualquer dúvida, estamos à disposição.`;
@@ -115,40 +108,26 @@ export default function AdminDashboard() {
           window.open(`https://wa.me/55${pedido.telefone}?text=${encodeURIComponent(msg)}`, '_blank');
         }
       }
-
     } else {
       alert("Erro ao atualizar status: " + error.message);
     }
   };
 
-  // NOVA FUNÇÃO: Atualizar status de prospecção (Enviado / Não Enviado)
   const handleUpdateContato = async (tabela: string, telefone: string, novoStatus: string) => {
     const { error } = await supabase.from(tabela).update({ status_contato: novoStatus }).eq('telefone', telefone);
-    if (!error) {
-      carregarTudo(); // Recarrega os dados para mostrar o verdinho
-    } else {
-      alert("Aviso: Crie a coluna 'status_contato' (tipo texto) no seu banco de dados Supabase para salvar isso.");
-    }
+    if (!error) carregarTudo();
   };
 
   const handleSaveManualOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     const orderId = `VASC-MANUAL-${Date.now().toString().slice(-4)}`;
-
     const { error } = await supabase.from('pedidos').insert([{
-      id: orderId,
-      nome: manualName,
-      telefone: manualPhone.replace(/\D/g, ''),
-      items: manualItems,
-      total: Number(manualTotal),
-      forma_pagamento: 'Venda Manual / Externa',
-      status: 'Separado',
-      tipo: 'Manual'
+      id: orderId, nome: manualName, telefone: manualPhone.replace(/\D/g, ''),
+      items: manualItems, total: Number(manualTotal), forma_pagamento: 'Venda Manual / Externa',
+      status: 'Separado', tipo: 'Manual'
     }]);
 
-    if (error) {
-      alert("Erro ao salvar: " + error.message);
-    } else {
+    if (!error) {
       alert(`Pedido manual #${orderId} cadastrado com sucesso!`);
       setManualName(''); setManualPhone(''); setManualItems(''); setManualTotal('');
       carregarTudo();
@@ -161,7 +140,6 @@ export default function AdminDashboard() {
     const product = storeProducts.find((p: any) => p.nome === selectedProduct);
     const itemString = `${selectedQty}x ${selectedProduct}`;
     setManualItems(prev => prev ? `${prev}, ${itemString}` : itemString);
-
     if (product && product.preco) {
       const totalAtual = Number(manualTotal) || 0;
       setManualTotal((totalAtual + (Number(product.preco) * selectedQty)).toFixed(2));
@@ -169,7 +147,6 @@ export default function AdminDashboard() {
     setSelectedProduct(''); setSelectedQty(1);
   };
 
-  // ----- FUNÇÕES DE EXPORTAÇÃO -----
   const exportToCSV = (filename: string, rows: string[][]) => {
     const csv = "data:text/csv;charset=utf-8,\uFEFF" + rows.map(e => e.join(';')).join("\n");
     const link = document.createElement("a");
@@ -224,13 +201,8 @@ export default function AdminDashboard() {
         const [id, nome, telefone, items, total, status] = linha.split(';');
         if (id && nome) {
           await supabase.from('pedidos').insert([{ 
-            id, 
-            nome, 
-            telefone, 
-            items: items.replace(/"/g, ''), 
-            total: Number(total), 
-            status: status || 'Separado', 
-            tipo: 'Importado' 
+            id, nome, telefone, items: items.replace(/"/g, ''), 
+            total: Number(total), status: status || 'Separado', tipo: 'Importado' 
           }]);
         }
       }
@@ -240,7 +212,27 @@ export default function AdminDashboard() {
     reader.readAsText(file);
   };
 
-  // TELA DE LOGIN
+  // ----- FUNÇÕES DE FILTRO (PESQUISA) -----
+  const filterList = (list: any[], fields: string[]) => {
+    if (!searchQuery) return list;
+    const lowerQuery = searchQuery.toLowerCase();
+    return list.filter(item => 
+      fields.some(field => String(item[field] || '').toLowerCase().includes(lowerQuery))
+    );
+  };
+
+  const filteredPedidos = filterList(pedidos, ['nome', 'telefone', 'id', 'items', 'status']);
+  const filteredAbandonados = filterList(abandonados, ['nome', 'telefone', 'itens_summary']);
+  const filteredFavoritos = filterList(favoritos, ['nome', 'telefone', 'produtos']);
+  const filteredClientes = filterList(clientes, ['nome', 'telefone']);
+  const filteredHistorico = filterList(historico, ['nome', 'telefone']);
+
+  // Trocar de aba e limpar a pesquisa
+  const switchTab = (tab: any) => {
+    setActiveTab(tab);
+    setSearchQuery(''); // Limpa a barra de pesquisa ao trocar de tela
+  };
+
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -258,7 +250,6 @@ export default function AdminDashboard() {
     );
   }
 
-  // MÉTRICAS GERAIS
   const pendentesSeparar = pedidos.filter(p => p.status === 'Pendente / A Separar').length;
   const pedidosSeparados = pedidos.filter(p => p.status === 'Separado').length;
   const totalFaturado = pedidos.reduce((acc, curr) => acc + Number(curr.total || 0), 0);
@@ -275,13 +266,13 @@ export default function AdminDashboard() {
           </div>
           
           <div className="flex flex-wrap gap-2 items-center">
-            <button onClick={() => setActiveTab('pedidos')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'pedidos' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>📦 Pedidos ({pedidos.length})</button>
-            <button onClick={() => setActiveTab('abandonados')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'abandonados' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>🛒 Abandonados ({abandonados.length})</button>
-            <button onClick={() => setActiveTab('favoritos')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'favoritos' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>💖 Favoritos ({favoritos.length})</button>
-            <button onClick={() => setActiveTab('clientes')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'clientes' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>👥 Clientes ({clientes.length})</button>
-            <button onClick={() => setActiveTab('historico')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'historico' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>🕒 Histórico</button>
-            <button onClick={() => setActiveTab('novo')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'novo' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>+ Venda Manual</button>
-            <button onClick={() => setActiveTab('mensagens')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'mensagens' ? 'bg-white text-black' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>💬 Scripts</button>
+            <button onClick={() => switchTab('pedidos')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'pedidos' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>📦 Pedidos ({pedidos.length})</button>
+            <button onClick={() => switchTab('abandonados')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'abandonados' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>🛒 Abandonados ({abandonados.length})</button>
+            <button onClick={() => switchTab('favoritos')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'favoritos' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>💖 Favoritos ({favoritos.length})</button>
+            <button onClick={() => switchTab('clientes')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'clientes' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>👥 Clientes ({clientes.length})</button>
+            <button onClick={() => switchTab('historico')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'historico' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>🕒 Histórico</button>
+            <button onClick={() => switchTab('novo')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'novo' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>+ Venda Manual</button>
+            <button onClick={() => switchTab('mensagens')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'mensagens' ? 'bg-white text-black' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>💬 Scripts</button>
             <button onClick={handleLogout} className="px-4 py-2 text-xs font-bold uppercase rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors ml-auto">Sair</button>
           </div>
         </div>
@@ -309,7 +300,7 @@ export default function AdminDashboard() {
         {/* Conteúdo das Abas */}
         <div className="p-6 md:p-8">
           
-          {/* 1. ABA DE PEDIDOS (COM SEPARAÇÃO E IMPORTAÇÃO) */}
+          {/* 1. ABA DE PEDIDOS */}
           {activeTab === 'pedidos' && (
             <div>
               <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4 border-b border-gray-100 pb-4">
@@ -327,18 +318,19 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {pedidos.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum pedido registrado até o momento.</p> : (
+              {/* BARRA DE PESQUISA */}
+              <div className="mb-6">
+                <input type="text" placeholder="🔍 Pesquisar por nome, WhatsApp ou ID do pedido..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
+              </div>
+
+              {filteredPedidos.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum pedido encontrado com essa pesquisa.</p> : (
                 <div className="flex flex-col gap-4">
-                  {pedidos.map((p, i) => (
+                  {filteredPedidos.map((p, i) => (
                     <div key={i} className="border border-gray-200 rounded-xl p-5 flex flex-col lg:flex-row justify-between lg:items-center gap-4 hover:border-black transition-all">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <strong className="text-sm text-black">{p.id}</strong>
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                            p.status === 'Pendente / A Separar' ? 'bg-amber-100 text-amber-800' :
-                            p.status === 'Separado' ? 'bg-blue-100 text-blue-800' : 
-                            p.status === 'Cancelado' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                          }`}>
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${p.status === 'Pendente / A Separar' ? 'bg-amber-100 text-amber-800' : p.status === 'Separado' ? 'bg-blue-100 text-blue-800' : p.status === 'Cancelado' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
                             {p.status}
                           </span>
                           <span className="text-[10px] text-gray-400 uppercase font-bold">({p.tipo})</span>
@@ -349,7 +341,6 @@ export default function AdminDashboard() {
                       </div>
 
                       <div className="flex flex-wrap lg:flex-col gap-2 items-end justify-center min-w-[200px]">
-                        
                         <a href={`https://wa.me/55${p.telefone}?text=${encodeURIComponent(getWhatsAppMessage(p))}`} target="_blank" className="w-full text-center px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors">
                           WhatsApp
                         </a>
@@ -390,7 +381,6 @@ export default function AdminDashboard() {
                             Excluir
                           </button>
                         </div>
-
                       </div>
                     </div>
                   ))}
@@ -413,9 +403,14 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {abandonados.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum carrinho abandonado recentemente.</p> : (
+              {/* BARRA DE PESQUISA */}
+              <div className="mb-6">
+                <input type="text" placeholder="🔍 Pesquisar cliente, telefone ou produto da sacola..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
+              </div>
+
+              {filteredAbandonados.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum carrinho encontrado com essa pesquisa.</p> : (
                 <div className="flex flex-col gap-4">
-                  {abandonados.map((a, i) => (
+                  {filteredAbandonados.map((a, i) => (
                     <div key={i} className="border border-amber-200 bg-amber-50/50 rounded-xl p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                       <div>
                         <strong className="text-sm text-black">{a.nome}</strong> ({a.telefone})<br/>
@@ -451,9 +446,14 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {favoritos.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum cliente favoritou produtos até o momento.</p> : (
+              {/* BARRA DE PESQUISA */}
+              <div className="mb-6">
+                <input type="text" placeholder="🔍 Pesquisar por cliente ou nome do perfume..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
+              </div>
+
+              {filteredFavoritos.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum favorito encontrado com essa pesquisa.</p> : (
                 <div className="flex flex-col gap-4">
-                  {favoritos.map((f, i) => (
+                  {filteredFavoritos.map((f, i) => (
                     <div key={i} className="border border-pink-200 bg-pink-50/50 rounded-xl p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                       <div>
                         <strong className="text-sm text-black">{f.nome}</strong> ({f.telefone})<br/>
@@ -488,9 +488,14 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {clientes.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum cliente registrado.</p> : (
+              {/* BARRA DE PESQUISA */}
+              <div className="mb-6">
+                <input type="text" placeholder="🔍 Pesquisar por nome ou telefone..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
+              </div>
+
+              {filteredClientes.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum cliente encontrado com essa pesquisa.</p> : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {clientes.map((c, i) => (
+                  {filteredClientes.map((c, i) => (
                     <div key={i} className="border border-gray-200 p-5 rounded-xl flex flex-col justify-between">
                       <div className="mb-4">
                         <strong className="text-sm text-black block">{c.nome}</strong>
@@ -528,9 +533,14 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {historico.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum histórico registrado.</p> : (
+              {/* BARRA DE PESQUISA */}
+              <div className="mb-6">
+                <input type="text" placeholder="🔍 Pesquisar por nome ou WhatsApp..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
+              </div>
+
+              {filteredHistorico.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum histórico encontrado com essa pesquisa.</p> : (
                 <div className="flex flex-col gap-4">
-                  {historico.map((h, i) => (
+                  {filteredHistorico.map((h, i) => (
                     <div key={i} className="border border-gray-200 p-5 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-gray-50">
                       <div>
                         <strong className="text-sm text-black block">{h.nome}</strong>
@@ -546,7 +556,7 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* NOVA ABA: TEMPLATES DE MENSAGENS (SCRIPTS) */}
+          {/* 6. ABA DE TEMPLATES DE MENSAGENS (SCRIPTS) */}
           {activeTab === 'mensagens' && (
             <div>
               <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
@@ -590,7 +600,7 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* 6. ABA DE NOVO PEDIDO MANUAL */}
+          {/* 7. ABA DE NOVO PEDIDO MANUAL */}
           {activeTab === 'novo' && (
             <div className="max-w-4xl">
               <h2 className="text-sm font-black uppercase text-black mb-1">Lançamento de Venda Manual</h2>
