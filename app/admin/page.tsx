@@ -167,7 +167,7 @@ export default function AdminDashboard() {
   const handleExportAbandonados = () => {
     if (abandonados.length === 0) return alert("Nenhum carrinho abandonado para exportar.");
     const headers = ['Nome', 'Telefone', 'Itens', 'Status da Sacola', 'Status de Contato', 'Data da Atualização'];
-    const data = abandonados.map(a => [a.nome, a.telefone, `"${a.itens_summary}"`, a.status, a.status_contato || 'Pendente', new Date(a.updated_at).toLocaleDateString('pt-BR')]);
+    const data = abandonados.map(itemAban => [itemAban.nome, itemAban.telefone, `"${itemAban.itens_summary}"`, itemAban.status, itemAban.status_contato || 'Pendente', new Date(itemAban.updated_at).toLocaleDateString('pt-BR')]);
     exportToCSV('Leads_Abandonados', [headers, ...data]);
   };
 
@@ -244,7 +244,6 @@ export default function AdminDashboard() {
   const filteredEspera = filterList(espera, ['nome', 'telefone', 'produto']); 
   const filteredBuscas = filterList(buscas, ['termo', 'nome', 'telefone']); 
 
-  // Separa os produtos da planilha em duas listas automáticas para o painel de estoque:
   const produtosDisponiveis = storeProducts.filter(p => Number(p.estoque ?? p.quantidade ?? 0) > 0);
   const produtosEsgotados = storeProducts.filter(p => Number(p.estoque ?? p.quantidade ?? 0) <= 0);
   const filteredEstoque = filterList(storeProducts, ['nome', 'categoria']);
@@ -440,19 +439,19 @@ export default function AdminDashboard() {
 
               {filteredAbandonados.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum carrinho encontrado com essa pesquisa.</p> : (
                 <div className="flex flex-col gap-4">
-                  {filteredAbandonados.map((a, i) => (
+                  {filteredAbandonados.map((itemAban, i) => (
                     <div key={i} className="border border-amber-200 bg-amber-50/50 rounded-xl p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                       <div>
-                        <strong className="text-sm text-black">{a.nome}</strong> ({a.telefone})<br/>
-                        <span className="text-xs text-gray-700 font-medium mt-1 block">🛍️ Produtos: {a.itens_summary}</span>
-                        <span className="text-[10px] font-bold uppercase text-amber-700 mt-1 block">{a.status}</span>
+                        <strong className="text-sm text-black">{itemAban.nome}</strong> ({itemAban.telefone})<br/>
+                        <span className="text-xs text-gray-700 font-medium mt-1 block">🛍️ Produtos: {itemAban.itens_summary}</span>
+                        <span className="text-[10px] font-bold uppercase text-amber-700 mt-1 block">{itemAban.status}</span>
                       </div>
                       <div className="flex flex-col sm:flex-row gap-2">
-                        <a href={`https://wa.me/55${a.telefone}?text=Olá ${a.nome}! Notamos que você deixou itens na sacola da Vascarin Beauty (${a.itens_summary}). Posso te ajudar a finalizar seu pedido?`} target="_blank" className="px-5 py-3 bg-black text-white text-[10px] font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors text-center flex items-center justify-center">
+                        <a href={`https://wa.me/55${itemAban.telefone}?text=Olá ${itemAban.nome}! Notamos que você deixou itens na sacola da Vascarin Beauty (${itemAban.itens_summary}). Posso te ajudar a finalizar seu pedido?`} target="_blank" className="px-5 py-3 bg-black text-white text-[10px] font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors text-center flex items-center justify-center">
                           📱 Chamar
                         </a>
-                        <button onClick={() => handleUpdateContato('carrinhos_abandonados', a.telefone, a.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`px-5 py-3 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${a.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
-                          {a.status_contato === 'Enviado' ? '✔ Contatado' : 'Marcar Contato'}
+                        <button onClick={() => handleUpdateContato('carrinhos_abandonados', itemAban.telefone, itemAban.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`px-5 py-3 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${itemAban.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
+                          {itemAban.status_contato === 'Enviado' ? '✔ Contatado' : 'Marcar Contato'}
                         </button>
                       </div>
                     </div>
@@ -491,7 +490,7 @@ export default function AdminDashboard() {
                         <a href={`https://wa.me/55${f.telefone}?text=Olá ${f.nome}! Vimos que você se interessou pelo ${f.produtos} na Vascarin Beauty. Gostaria de garantir o seu antes que esgote?`} target="_blank" className="px-5 py-3 bg-pink-600 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-pink-700 transition-colors text-center flex items-center justify-center">
                           📱 Oferecer
                         </a>
-                        <button onClick={() => handleUpdateContato('favoritos', f.telefone, f.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`px-5 py-3 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${a.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
+                        <button onClick={() => handleUpdateContato('favoritos', f.telefone, f.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`px-5 py-3 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${f.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
                           {f.status_contato === 'Enviado' ? '✔ Oferecido' : 'Marcar Oferta'}
                         </button>
                       </div>
@@ -596,7 +595,7 @@ export default function AdminDashboard() {
                           >
                             📱 {chegouNoEstoque ? 'Avisar que Chegou (WhatsApp)' : 'Chamar Cliente'}
                           </a>
-                          <button onClick={() => handleUpdateContato('fila_espera', e.telefone, e.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`px-5 py-3 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${a.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
+                          <button onClick={() => handleUpdateContato('fila_espera', e.telefone, e.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`px-5 py-3 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${e.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
                             {e.status_contato === 'Enviado' ? '✔ Avisado' : 'Marcar'}
                           </button>
                         </div>
@@ -690,7 +689,6 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* ABA DE ESTOQUE EM TEMPO REAL (LIDO DIRETAMENTE DA PLANILHA) */}
           {activeTab === 'estoque' && (
             <div>
               <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
@@ -703,7 +701,6 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Métricas rápidas de estoque */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div className="bg-green-50 border border-green-200 p-4 rounded-xl">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-green-700">Produtos Disponíveis (Estoque &gt; 0)</span>
@@ -800,7 +797,7 @@ export default function AdminDashboard() {
 
                   <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
                     <h3 className="text-xs font-bold uppercase text-gray-700 mb-3">2. Selecionar Perfumes</h3>
-                    <div className="flex card flex gap-2">
+                    <div className="flex gap-2">
                       <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)} className="flex-1 border border-gray-300 p-3 text-xs rounded-lg bg-white outline-none focus:border-black">
                         <option value="">Selecione um perfume...</option>
                         {storeProducts.map((p: any) => <option key={p.id} value={p.nome}>{p.nome} — R$ {p.preco.toFixed(2)}</option>)}
