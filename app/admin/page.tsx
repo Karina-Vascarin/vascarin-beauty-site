@@ -9,7 +9,7 @@ export default function AdminDashboard() {
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  // Navegação das Abas (Adicionado 'historico')
+  // Navegação das Abas
   const [activeTab, setActiveTab] = useState<'pedidos' | 'abandonados' | 'favoritos' | 'clientes' | 'historico' | 'novo'>('pedidos');
 
   // Estados dos Dados do Banco
@@ -17,7 +17,7 @@ export default function AdminDashboard() {
   const [abandonados, setAbandonados] = useState<any[]>([]);
   const [favoritos, setFavoritos] = useState<any[]>([]);
   const [clientes, setClientes] = useState<any[]>([]);
-  const [historico, setHistorico] = useState<any[]>([]); // Novo estado para o histórico
+  const [historico, setHistorico] = useState<any[]>([]);
   const [storeProducts, setStoreProducts] = useState<any[]>([]);
 
   // Estados para Venda Manual
@@ -54,7 +54,7 @@ export default function AdminDashboard() {
     const { data: cli } = await supabase.from('clientes').select('*').order('updated_at', { ascending: false });
     if (cli) setClientes(cli);
 
-    // 5. Busca Histórico (Nova Consulta)
+    // 5. Busca Histórico
     const { data: hist } = await supabase.from('historico_acessos').select('*').order('acessado_em', { ascending: false });
     if (hist) setHistorico(hist);
 
@@ -91,11 +91,22 @@ export default function AdminDashboard() {
     setIsLoggedIn(false);
   };
 
-  // Atualizar Status de Separação de Pedidos
-  const handleUpdateStatus = async (orderId: string, newStatus: string) => {
-    const { error } = await supabase.from('pedidos').update({ status: newStatus }).eq('id', orderId);
+  // Atualizar Status de Separação de Pedidos e Abrir WhatsApp
+  const handleUpdateStatus = async (pedido: any, newStatus: string) => {
+    const { error } = await supabase.from('pedidos').update({ status: newStatus }).eq('id', pedido.id);
+    
     if (!error) {
-      setPedidos(pedidos.map(p => p.id === orderId ? { ...p, status: newStatus } : p));
+      setPedidos(pedidos.map(p => p.id === pedido.id ? { ...p, status: newStatus } : p));
+
+      // Dispara as mensagens automáticas no WhatsApp
+      if (newStatus === 'Separado') {
+        const msg = `Olá ${pedido.nome}! Tudo bem? Passando para avisar que o seu pedido #${pedido.id} já foi separado e está sendo preparado para entrega/envio! 📦✨ Em breve ele chegará até você! Qualquer dúvida, estamos à disposição.`;
+        window.open(`https://wa.me/55${pedido.telefone}?text=${encodeURIComponent(msg)}`, '_blank');
+      } else if (newStatus === 'Entregue / Concluído') {
+        const msg = `Olá ${pedido.nome}! 🎉 Vimos que o seu pedido #${pedido.id} foi entregue!\n\nEsperamos muito que você ame os seus produtos! Quando puder, nos mande um feedback contando o que achou ou poste uma foto e nos marque no Instagram *@vascarin.beauty* 📸💖\n\nMuito obrigada por escolher a Vascarin Beauty!`;
+        window.open(`https://wa.me/55${pedido.telefone}?text=${encodeURIComponent(msg)}`, '_blank');
+      }
+
     } else {
       alert("Erro ao atualizar status: " + error.message);
     }
@@ -152,7 +163,7 @@ export default function AdminDashboard() {
     link.click();
   };
 
-  // IMPORTAÇÃO CSV (NOVO)
+  // IMPORTAÇÃO CSV
   const importarPedidos = (e: any) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -161,7 +172,6 @@ export default function AdminDashboard() {
       const text = ev.target?.result as string;
       const linhas = text.split('\n').slice(1);
       for (const linha of linhas) {
-        // O split está pegando separação por ponto e vírgula que é o padrão do seu Excel exportado
         const [id, nome, telefone, items, total, status] = linha.split(';');
         if (id && nome) {
           await supabase.from('pedidos').insert([{ 
@@ -220,7 +230,6 @@ export default function AdminDashboard() {
             <button onClick={() => setActiveTab('abandonados')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'abandonados' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>🛒 Abandonados ({abandonados.length})</button>
             <button onClick={() => setActiveTab('favoritos')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'favoritos' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>💖 Favoritos ({favoritos.length})</button>
             <button onClick={() => setActiveTab('clientes')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'clientes' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>👥 Clientes ({clientes.length})</button>
-            {/* NOVO BOTÃO HISTÓRICO - Com exato mesmo design */}
             <button onClick={() => setActiveTab('historico')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'historico' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>🕒 Histórico</button>
             <button onClick={() => setActiveTab('novo')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'novo' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>+ Venda Manual</button>
             <button onClick={handleLogout} className="px-4 py-2 text-xs font-bold uppercase rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors ml-auto">Sair</button>
@@ -250,7 +259,7 @@ export default function AdminDashboard() {
         {/* Conteúdo das Abas */}
         <div className="p-6 md:p-8">
           
-          {/* 1. ABA DE PEDIDOS (COM SEPARAÇÃO) */}
+          {/* 1. ABA DE PEDIDOS (COM SEPARAÇÃO E IMPORTAÇÃO) */}
           {activeTab === 'pedidos' && (
             <div>
               <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4 border-b border-gray-100 pb-4">
@@ -261,7 +270,6 @@ export default function AdminDashboard() {
                 <div className="flex gap-2">
                   <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors">🔄 Atualizar</button>
                   <button onClick={handleExportCSV} className="px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors">📊 Exportar Excel</button>
-                  {/* NOVO BOTÃO DE IMPORTAR COM MESMO DESIGN */}
                   <label className="px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-blue-700 transition-colors cursor-pointer flex items-center justify-center">
                     📥 Importar CSV
                     <input type="file" accept=".csv" onChange={importarPedidos} className="hidden" />
@@ -294,20 +302,20 @@ export default function AdminDashboard() {
                         <a href={`https://wa.me/55${p.telefone}?text=Olá ${p.nome}! Informamos sobre o seu pedido #${p.id} na Vascarin Beauty.`} target="_blank" className="w-full text-center px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors">
                           WhatsApp
                         </a>
+                        
                         {p.status === 'Pendente / A Separar' && (
-                          <button onClick={() => handleUpdateStatus(p.id, 'Separado')} className="w-full px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
+                          <button onClick={() => handleUpdateStatus(p, 'Separado')} className="w-full px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
                             ✔ Marcar como Separado
                           </button>
                         )}
                         {p.status === 'Separado' && (
-                          <button onClick={() => handleUpdateStatus(p.id, 'Entregue / Concluído')} className="w-full px-4 py-2 bg-black text-white text-xs font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">
+                          <button onClick={() => handleUpdateStatus(p, 'Entregue / Concluído')} className="w-full px-4 py-2 bg-black text-white text-xs font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">
                             🚀 Marcar como Entregue
                           </button>
                         )}
                         
-                        {/* NOVOS BOTÕES CANCELAR/EXCLUIR ADICIONADOS NO MESMO CONTAINER */}
                         <div className="w-full flex gap-2">
-                          <button onClick={() => handleUpdateStatus(p.id, p.status === 'Cancelado' ? 'Pendente / A Separar' : 'Cancelado')} className="flex-1 px-2 py-2 bg-orange-100 text-orange-700 text-[10px] font-bold uppercase rounded-lg hover:bg-orange-200 transition-colors cursor-pointer text-center">
+                          <button onClick={() => handleUpdateStatus(p, p.status === 'Cancelado' ? 'Pendente / A Separar' : 'Cancelado')} className="flex-1 px-2 py-2 bg-orange-100 text-orange-700 text-[10px] font-bold uppercase rounded-lg hover:bg-orange-200 transition-colors cursor-pointer text-center">
                             {p.status === 'Cancelado' ? 'Restaurar' : 'Cancelar'}
                           </button>
                           <button onClick={async () => {
@@ -418,7 +426,7 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* NOVA ABA: HISTÓRICO DE ENTRADAS COM DATA/HORA */}
+          {/* 5. ABA DE HISTÓRICO DE ENTRADAS COM DATA/HORA */}
           {activeTab === 'historico' && (
             <div>
               <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
@@ -447,7 +455,7 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* 5. ABA DE NOVO PEDIDO MANUAL */}
+          {/* 6. ABA DE NOVO PEDIDO MANUAL */}
           {activeTab === 'novo' && (
             <div className="max-w-4xl">
               <h2 className="text-sm font-black uppercase text-black mb-1">Lançamento de Venda Manual</h2>
