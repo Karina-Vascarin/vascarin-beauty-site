@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export default function AdminDashboard() {
@@ -17,7 +17,6 @@ export default function AdminDashboard() {
   const [favoritos, setFavoritos] = useState<any[]>([]);
   const [clientes, setClientes] = useState<any[]>([]);
   const [historico, setHistorico] = useState<any[]>([]);
-  const [estoque, setEstoque] = useState<any[]>([]); 
   const [espera, setEspera] = useState<any[]>([]); 
   const [buscas, setBuscas] = useState<any[]>([]); 
   const [storeProducts, setStoreProducts] = useState<any[]>([]);
@@ -28,10 +27,6 @@ export default function AdminDashboard() {
   const [manualTotal, setManualTotal] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('');
   const [selectedQty, setSelectedQty] = useState(1);
-
-  const [estoqueProduto, setEstoqueProduto] = useState('');
-  const [estoqueTipo, setEstoqueTipo] = useState<'Entrada' | 'Esgotado' | 'Saída'>('Entrada');
-  const [estoqueQtd, setEstoqueQtd] = useState(1);
 
   useEffect(() => {
     if (localStorage.getItem('vascarin_admin_auth') === 'true') {
@@ -55,9 +50,6 @@ export default function AdminDashboard() {
 
     const { data: hist } = await supabase.from('historico_acessos').select('*').order('acessado_em', { ascending: false });
     if (hist) setHistorico(hist);
-
-    const { data: est } = await supabase.from('historico_estoque').select('*').order('created_at', { ascending: false });
-    if (est) setEstoque(est);
 
     const { data: esp } = await supabase.from('fila_espera').select('*').order('created_at', { ascending: false });
     if (esp) setEspera(esp);
@@ -157,25 +149,6 @@ export default function AdminDashboard() {
     setSelectedProduct(''); setSelectedQty(1);
   };
 
-  const handleSaveEstoque = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!estoqueProduto) return alert("Selecione um produto.");
-    
-    const { error } = await supabase.from('historico_estoque').insert([{
-      produto: estoqueProduto,
-      tipo: estoqueTipo,
-      quantidade: estoqueQtd
-    }]);
-
-    if (!error) {
-      setEstoqueProduto(''); setEstoqueQtd(1); setEstoqueTipo('Entrada');
-      carregarTudo();
-      alert("Movimentação registrada no histórico!");
-    } else {
-      alert("Erro: " + error.message);
-    }
-  };
-
   const exportToCSV = (filename: string, rows: string[][]) => {
     const csv = "data:text/csv;charset=utf-8,\uFEFF" + rows.map(e => e.join(';')).join("\n");
     const link = document.createElement("a");
@@ -217,13 +190,6 @@ export default function AdminDashboard() {
     const headers = ['Nome', 'Telefone', 'Data do Acesso', 'Hora do Acesso'];
     const data = historico.map(h => [h.nome, h.telefone, new Date(h.acessado_em).toLocaleDateString('pt-BR'), new Date(h.acessado_em).toLocaleTimeString('pt-BR')]);
     exportToCSV('Historico_Acessos', [headers, ...data]);
-  };
-
-  const handleExportEstoque = () => {
-    if (estoque.length === 0) return alert("Nenhum registro de estoque para exportar.");
-    const headers = ['Produto', 'Tipo da Movimentação', 'Quantidade', 'Data', 'Hora'];
-    const data = estoque.map(e => [e.produto, e.tipo, e.quantidade, new Date(e.created_at).toLocaleDateString('pt-BR'), new Date(e.created_at).toLocaleTimeString('pt-BR')]);
-    exportToCSV('Historico_Estoque', [headers, ...data]);
   };
 
   const handleExportEspera = () => {
@@ -275,9 +241,13 @@ export default function AdminDashboard() {
   const filteredFavoritos = filterList(favoritos, ['nome', 'telefone', 'produtos']);
   const filteredClientes = filterList(clientes, ['nome', 'telefone']);
   const filteredHistorico = filterList(historico, ['nome', 'telefone']);
-  const filteredEstoque = filterList(estoque, ['produto', 'tipo']); 
   const filteredEspera = filterList(espera, ['nome', 'telefone', 'produto']); 
   const filteredBuscas = filterList(buscas, ['termo', 'nome', 'telefone']); 
+
+  // Separa os produtos da planilha em duas listas automáticas para o painel de estoque:
+  const produtosDisponiveis = storeProducts.filter(p => Number(p.estoque ?? p.quantidade ?? 0) > 0);
+  const produtosEsgotados = storeProducts.filter(p => Number(p.estoque ?? p.quantidade ?? 0) <= 0);
+  const filteredEstoque = filterList(storeProducts, ['nome', 'categoria']);
 
   const switchTab = (tab: any) => {
     setActiveTab(tab);
@@ -323,7 +293,7 @@ export default function AdminDashboard() {
             <button onClick={() => switchTab('espera')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'espera' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>⏳ Fila ({espera.length})</button>
             <button onClick={() => switchTab('buscas')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'buscas' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>🔍 Buscas</button>
             <button onClick={() => switchTab('historico')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'historico' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>🕒 Histórico</button>
-            <button onClick={() => switchTab('estoque')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'estoque' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>📋 Estoque</button>
+            <button onClick={() => switchTab('estoque')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'estoque' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>📋 Estoque em Tempo Real</button>
             <button onClick={() => switchTab('novo')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'novo' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>+ Venda Manual</button>
             <button onClick={() => switchTab('mensagens')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'mensagens' ? 'bg-white text-black' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>💬 Scripts</button>
             <button onClick={handleLogout} className="px-4 py-2 text-xs font-bold uppercase rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors ml-auto">Sair</button>
@@ -521,7 +491,7 @@ export default function AdminDashboard() {
                         <a href={`https://wa.me/55${f.telefone}?text=Olá ${f.nome}! Vimos que você se interessou pelo ${f.produtos} na Vascarin Beauty. Gostaria de garantir o seu antes que esgote?`} target="_blank" className="px-5 py-3 bg-pink-600 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-pink-700 transition-colors text-center flex items-center justify-center">
                           📱 Oferecer
                         </a>
-                        <button onClick={() => handleUpdateContato('favoritos', f.telefone, f.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`px-5 py-3 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${f.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
+                        <button onClick={() => handleUpdateContato('favoritos', f.telefone, f.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`px-5 py-3 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${a.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
                           {f.status_contato === 'Enviado' ? '✔ Oferecido' : 'Marcar Oferta'}
                         </button>
                       </div>
@@ -575,13 +545,12 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* ABA DE FILA DE ESPERA COM ALERTA AUTOMÁTICO DE ESTOQUE */}
           {activeTab === 'espera' && (
             <div>
               <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
                 <div>
                   <h2 className="text-sm font-black uppercase text-black">Fila de Espera (Avise-me)</h2>
-                  <p className="text-xs text-gray-400">O sistema avisa automaticamente quando o perfume desejado voltar ao estoque.</p>
+                  <p className="text-xs text-gray-400">O sistema avisa automaticamente quando o perfume desejado voltar ao estoque da planilha.</p>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">🔄 Atualizar</button>
@@ -596,7 +565,6 @@ export default function AdminDashboard() {
               {filteredEspera.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Não há clientes na fila de espera no momento.</p> : (
                 <div className="flex flex-col gap-4">
                   {filteredEspera.map((e, i) => {
-                    // Verifica se o produto que o cliente quer está com estoque > 0 na loja
                     const produtoNaLoja = storeProducts.find((p: any) => 
                       p.nome?.toLowerCase().includes(e.produto?.toLowerCase())
                     );
@@ -609,14 +577,13 @@ export default function AdminDashboard() {
                           <strong className="text-sm text-black">{e.nome}</strong> ({e.telefone})<br/>
                           <span className="text-xs text-blue-900 font-bold mt-1 block">⏳ Aguardando: {e.produto}</span>
                           
-                          {/* ALERTA VISUAL DE QUE O PRODUTO CHEGOU */}
                           {chegouNoEstoque ? (
                             <span className="inline-block mt-2 bg-green-600 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full animate-pulse">
-                              ✨ O produto chegou no estoque! Pronto para envio.
+                              ✨ O produto chegou na planilha! (Estoque: {estoqueAtual})
                             </span>
                           ) : (
                             <span className="inline-block mt-2 text-[10px] text-gray-500 font-medium">
-                              Status atual no site: Esgotado ou Indisponível
+                              Status atual na planilha: Esgotado (0)
                             </span>
                           )}
                         </div>
@@ -629,7 +596,7 @@ export default function AdminDashboard() {
                           >
                             📱 {chegouNoEstoque ? 'Avisar que Chegou (WhatsApp)' : 'Chamar Cliente'}
                           </a>
-                          <button onClick={() => handleUpdateContato('fila_espera', e.telefone, e.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`px-5 py-3 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${e.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
+                          <button onClick={() => handleUpdateContato('fila_espera', e.telefone, e.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`px-5 py-3 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${a.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
                             {e.status_contato === 'Enviado' ? '✔ Avisado' : 'Marcar'}
                           </button>
                         </div>
@@ -723,68 +690,55 @@ export default function AdminDashboard() {
             </div>
           )}
 
+          {/* ABA DE ESTOQUE EM TEMPO REAL (LIDO DIRETAMENTE DA PLANILHA) */}
           {activeTab === 'estoque' && (
             <div>
               <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
                 <div>
-                  <h2 className="text-sm font-black uppercase text-black">Controle e Histórico de Estoque</h2>
-                  <p className="text-xs text-gray-400">Registre entradas manuais ou quando um perfume esgotar.</p>
+                  <h2 className="text-sm font-black uppercase text-black">Estoque Atual em Tempo Real (Planilha)</h2>
+                  <p className="text-xs text-gray-400">Lido diretamente da sua planilha do Google Sheets. Produtos disponíveis e esgotados.</p>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">🔄 Atualizar</button>
-                  <button onClick={handleExportEstoque} className="px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors cursor-pointer">📊 Exportar</button>
+                  <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">🔄 Atualizar da Planilha</button>
                 </div>
               </div>
 
-              <form onSubmit={handleSaveEstoque} className="bg-white border border-gray-200 shadow-sm rounded-xl p-5 flex flex-col md:flex-row gap-4 mb-8">
-                <div className="flex-1">
-                  <label className="text-[10px] font-bold uppercase text-gray-500 block mb-1">Produto</label>
-                  <select value={estoqueProduto} onChange={e => setEstoqueProduto(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg outline-none focus:border-black bg-white" required>
-                    <option value="">Selecione um produto...</option>
-                    {storeProducts.map((p: any, idx) => (
-                      <option key={idx} value={p.nome}>{p.nome}</option>
-                    ))}
-                  </select>
+              {/* Métricas rápidas de estoque */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div className="bg-green-50 border border-green-200 p-4 rounded-xl">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-green-700">Produtos Disponíveis (Estoque &gt; 0)</span>
+                  <div className="text-2xl font-black text-green-700 mt-1">{produtosDisponiveis.length} itens</div>
                 </div>
-                <div className="w-full md:w-40">
-                  <label className="text-[10px] font-bold uppercase text-gray-500 block mb-1">Tipo de Movimento</label>
-                  <select value={estoqueTipo} onChange={e => setEstoqueTipo(e.target.value as any)} className="w-full border border-gray-300 p-3 text-xs rounded-lg outline-none focus:border-black bg-white">
-                    <option value="Entrada">Entrada (Chegou)</option>
-                    <option value="Saída">Saída (Vendido/Removido)</option>
-                    <option value="Esgotado">Esgotado (Falta)</option>
-                  </select>
+                <div className="bg-red-50 border border-red-200 p-4 rounded-xl">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-red-700">Produtos Esgotados (Estoque = 0)</span>
+                  <div className="text-2xl font-black text-red-700 mt-1">{produtosEsgotados.length} itens</div>
                 </div>
-                <div className="w-full md:w-24">
-                  <label className="text-[10px] font-bold uppercase text-gray-500 block mb-1">Qtd.</label>
-                  <input type="number" min="1" value={estoqueQtd} onChange={e => setEstoqueQtd(Number(e.target.value))} className="w-full border border-gray-300 p-3 text-xs rounded-lg text-center outline-none bg-white focus:border-black" />
-                </div>
-                <div className="w-full md:w-auto flex items-end">
-                  <button type="submit" className="w-full bg-black text-white text-xs font-bold uppercase py-3 px-6 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">Registrar</button>
-                </div>
-              </form>
+              </div>
 
               <div className="mb-6">
-                <input type="text" placeholder="🔍 Pesquisar movimentação por produto ou tipo..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
+                <input type="text" placeholder="🔍 Pesquisar produto no estoque..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
               </div>
 
-              {filteredEstoque.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum registro de estoque encontrado.</p> : (
+              {filteredEstoque.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum produto encontrado na planilha.</p> : (
                 <div className="flex flex-col gap-3">
-                  {filteredEstoque.map((est, i) => (
-                    <div key={i} className="border border-gray-200 p-4 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-gray-50">
-                      <div>
-                        <strong className="text-sm text-black block">{est.produto}</strong>
-                        <span className={`inline-block mt-1 text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full ${
-                          est.tipo === 'Entrada' ? 'bg-green-100 text-green-800' :
-                          est.tipo === 'Esgotado' ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'
-                        }`}>
-                          {est.tipo} — {est.quantidade} unid.
+                  {filteredEstoque.map((p, i) => {
+                    const qtd = Number(p.estoque ?? p.quantidade ?? 0);
+                    const isEsgotado = qtd <= 0;
+                    return (
+                      <div key={i} className={`border p-4 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-4 ${isEsgotado ? 'bg-red-50/40 border-red-200' : 'bg-white border-gray-200'}`}>
+                        <div>
+                          <strong className="text-xs text-black block">{p.nome}</strong>
+                          <span className="text-[10px] text-gray-500 uppercase mt-0.5 block">Categoria: {p.categoria || 'Geral'}</span>
+                          <span className={`inline-block mt-1.5 text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full ${isEsgotado ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                            {isEsgotado ? '❌ Esgotado na Planilha (0)' : `✔ Disponível (${qtd} un.)`}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-black">
+                          R$ {Number(p.preco || 0).toFixed(2)}
                         </span>
                       </div>
-                      <span className="text-xs font-mono bg-white border border-gray-200 px-4 py-2 rounded-lg text-gray-600 font-bold">
-                        {new Date(est.created_at).toLocaleDateString('pt-BR')} às {new Date(est.created_at).toLocaleTimeString('pt-BR')}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -846,7 +800,7 @@ export default function AdminDashboard() {
 
                   <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
                     <h3 className="text-xs font-bold uppercase text-gray-700 mb-3">2. Selecionar Perfumes</h3>
-                    <div className="flex gap-2">
+                    <div className="flex card flex gap-2">
                       <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)} className="flex-1 border border-gray-300 p-3 text-xs rounded-lg bg-white outline-none focus:border-black">
                         <option value="">Selecione um perfume...</option>
                         {storeProducts.map((p: any) => <option key={p.id} value={p.nome}>{p.nome} — R$ {p.preco.toFixed(2)}</option>)}
