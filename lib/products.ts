@@ -1,77 +1,67 @@
-import fs from 'fs';
-import path from 'path';
-import Papa from 'papaparse';
+export async function getProducts() {
+  // 1. Cole aqui dentro das aspas o link CSV que você gerou no Google Sheets!
+  const PLANILHA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSEBFXb1d_7KFNXVBxCiclQcVy4_EhBITqtjFDqxvCm4_fHhB5z6mshvP41Vkqck8LB0lvL7rffu7zw/pub?gid=0&single=true&output=csv";
 
-export interface Product {
-  id: string;
-  nome: string;
-  preco: number;
-  categoria: string;
-  marca: string;
-  imagem: string;
-  descricao_resumida: string;
-  descricao_completa: string;
-  estoque: number;
-}
-
-export async function getProducts(): Promise<Product[]> {
   try {
-    const csvFilePath = path.join(process.cwd(), 'produtos.csv'); 
+    // Busca a planilha na web em tempo real (cache: 'no-store' garante dados frescos)
+    const response = await fetch(PLANILHA_URL, { cache: 'no-store' });
     
-    if (!fs.existsSync(csvFilePath)) {
-      return [];
+    if (!response.ok) {
+      throw new Error("Não foi possível acessar a planilha online.");
     }
+    
+    const csvText = await response.text();
 
-    let file = fs.readFileSync(csvFilePath, 'utf8').replace(/^\uFEFF/, '');
-    const isSemicolon = file.indexOf(';') > -1 && file.indexOf(';') < file.indexOf('\n');
+    // 2. Transforma o texto do CSV em uma lista estruturada
+    const linhas = csvText.split('\n').filter(linha => linha.trim() !== '');
+    if (linhas.length === 0) return [];
 
-    const { data } = Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      delimiter: isSemicolon ? ';' : ',',
-      transformHeader: (header) => header.trim()
-    });
+    // Descobre automaticamente se o Google exportou separando por vírgula ou ponto e vírgula
+    const separador = linhas[0].includes(';') ? ';' : ',';
+    
+    // Pega os títulos das colunas (nome, preco, estoque, imagem...)
+    const cabecalhos = linhas[0].split(separador).map(c => c.trim().toLowerCase());
 
-    return data.map((row: any, index: number) => {
-      const precoRaw = row['preco'] || row['Venda'] || '0';
-      const precoLimpo = precoRaw.toString().replace('R$', '').replace(',', '.').trim();
+    const produtos = linhas.slice(1).map((linha, index) => {
+      // Regex segura para separar as colunas sem quebrar caso tenha vírgula no nome do perfume
+      const regex = new RegExp(`(?:^|${separador})("([^"]*(?:""[^"]*)*)"|([^${separador}]+))`, 'g');
       
-      const estoqueRaw = row['estoque'] !== undefined && row['estoque'] !== '' ? row['estoque'] : '5';
-      const estoqueNum = parseInt(estoqueRaw);
+      // CORREÇÃO APLICADA AQUI: Avisamos que 'valores' é uma lista de textos (string[])
+      const valores: string[] = []; 
+      
+      let match;
+      
+      while ((match = regex.exec(linha)) !== null) {
+        let valor = match[2] || match[3] || '';
+        valores.push(valor.replace(/""/g, '"').trim());
+      }
 
-      const nomeProduto = row['nome'] || '';
-      const idProduto = row['id'] || row['SKU'] || '';
-
-      // Identificação inteligente da categoria se a coluna da planilha estiver vazia
-      let categoriaReal = row['categoria'];
-      if (!categoriaReal || categoriaReal.trim() === '') {
-        if (idProduto.toUpperCase().includes('BRAND') || nomeProduto.toLowerCase().includes('brand')) {
-          categoriaReal = 'Brand Collection';
-        } else {
-          categoriaReal = 'Importados';
+      const produto: any = { id: `prod_${index}` }; // Cria um ID único
+      
+      cabecalhos.forEach((cabecalho, idx) => {
+        if (cabecalho) {
+          produto[cabecalho] = valores[idx] || '';
+          
+          // Se for preço, formata certinho
+          if (cabecalho === 'preco') {
+            const numeroLimpo = produto[cabecalho].replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+            produto[cabecalho] = Number(numeroLimpo) || 0;
+          }
+          
+          // Se for estoque, converte para número
+          if (cabecalho === 'estoque' || cabecalho === 'quantidade') {
+            produto[cabecalho] = Number(produto[cabecalho]) || 0;
+          }
         }
-      }
-
-      // Identificação da marca
-      let marcaReal = row['marca'];
-      if (!marcaReal || marcaReal.trim() === '') {
-        marcaReal = categoriaReal === 'Brand Collection' ? 'Brand Collection' : 'Vascarin Beauty';
-      }
-
-      return {
-        id: idProduto || `produto-${index}`,
-        nome: nomeProduto,
-        preco: parseFloat(precoLimpo) || 0,
-        categoria: categoriaReal.trim(),
-        marca: marcaReal.trim(), 
-        imagem: row['imagem'] || '',
-        descricao_resumida: row['descricao_resumida'] || '',
-        descricao_completa: row['descricao_completa'] || `Fragrância: ${nomeProduto}.`,
-        estoque: isNaN(estoqueNum) ? 5 : estoqueNum,
-      };
+      });
+      
+      return produto;
     });
+
+    return produtos;
+
   } catch (error) {
-    console.error("Erro ao ler o arquivo CSV:", error);
-    return [];
+    console.error("Erro ao ler a planilha do Google Sheets:", error);
+    return []; // Retorna lista vazia para o site não sair do ar se a planilha falhar
   }
 }

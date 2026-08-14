@@ -9,9 +9,9 @@ export default function AdminDashboard() {
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  // Navegação das Abas e Pesquisa
-  const [activeTab, setActiveTab] = useState<'pedidos' | 'abandonados' | 'favoritos' | 'clientes' | 'historico' | 'novo' | 'mensagens'>('pedidos');
-  const [searchQuery, setSearchQuery] = useState(''); // NOVO: Estado da pesquisa
+  // Navegação das Abas (Adicionado 'buscas')
+  const [activeTab, setActiveTab] = useState<'pedidos' | 'abandonados' | 'favoritos' | 'clientes' | 'historico' | 'novo' | 'mensagens' | 'estoque' | 'espera' | 'buscas'>('pedidos');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Estados dos Dados do Banco
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -19,6 +19,9 @@ export default function AdminDashboard() {
   const [favoritos, setFavoritos] = useState<any[]>([]);
   const [clientes, setClientes] = useState<any[]>([]);
   const [historico, setHistorico] = useState<any[]>([]);
+  const [estoque, setEstoque] = useState<any[]>([]); 
+  const [espera, setEspera] = useState<any[]>([]); 
+  const [buscas, setBuscas] = useState<any[]>([]); // NOVO: Estado das Buscas do Site
   const [storeProducts, setStoreProducts] = useState<any[]>([]);
 
   // Estados para Venda Manual
@@ -28,6 +31,11 @@ export default function AdminDashboard() {
   const [manualTotal, setManualTotal] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('');
   const [selectedQty, setSelectedQty] = useState(1);
+
+  // Estados para Lançamento de Estoque
+  const [estoqueProduto, setEstoqueProduto] = useState('');
+  const [estoqueTipo, setEstoqueTipo] = useState<'Entrada' | 'Esgotado' | 'Saída'>('Entrada');
+  const [estoqueQtd, setEstoqueQtd] = useState(1);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -53,6 +61,15 @@ export default function AdminDashboard() {
 
     const { data: hist } = await supabase.from('historico_acessos').select('*').order('acessado_em', { ascending: false });
     if (hist) setHistorico(hist);
+
+    const { data: est } = await supabase.from('historico_estoque').select('*').order('created_at', { ascending: false });
+    if (est) setEstoque(est);
+
+    const { data: esp } = await supabase.from('fila_espera').select('*').order('created_at', { ascending: false });
+    if (esp) setEspera(esp);
+
+    const { data: bsc } = await supabase.from('buscas_site').select('*').order('created_at', { ascending: false });
+    if (bsc) setBuscas(bsc);
 
     try {
       const res = await fetch('/api/produtos');
@@ -91,6 +108,8 @@ export default function AdminDashboard() {
       return `Olá ${pedido.nome}! Tudo bem? Passando para avisar que o seu pedido #${pedido.id} já foi separado e está sendo preparado para entrega/envio! 📦✨ Em breve ele chegará até você! Qualquer dúvida, estamos à disposição.`;
     } else if (pedido.status === 'Entregue / Concluído') {
       return `Olá ${pedido.nome}! 🎉 Vimos que o seu pedido #${pedido.id} foi entregue!\n\nEsperamos muito que você ame os seus produtos! Quando puder, nos mande um feedback contando o que achou ou poste uma foto e nos marque no Instagram *@vascarin.beauty* 📸💖\n\nMuito obrigada por escolher a Vascarin Beauty!`;
+    } else if (pedido.status === 'Problema de Estoque') {
+      return `Olá ${pedido.nome}, tudo bem? Aqui é da Vascarin Beauty. Infelizmente, no momento da separação do seu pedido #${pedido.id}, notamos que um dos itens esgotou no nosso fornecedor e não temos em estoque.\n\nComo você prefere seguir? Podemos trocar por outro perfume ou fazer o estorno para você! Pedimos mil desculpas pelo transtorno. 😔`;
     }
     return `Olá ${pedido.nome}! Informamos sobre o seu pedido #${pedido.id} na Vascarin Beauty.`;
   };
@@ -100,11 +119,8 @@ export default function AdminDashboard() {
     if (!error) {
       setPedidos(pedidos.map(p => p.id === pedido.id ? { ...p, status: newStatus } : p));
       if (!isSilent) {
-        if (newStatus === 'Separado') {
-          const msg = `Olá ${pedido.nome}! Tudo bem? Passando para avisar que o seu pedido #${pedido.id} já foi separado e está sendo preparado para entrega/envio! 📦✨ Em breve ele chegará até você! Qualquer dúvida, estamos à disposição.`;
-          window.open(`https://wa.me/55${pedido.telefone}?text=${encodeURIComponent(msg)}`, '_blank');
-        } else if (newStatus === 'Entregue / Concluído') {
-          const msg = `Olá ${pedido.nome}! 🎉 Vimos que o seu pedido #${pedido.id} foi entregue!\n\nEsperamos muito que você ame os seus produtos! Quando puder, nos mande um feedback contando o que achou ou poste uma foto e nos marque no Instagram *@vascarin.beauty* 📸💖\n\nMuito obrigada por escolher a Vascarin Beauty!`;
+        if (newStatus === 'Separado' || newStatus === 'Entregue / Concluído' || newStatus === 'Problema de Estoque') {
+          const msg = getWhatsAppMessage({ ...pedido, status: newStatus });
           window.open(`https://wa.me/55${pedido.telefone}?text=${encodeURIComponent(msg)}`, '_blank');
         }
       }
@@ -147,6 +163,26 @@ export default function AdminDashboard() {
     setSelectedProduct(''); setSelectedQty(1);
   };
 
+  const handleSaveEstoque = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!estoqueProduto) return alert("Selecione um produto.");
+    
+    const { error } = await supabase.from('historico_estoque').insert([{
+      produto: estoqueProduto,
+      tipo: estoqueTipo,
+      quantidade: estoqueQtd
+    }]);
+
+    if (!error) {
+      setEstoqueProduto(''); setEstoqueQtd(1); setEstoqueTipo('Entrada');
+      carregarTudo();
+      alert("Movimentação registrada no histórico!");
+    } else {
+      alert("Erro: " + error.message);
+    }
+  };
+
+  // ----- FUNÇÕES DE EXPORTAÇÃO -----
   const exportToCSV = (filename: string, rows: string[][]) => {
     const csv = "data:text/csv;charset=utf-8,\uFEFF" + rows.map(e => e.join(';')).join("\n");
     const link = document.createElement("a");
@@ -190,6 +226,27 @@ export default function AdminDashboard() {
     exportToCSV('Historico_Acessos', [headers, ...data]);
   };
 
+  const handleExportEstoque = () => {
+    if (estoque.length === 0) return alert("Nenhum registro de estoque para exportar.");
+    const headers = ['Produto', 'Tipo da Movimentação', 'Quantidade', 'Data', 'Hora'];
+    const data = estoque.map(e => [e.produto, e.tipo, e.quantidade, new Date(e.created_at).toLocaleDateString('pt-BR'), new Date(e.created_at).toLocaleTimeString('pt-BR')]);
+    exportToCSV('Historico_Estoque', [headers, ...data]);
+  };
+
+  const handleExportEspera = () => {
+    if (espera.length === 0) return alert("Nenhuma fila de espera para exportar.");
+    const headers = ['Nome', 'Telefone', 'Produto', 'Status', 'Data'];
+    const data = espera.map(e => [e.nome, e.telefone, `"${e.produto}"`, e.status_contato || 'Pendente', new Date(e.created_at).toLocaleDateString('pt-BR')]);
+    exportToCSV('Fila_de_Espera', [headers, ...data]);
+  };
+
+  const handleExportBuscas = () => {
+    if (buscas.length === 0) return alert("Nenhuma busca para exportar.");
+    const headers = ['Termo Pesquisado', 'Nome', 'Telefone', 'Encontrou Resultados?', 'Data', 'Hora'];
+    const data = buscas.map(b => [b.termo, b.nome || 'Anônimo', b.telefone || '-', b.resultados > 0 ? 'Sim' : 'Não', new Date(b.created_at).toLocaleDateString('pt-BR'), new Date(b.created_at).toLocaleTimeString('pt-BR')]);
+    exportToCSV('Termos_Pesquisados', [headers, ...data]);
+  };
+
   const importarPedidos = (e: any) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -226,11 +283,13 @@ export default function AdminDashboard() {
   const filteredFavoritos = filterList(favoritos, ['nome', 'telefone', 'produtos']);
   const filteredClientes = filterList(clientes, ['nome', 'telefone']);
   const filteredHistorico = filterList(historico, ['nome', 'telefone']);
+  const filteredEstoque = filterList(estoque, ['produto', 'tipo']); 
+  const filteredEspera = filterList(espera, ['nome', 'telefone', 'produto']); 
+  const filteredBuscas = filterList(buscas, ['termo', 'nome', 'telefone']); // NOVO: Filtro para as buscas
 
-  // Trocar de aba e limpar a pesquisa
   const switchTab = (tab: any) => {
     setActiveTab(tab);
-    setSearchQuery(''); // Limpa a barra de pesquisa ao trocar de tela
+    setSearchQuery('');
   };
 
   if (!isLoggedIn) {
@@ -270,7 +329,13 @@ export default function AdminDashboard() {
             <button onClick={() => switchTab('abandonados')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'abandonados' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>🛒 Abandonados ({abandonados.length})</button>
             <button onClick={() => switchTab('favoritos')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'favoritos' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>💖 Favoritos ({favoritos.length})</button>
             <button onClick={() => switchTab('clientes')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'clientes' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>👥 Clientes ({clientes.length})</button>
+            <button onClick={() => switchTab('espera')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'espera' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>⏳ Fila ({espera.length})</button>
+            
+            {/* NOVO BOTÃO DE BUSCAS */}
+            <button onClick={() => switchTab('buscas')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'buscas' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>🔍 Buscas</button>
+            
             <button onClick={() => switchTab('historico')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'historico' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>🕒 Histórico</button>
+            <button onClick={() => switchTab('estoque')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'estoque' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>📋 Estoque</button>
             <button onClick={() => switchTab('novo')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'novo' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>+ Venda Manual</button>
             <button onClick={() => switchTab('mensagens')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'mensagens' ? 'bg-white text-black' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>💬 Scripts</button>
             <button onClick={handleLogout} className="px-4 py-2 text-xs font-bold uppercase rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors ml-auto">Sair</button>
@@ -318,7 +383,6 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* BARRA DE PESQUISA */}
               <div className="mb-6">
                 <input type="text" placeholder="🔍 Pesquisar por nome, WhatsApp ou ID do pedido..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
               </div>
@@ -330,7 +394,13 @@ export default function AdminDashboard() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <strong className="text-sm text-black">{p.id}</strong>
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${p.status === 'Pendente / A Separar' ? 'bg-amber-100 text-amber-800' : p.status === 'Separado' ? 'bg-blue-100 text-blue-800' : p.status === 'Cancelado' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                            p.status === 'Pendente / A Separar' ? 'bg-amber-100 text-amber-800' : 
+                            p.status === 'Separado' ? 'bg-blue-100 text-blue-800' : 
+                            p.status === 'Problema de Estoque' ? 'bg-red-100 text-red-800' : 
+                            p.status === 'Cancelado' ? 'bg-gray-200 text-gray-800' : 
+                            'bg-green-100 text-green-800'
+                          }`}>
                             {p.status}
                           </span>
                           <span className="text-[10px] text-gray-400 uppercase font-bold">({p.tipo})</span>
@@ -346,18 +416,26 @@ export default function AdminDashboard() {
                         </a>
                         
                         {p.status === 'Pendente / A Separar' && (
-                          <button onClick={() => handleUpdateStatus(p, 'Separado')} className="w-full px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
-                            ✔ Marcar como Separado
-                          </button>
+                          <>
+                            <button onClick={() => handleUpdateStatus(p, 'Separado')} className="w-full px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
+                              ✔ Marcar como Separado
+                            </button>
+                            {/* BOTÃO DE PROBLEMA DE ESTOQUE */}
+                            <button onClick={() => handleUpdateStatus(p, 'Problema de Estoque')} className="w-full px-4 py-2 bg-red-600 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-red-700 transition-colors cursor-pointer text-center">
+                              ⚠️ Avisar Falta de Estoque
+                            </button>
+                          </>
                         )}
                         
-                        {p.status === 'Separado' && (
+                        {(p.status === 'Separado' || p.status === 'Problema de Estoque') && (
                           <>
-                            <button onClick={() => handleUpdateStatus(p, 'Entregue / Concluído')} className="w-full px-4 py-2 bg-black text-white text-xs font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">
-                              🚀 Marcar como Entregue
-                            </button>
+                            {p.status !== 'Problema de Estoque' && (
+                              <button onClick={() => handleUpdateStatus(p, 'Entregue / Concluído')} className="w-full px-4 py-2 bg-black text-white text-xs font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">
+                                🚀 Marcar como Entregue
+                              </button>
+                            )}
                             <button onClick={() => handleUpdateStatus(p, 'Pendente / A Separar', true)} className="w-full px-4 py-2 bg-gray-200 text-gray-700 text-[10px] font-bold uppercase rounded-lg hover:bg-gray-300 transition-colors cursor-pointer text-center">
-                              ↩ Desfazer Separação
+                              ↩ Desfazer Status
                             </button>
                           </>
                         )}
@@ -403,7 +481,6 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* BARRA DE PESQUISA */}
               <div className="mb-6">
                 <input type="text" placeholder="🔍 Pesquisar cliente, telefone ou produto da sacola..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
               </div>
@@ -446,7 +523,6 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* BARRA DE PESQUISA */}
               <div className="mb-6">
                 <input type="text" placeholder="🔍 Pesquisar por cliente ou nome do perfume..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
               </div>
@@ -474,7 +550,7 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* 4. ABA DE CLIENTES (ACESSOS AO SITE) */}
+          {/* 4. ABA DE CLIENTES */}
           {activeTab === 'clientes' && (
             <div>
               <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
@@ -488,7 +564,6 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* BARRA DE PESQUISA */}
               <div className="mb-6">
                 <input type="text" placeholder="🔍 Pesquisar por nome ou telefone..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
               </div>
@@ -519,7 +594,97 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* 5. ABA DE HISTÓRICO DE ENTRADAS COM DATA/HORA */}
+          {/* 5. ABA DE FILA DE ESPERA */}
+          {activeTab === 'espera' && (
+            <div>
+              <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                <div>
+                  <h2 className="text-sm font-black uppercase text-black">Fila de Espera (Avise-me)</h2>
+                  <p className="text-xs text-gray-400">Clientes que solicitaram aviso de produtos esgotados que voltarem ao estoque.</p>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">🔄 Atualizar</button>
+                  <button onClick={handleExportEspera} className="px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors cursor-pointer">📊 Exportar</button>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <input type="text" placeholder="🔍 Pesquisar por nome, WhatsApp ou produto..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
+              </div>
+
+              {filteredEspera.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Não há clientes na fila de espera no momento.</p> : (
+                <div className="flex flex-col gap-4">
+                  {filteredEspera.map((e, i) => (
+                    <div key={i} className="border border-blue-200 bg-blue-50/50 rounded-xl p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                      <div>
+                        <strong className="text-sm text-black">{e.nome}</strong> ({e.telefone})<br/>
+                        <span className="text-xs text-blue-700 font-bold mt-1 block">⏳ Aguardando: {e.produto}</span>
+                        <span className="text-[10px] text-gray-500 block mt-1">Registrado em: {new Date(e.created_at).toLocaleDateString('pt-BR')}</span>
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <a href={`https://wa.me/55${e.telefone}?text=Oii ${e.nome}! O perfume ${e.produto} que você estava querendo acabou de voltar para o nosso estoque na Vascarin Beauty! 🎉 Posso reservar o seu?`} target="_blank" className="px-5 py-3 bg-blue-600 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-blue-700 transition-colors text-center flex items-center justify-center">
+                          📱 Avisar Chegada
+                        </a>
+                        <button onClick={() => handleUpdateContato('fila_espera', e.telefone, e.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`px-5 py-3 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${e.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
+                          {e.status_contato === 'Enviado' ? '✔ Avisado' : 'Marcar'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 6. NOVA ABA DE BUSCAS DO SITE */}
+          {activeTab === 'buscas' && (
+            <div>
+              <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                <div>
+                  <h2 className="text-sm font-black uppercase text-black">Termos Pesquisados no Site</h2>
+                  <p className="text-xs text-gray-400">Descubra quais perfumes seus clientes estão procurando (ideal para saber o que comprar no fornecedor).</p>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">🔄 Atualizar</button>
+                  <button onClick={handleExportBuscas} className="px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors cursor-pointer">📊 Exportar</button>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <input type="text" placeholder="🔍 Pesquisar por termo buscado ou nome do cliente..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
+              </div>
+
+              {filteredBuscas.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhuma pesquisa registrada no site ainda.</p> : (
+                <div className="flex flex-col gap-4">
+                  {filteredBuscas.map((b, i) => (
+                    <div key={i} className="border border-purple-200 bg-purple-50/50 rounded-xl p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                      <div>
+                        <strong className="text-sm text-purple-900 block">"{b.termo}"</strong>
+                        <span className="text-[10px] font-bold text-gray-500 uppercase mt-1 block">
+                          Pesquisado por: <span className="text-black">{b.nome || 'Visitante Anônimo'}</span> {b.telefone && `(${b.telefone})`}
+                        </span>
+                        {b.resultados > 0 ? (
+                          <span className="text-[10px] text-green-600 font-bold block mt-1">✔ Encontrou produtos</span>
+                        ) : (
+                          <span className="text-[10px] text-red-500 font-bold block mt-1">❌ Não encontrou resultados</span>
+                        )}
+                      </div>
+                      
+                      {b.telefone && (
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <a href={`https://wa.me/55${b.telefone}?text=Olá ${b.nome}! Vi que você procurou por "${b.termo}" no nosso site. Posso te ajudar a encontrar ou encomendar para você?`} target="_blank" className="px-5 py-3 bg-purple-600 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-purple-700 transition-colors text-center flex items-center justify-center">
+                            📱 Oferecer Encomenda
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 7. ABA DE HISTÓRICO DE ENTRADAS COM DATA/HORA */}
           {activeTab === 'historico' && (
             <div>
               <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
@@ -533,7 +698,6 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* BARRA DE PESQUISA */}
               <div className="mb-6">
                 <input type="text" placeholder="🔍 Pesquisar por nome ou WhatsApp..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
               </div>
@@ -556,7 +720,75 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* 6. ABA DE TEMPLATES DE MENSAGENS (SCRIPTS) */}
+          {/* 8. ABA DE ESTOQUE (HISTÓRICO E MOVIMENTAÇÃO) */}
+          {activeTab === 'estoque' && (
+            <div>
+              <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                <div>
+                  <h2 className="text-sm font-black uppercase text-black">Controle e Histórico de Estoque</h2>
+                  <p className="text-xs text-gray-400">Registre entradas manuais ou quando um perfume esgotar.</p>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">🔄 Atualizar</button>
+                  <button onClick={handleExportEstoque} className="px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors cursor-pointer">📊 Exportar</button>
+                </div>
+              </div>
+
+              <form onSubmit={handleSaveEstoque} className="bg-white border border-gray-200 shadow-sm rounded-xl p-5 flex flex-col md:flex-row gap-4 mb-8">
+                <div className="flex-1">
+                  <label className="text-[10px] font-bold uppercase text-gray-500 block mb-1">Produto</label>
+                  <select value={estoqueProduto} onChange={e => setEstoqueProduto(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg outline-none focus:border-black bg-white" required>
+                    <option value="">Selecione um produto...</option>
+                    {storeProducts.map((p: any, idx) => (
+                      <option key={idx} value={p.nome}>{p.nome}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="w-full md:w-40">
+                  <label className="text-[10px] font-bold uppercase text-gray-500 block mb-1">Tipo de Movimento</label>
+                  <select value={estoqueTipo} onChange={e => setEstoqueTipo(e.target.value as any)} className="w-full border border-gray-300 p-3 text-xs rounded-lg outline-none focus:border-black bg-white">
+                    <option value="Entrada">Entrada (Chegou)</option>
+                    <option value="Saída">Saída (Vendido/Removido)</option>
+                    <option value="Esgotado">Esgotado (Falta)</option>
+                  </select>
+                </div>
+                <div className="w-full md:w-24">
+                  <label className="text-[10px] font-bold uppercase text-gray-500 block mb-1">Qtd.</label>
+                  <input type="number" min="1" value={estoqueQtd} onChange={e => setEstoqueQtd(Number(e.target.value))} className="w-full border border-gray-300 p-3 text-xs rounded-lg text-center outline-none bg-white focus:border-black" />
+                </div>
+                <div className="w-full md:w-auto flex items-end">
+                  <button type="submit" className="w-full bg-black text-white text-xs font-bold uppercase py-3 px-6 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">Registrar</button>
+                </div>
+              </form>
+
+              <div className="mb-6">
+                <input type="text" placeholder="🔍 Pesquisar movimentação por produto ou tipo..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
+              </div>
+
+              {filteredEstoque.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum registro de estoque encontrado.</p> : (
+                <div className="flex flex-col gap-3">
+                  {filteredEstoque.map((est, i) => (
+                    <div key={i} className="border border-gray-200 p-4 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-gray-50">
+                      <div>
+                        <strong className="text-sm text-black block">{est.produto}</strong>
+                        <span className={`inline-block mt-1 text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full ${
+                          est.tipo === 'Entrada' ? 'bg-green-100 text-green-800' :
+                          est.tipo === 'Esgotado' ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'
+                        }`}>
+                          {est.tipo} — {est.quantidade} unid.
+                        </span>
+                      </div>
+                      <span className="text-xs font-mono bg-white border border-gray-200 px-4 py-2 rounded-lg text-gray-600 font-bold">
+                        {new Date(est.created_at).toLocaleDateString('pt-BR')} às {new Date(est.created_at).toLocaleTimeString('pt-BR')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 9. ABA DE TEMPLATES DE MENSAGENS (SCRIPTS) */}
           {activeTab === 'mensagens' && (
             <div>
               <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
@@ -568,39 +800,35 @@ export default function AdminDashboard() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
-                {/* Script Carrinho Abandonado */}
+                <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
+                  <h3 className="text-xs font-bold uppercase text-blue-700 mb-3">🔔 Produto Chegou</h3>
+                  <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Oii [Nome]! O perfume [Produto] que você estava querendo acabou de voltar para o nosso estoque na Vascarin Beauty! 🎉\n\nPosso reservar o seu?"} />
+                  <button onClick={(e) => { navigator.clipboard.writeText("Oii [Nome]! O perfume [Produto] que você estava querendo acabou de voltar para o nosso estoque na Vascarin Beauty! 🎉\n\nPosso reservar o seu?"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors">Copiar Script</button>
+                </div>
+
                 <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
                   <h3 className="text-xs font-bold uppercase text-amber-700 mb-3">🛒 Abordagem de Carrinho</h3>
                   <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Olá [Nome]! Tudo bem? Vi que você deixou produtos incríveis na sacola da Vascarin Beauty.\n\nPosso te ajudar a finalizar o pedido ou tirar alguma dúvida sobre a fragrância?"} />
                   <button onClick={(e) => { navigator.clipboard.writeText("Olá [Nome]! Tudo bem? Vi que você deixou produtos incríveis na sacola da Vascarin Beauty.\n\nPosso te ajudar a finalizar o pedido ou tirar alguma dúvida sobre a fragrância?"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors">Copiar Script</button>
                 </div>
 
-                {/* Script Favoritos */}
                 <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
                   <h3 className="text-xs font-bold uppercase text-pink-600 mb-3">💖 Abordagem de Favoritos</h3>
                   <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Oii [Nome]! Vi que você amou o [Produto] na nossa loja.\n\nEstou passando pra te avisar que o estoque dele está acabando! Quer que eu já reserve o seu antes que acabe?"} />
                   <button onClick={(e) => { navigator.clipboard.writeText("Oii [Nome]! Vi que você amou o [Produto] na nossa loja.\n\nEstou passando pra te avisar que o estoque dele está acabando! Quer que eu já reserve o seu antes que acabe?"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors">Copiar Script</button>
                 </div>
 
-                {/* Script Cliente Antigo */}
                 <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
                   <h3 className="text-xs font-bold uppercase text-blue-600 mb-3">👥 Reativação de Cliente</h3>
                   <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Olá [Nome], tudo bem por aí? Faz um tempo que não nos falamos!\n\nChegaram umas novidades maravilhosas na Vascarin Beauty que são super o seu estilo. Posso te mandar algumas fotos?"} />
                   <button onClick={(e) => { navigator.clipboard.writeText("Olá [Nome], tudo bem por aí? Faz um tempo que não nos falamos!\n\nChegaram umas novidades maravilhosas na Vascarin Beauty que são super o seu estilo. Posso te mandar algumas fotos?"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors">Copiar Script</button>
                 </div>
 
-                {/* Script Pós Venda */}
-                <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
-                  <h3 className="text-xs font-bold uppercase text-green-600 mb-3">📦 Pós-venda (Feedback)</h3>
-                  <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Oii [Nome]! O seu pedido chegou hoje, né? 🎉\n\nEspero que você tenha uma experiência maravilhosa com os produtos! Se puder postar uma fotinho e marcar a @vascarin.beauty no Instagram, eu ficaria muito feliz! 🥰"} />
-                  <button onClick={(e) => { navigator.clipboard.writeText("Oii [Nome]! O seu pedido chegou hoje, né? 🎉\n\nEspero que você tenha uma experiência maravilhosa com os produtos! Se puder postar uma fotinho e marcar a @vascarin.beauty no Instagram, eu ficaria muito feliz! 🥰"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors">Copiar Script</button>
-                </div>
-
               </div>
             </div>
           )}
 
-          {/* 7. ABA DE NOVO PEDIDO MANUAL */}
+          {/* 10. ABA DE NOVO PEDIDO MANUAL */}
           {activeTab === 'novo' && (
             <div className="max-w-4xl">
               <h2 className="text-sm font-black uppercase text-black mb-1">Lançamento de Venda Manual</h2>
