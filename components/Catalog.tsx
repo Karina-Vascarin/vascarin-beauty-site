@@ -16,14 +16,18 @@ function CatalogContent({ initialProducts }: CatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const [sortBy, setSortBy] = useState<string>('default');
 
+  // Mapeia e limpa as categorias vindas da planilha (Coluna C)
   const categories = useMemo(() => {
-    const cats = initialProducts.map((p) => p.categoria || p.marca).filter(Boolean);
+    const cats = initialProducts.map((p) => {
+      // Pega a categoria ou marca, padronizando para garantir que não venha vazia
+      return p.categoria || p.marca || p.coluna_c || '';
+    }).filter(Boolean);
     return Array.from(new Set(cats)) as string[];
   }, [initialProducts]);
 
   const filteredProducts = useMemo(() => {
     let result = initialProducts.filter((product) => {
-      const catProduto = product.categoria || product.marca || '';
+      const catProduto = product.categoria || product.marca || product.coluna_c || '';
       const matchesCategory = selectedCategory === 'Todos' || catProduto.toLowerCase() === selectedCategory.toLowerCase();
       const matchesSearch = !queryParam || product.nome?.toLowerCase().includes(queryParam.toLowerCase());
       return matchesCategory && matchesSearch;
@@ -55,7 +59,7 @@ function CatalogContent({ initialProducts }: CatalogProps) {
               onClick={() => setSelectedCategory(cat)}
               className={`whitespace-nowrap px-4 py-2 text-[11px] font-bold uppercase rounded-full transition-all cursor-pointer ${selectedCategory === cat ? 'bg-black text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
-              {cat} ({initialProducts.filter((p: any) => (p.categoria || p.marca || '').toLowerCase() === cat.toLowerCase()).length})
+              {cat} ({initialProducts.filter((p: any) => (p.categoria || p.marca || p.coluna_c || '').toLowerCase() === cat.toLowerCase()).length})
             </button>
           ))}
         </div>
