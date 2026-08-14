@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Suspense } from 'react';
 import ProductCard from './ProductCard';
 import { useSearchParams, useRouter } from 'next/navigation';
 
@@ -8,7 +8,7 @@ interface CatalogProps {
   initialProducts: any[];
 }
 
-export default function Catalog({ initialProducts = [] }: CatalogProps) {
+function CatalogContent({ initialProducts }: CatalogProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const queryParam = searchParams.get('q') || '';
@@ -16,7 +16,6 @@ export default function Catalog({ initialProducts = [] }: CatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const [sortBy, setSortBy] = useState<string>('default');
 
-  // Extrai as categorias únicas baseadas na coluna C da planilha
   const categories = useMemo(() => {
     const cats = initialProducts.map((p) => p.categoria || p.marca).filter(Boolean);
     return Array.from(new Set(cats)) as string[];
@@ -113,5 +112,13 @@ export default function Catalog({ initialProducts = [] }: CatalogProps) {
       )}
 
     </div>
+  );
+}
+
+export default function Catalog({ initialProducts = [] }: CatalogProps) {
+  return (
+    <Suspense fallback={<div className="text-center py-20 text-xs text-gray-400">Carregando catálogo...</div>}>
+      <CatalogContent initialProducts={initialProducts} />
+    </Suspense>
   );
 }
