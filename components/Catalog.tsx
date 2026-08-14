@@ -16,7 +16,7 @@ export default function Catalog({ initialProducts = [] }: CatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const [sortBy, setSortBy] = useState<string>('default');
 
-  // Extrai as categorias únicas baseadas na coluna C (mapeada para p.categoria)
+  // Extrai as categorias únicas baseadas na coluna C da planilha
   const categories = useMemo(() => {
     const cats = initialProducts.map((p) => p.categoria || p.marca).filter(Boolean);
     return Array.from(new Set(cats)) as string[];
@@ -40,7 +40,7 @@ export default function Catalog({ initialProducts = [] }: CatalogProps) {
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col gap-6">
       
-      {/* SEÇÃO DE CATEGORIAS EM ABAS NO TOPO */}
+      {/* ABAS DE CATEGORIAS NO TOPO */}
       <div>
         <h2 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Categorias</h2>
         <div className="flex overflow-x-auto gap-2 pb-1 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
