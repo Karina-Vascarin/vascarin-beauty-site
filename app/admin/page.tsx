@@ -38,27 +38,21 @@ export default function AdminDashboard() {
   }, []);
 
   const carregarTudo = async () => {
-    // 1. Busca Pedidos
     const { data: ped } = await supabase.from('pedidos').select('*').order('created_at', { ascending: false });
     if (ped) setPedidos(ped);
 
-    // 2. Busca Carrinhos Abandonados
     const { data: aban } = await supabase.from('carrinhos_abandonados').select('*').order('updated_at', { ascending: false });
     if (aban) setAbandonados(aban);
 
-    // 3. Busca Favoritos
     const { data: fav } = await supabase.from('favoritos').select('*').order('updated_at', { ascending: false });
     if (fav) setFavoritos(fav);
 
-    // 4. Busca Clientes que acessaram
     const { data: cli } = await supabase.from('clientes').select('*').order('updated_at', { ascending: false });
     if (cli) setClientes(cli);
 
-    // 5. Busca Histórico
     const { data: hist } = await supabase.from('historico_acessos').select('*').order('acessado_em', { ascending: false });
     if (hist) setHistorico(hist);
 
-    // 6. Busca Produtos CSV
     try {
       const res = await fetch('/api/produtos');
       if (res.ok) setStoreProducts(await res.json());
@@ -91,39 +85,36 @@ export default function AdminDashboard() {
     setIsLoggedIn(false);
   };
 
-  // Função auxiliar para gerar a mensagem inteligente baseada no status atual
   const getWhatsAppMessage = (pedido: any) => {
     if (pedido.status === 'Separado') {
       return `Olá ${pedido.nome}! Tudo bem? Passando para avisar que o seu pedido #${pedido.id} já foi separado e está sendo preparado para entrega/envio! 📦✨ Em breve ele chegará até você! Qualquer dúvida, estamos à disposição.`;
     } else if (pedido.status === 'Entregue / Concluído') {
       return `Olá ${pedido.nome}! 🎉 Vimos que o seu pedido #${pedido.id} foi entregue!\n\nEsperamos muito que você ame os seus produtos! Quando puder, nos mande um feedback contando o que achou ou poste uma foto e nos marque no Instagram *@vascarin.beauty* 📸💖\n\nMuito obrigada por escolher a Vascarin Beauty!`;
     }
-    // Mensagem padrão para status pendente
     return `Olá ${pedido.nome}! Informamos sobre o seu pedido #${pedido.id} na Vascarin Beauty.`;
   };
 
-  // Atualizar Status de Separação de Pedidos e Abrir WhatsApp automático
-  const handleUpdateStatus = async (pedido: any, newStatus: string) => {
+  // Adicionamos 'pularMensagem' para não abrir o WhatsApp ao desfazer o status
+  const handleUpdateStatus = async (pedido: any, newStatus: string, pularMensagem: boolean = false) => {
     const { error } = await supabase.from('pedidos').update({ status: newStatus }).eq('id', pedido.id);
     
     if (!error) {
       setPedidos(pedidos.map(p => p.id === pedido.id ? { ...p, status: newStatus } : p));
 
-      // Dispara as mensagens automáticas no WhatsApp
-      if (newStatus === 'Separado') {
-        const msg = `Olá ${pedido.nome}! Tudo bem? Passando para avisar que o seu pedido #${pedido.id} já foi separado e está sendo preparado para entrega/envio! 📦✨ Em breve ele chegará até você! Qualquer dúvida, estamos à disposição.`;
-        window.open(`https://wa.me/55${pedido.telefone}?text=${encodeURIComponent(msg)}`, '_blank');
-      } else if (newStatus === 'Entregue / Concluído') {
-        const msg = `Olá ${pedido.nome}! 🎉 Vimos que o seu pedido #${pedido.id} foi entregue!\n\nEsperamos muito que você ame os seus produtos! Quando puder, nos mande um feedback contando o que achou ou poste uma foto e nos marque no Instagram *@vascarin.beauty* 📸💖\n\nMuito obrigada por escolher a Vascarin Beauty!`;
-        window.open(`https://wa.me/55${pedido.telefone}?text=${encodeURIComponent(msg)}`, '_blank');
+      if (!pularMensagem) {
+        if (newStatus === 'Separado') {
+          const msg = `Olá ${pedido.nome}! Tudo bem? Passando para avisar que o seu pedido #${pedido.id} já foi separado e está sendo preparado para entrega/envio! 📦✨ Em breve ele chegará até você! Qualquer dúvida, estamos à disposição.`;
+          window.open(`https://wa.me/55${pedido.telefone}?text=${encodeURIComponent(msg)}`, '_blank');
+        } else if (newStatus === 'Entregue / Concluído') {
+          const msg = `Olá ${pedido.nome}! 🎉 Vimos que o seu pedido #${pedido.id} foi entregue!\n\nEsperamos muito que você ame os seus produtos! Quando puder, nos mande um feedback contando o que achou ou poste uma foto e nos marque no Instagram *@vascarin.beauty* 📸💖\n\nMuito obrigada por escolher a Vascarin Beauty!`;
+          window.open(`https://wa.me/55${pedido.telefone}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
       }
-
     } else {
       alert("Erro ao atualizar status: " + error.message);
     }
   };
 
-  // Salvar Pedido Manual
   const handleSaveManualOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     const orderId = `VASC-MANUAL-${Date.now().toString().slice(-4)}`;
@@ -162,7 +153,6 @@ export default function AdminDashboard() {
     setSelectedProduct(''); setSelectedQty(1);
   };
 
-  // Exportação CSV
   const handleExportCSV = () => {
     if (pedidos.length === 0) return alert("Nenhum pedido para exportar.");
     const headers = ['ID', 'Nome', 'Telefone', 'Itens', 'Total (R$)', 'Status', 'Origem', 'Data'];
@@ -174,7 +164,6 @@ export default function AdminDashboard() {
     link.click();
   };
 
-  // IMPORTAÇÃO CSV
   const importarPedidos = (e: any) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -202,7 +191,6 @@ export default function AdminDashboard() {
     reader.readAsText(file);
   };
 
-  // TELA DE LOGIN
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -220,7 +208,6 @@ export default function AdminDashboard() {
     );
   }
 
-  // MÉTRICAS GERAIS
   const pendentesSeparar = pedidos.filter(p => p.status === 'Pendente / A Separar').length;
   const pedidosSeparados = pedidos.filter(p => p.status === 'Separado').length;
   const totalFaturado = pedidos.reduce((acc, curr) => acc + Number(curr.total || 0), 0);
@@ -311,7 +298,6 @@ export default function AdminDashboard() {
 
                       <div className="flex flex-wrap lg:flex-col gap-2 items-end justify-center min-w-[200px]">
                         
-                        {/* BOTÃO DE WHATSAPP COMO RECUPERAÇÃO */}
                         <a href={`https://wa.me/55${p.telefone}?text=${encodeURIComponent(getWhatsAppMessage(p))}`} target="_blank" className="w-full text-center px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors">
                           WhatsApp
                         </a>
@@ -321,14 +307,26 @@ export default function AdminDashboard() {
                             ✔ Marcar como Separado
                           </button>
                         )}
+
                         {p.status === 'Separado' && (
-                          <button onClick={() => handleUpdateStatus(p, 'Entregue / Concluído')} className="w-full px-4 py-2 bg-black text-white text-xs font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">
-                            🚀 Marcar como Entregue
+                          <>
+                            <button onClick={() => handleUpdateStatus(p, 'Entregue / Concluído')} className="w-full px-4 py-2 bg-black text-white text-xs font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">
+                              🚀 Marcar como Entregue
+                            </button>
+                            <button onClick={() => handleUpdateStatus(p, 'Pendente / A Separar', true)} className="w-full px-4 py-2 bg-gray-100 text-gray-600 text-[10px] font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer border border-gray-200">
+                              ⏪ Desfazer Separação
+                            </button>
+                          </>
+                        )}
+
+                        {p.status === 'Entregue / Concluído' && (
+                          <button onClick={() => handleUpdateStatus(p, 'Separado', true)} className="w-full px-4 py-2 bg-gray-100 text-gray-600 text-[10px] font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer border border-gray-200">
+                            ⏪ Desfazer Entrega
                           </button>
                         )}
                         
                         <div className="w-full flex gap-2">
-                          <button onClick={() => handleUpdateStatus(p, p.status === 'Cancelado' ? 'Pendente / A Separar' : 'Cancelado')} className="flex-1 px-2 py-2 bg-orange-100 text-orange-700 text-[10px] font-bold uppercase rounded-lg hover:bg-orange-200 transition-colors cursor-pointer text-center">
+                          <button onClick={() => handleUpdateStatus(p, p.status === 'Cancelado' ? 'Pendente / A Separar' : 'Cancelado', true)} className="flex-1 px-2 py-2 bg-orange-100 text-orange-700 text-[10px] font-bold uppercase rounded-lg hover:bg-orange-200 transition-colors cursor-pointer text-center">
                             {p.status === 'Cancelado' ? 'Restaurar' : 'Cancelar'}
                           </button>
                           <button onClick={async () => {
@@ -340,7 +338,6 @@ export default function AdminDashboard() {
                             Excluir
                           </button>
                         </div>
-
                       </div>
                     </div>
                   ))}
