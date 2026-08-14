@@ -47,7 +47,7 @@ export async function getProducts() {
 
     const produtos = linhas.slice(1).map((linha, index) => {
       const valores = parseLine(linha);
-      const produto: any = { id: `prod_${index}` };
+      const produto: any = { id: `prod_${index}`, categoria: 'Geral' };
       
       cabecalhos.forEach((cabecalho, idx) => {
         let valor = (valores[idx] || '').trim();
@@ -66,14 +66,22 @@ export async function getProducts() {
         else if (cabecalho.includes('imagem') || cabecalho.includes('foto') || cabecalho.includes('img')) {
           produto.imagem = valor;
         } 
-        else if (cabecalho.includes('categoria') || cabecalho.includes('marca')) {
-          produto.categoria = valor;
-        } 
+        else if (cabecalho.includes('categoria')) {
+          produto.categoria = valor || 'Geral';
+        }
+        else if (cabecalho.includes('marca') && (!produto.categoria || produto.categoria === 'Geral')) {
+          produto.categoria = valor || 'Geral';
+        }
         else {
           produto[cabecalho] = valor;
         }
       });
       
+      // Garante que se a categoria veio vazia, assume um valor padrão para aparecer na aba
+      if (!produto.categoria) {
+        produto.categoria = 'Brand Collection';
+      }
+
       return produto;
     });
 
