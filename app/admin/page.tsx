@@ -10,13 +10,14 @@ export default function AdminDashboard() {
   const [loginError, setLoginError] = useState('');
 
   // Navegação das Abas
-  const [activeTab, setActiveTab] = useState<'pedidos' | 'abandonados' | 'favoritos' | 'clientes' | 'novo'>('pedidos');
+  const [activeTab, setActiveTab] = useState<'pedidos' | 'abandonados' | 'favoritos' | 'clientes' | 'historico' | 'novo'>('pedidos');
 
   // Estados dos Dados do Banco
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [abandonados, setAbandonados] = useState<any[]>([]);
   const [favoritos, setFavoritos] = useState<any[]>([]);
   const [clientes, setClientes] = useState<any[]>([]);
+  const [historico, setHistorico] = useState<any[]>([]);
   const [storeProducts, setStoreProducts] = useState<any[]>([]);
 
   // Estados para Venda Manual
@@ -49,11 +50,15 @@ export default function AdminDashboard() {
     const { data: fav } = await supabase.from('favoritos').select('*').order('updated_at', { ascending: false });
     if (fav) setFavoritos(fav);
 
-    // 4. Busca Clientes que acessaram
+    // 4. Busca Clientes
     const { data: cli } = await supabase.from('clientes').select('*').order('updated_at', { ascending: false });
     if (cli) setClientes(cli);
 
-    // 5. Busca Produtos CSV
+    // 5. Busca Histórico
+    const { data: hist } = await supabase.from('historico_acessos').select('*').order('acessado_em', { ascending: false });
+    if (hist) setHistorico(hist);
+
+    // 6. Busca Produtos CSV
     try {
       const res = await fetch('/api/produtos');
       if (res.ok) setStoreProducts(await res.json());
@@ -147,6 +152,24 @@ export default function AdminDashboard() {
     link.click();
   };
 
+  // Importar CSV
+  const importarPedidos = (e: any) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const text = ev.target?.result as string;
+      const linhas = text.split('\n').slice(1);
+      for (const linha of linhas) {
+        const [id, nome, telefone, items, total, status] = linha.split(',');
+        if (id) await supabase.from('pedidos').insert([{ id, nome, telefone, items: items.replace(/"/g, ''), total: Number(total), status: status || 'Separado', tipo: 'Importado' }]);
+      }
+      alert("Pedidos importados!");
+      carregarTudo();
+    };
+    reader.readAsText(file);
+  };
+
   // TELA DE LOGIN
   if (!isLoggedIn) {
     return (
@@ -186,6 +209,7 @@ export default function AdminDashboard() {
             <button onClick={() => setActiveTab('abandonados')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'abandonados' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>🛒 Abandonados ({abandonados.length})</button>
             <button onClick={() => setActiveTab('favoritos')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'favoritos' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>💖 Favoritos ({favoritos.length})</button>
             <button onClick={() => setActiveTab('clientes')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'clientes' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>👥 Clientes ({clientes.length})</button>
+            <button onClick={() => setActiveTab('historico')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'historico' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>🕒 Histórico</button>
             <button onClick={() => setActiveTab('novo')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'novo' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>+ Venda Manual</button>
             <button onClick={handleLogout} className="px-4 py-2 text-xs font-bold uppercase rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors ml-auto">Sair</button>
           </div>
@@ -214,7 +238,7 @@ export default function AdminDashboard() {
         {/* Conteúdo das Abas */}
         <div className="p-6 md:p-8">
           
-          {/* 1. ABA DE PEDIDOS (COM SEPARAÇÃO) */}
+          {/* 1. ABA DE PEDIDOS (COM SEPARAÇÃO E IMPORTAÇÃO) */}
           {activeTab === 'pedidos' && (
             <div>
               <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4 border-b border-gray-100 pb-4">
@@ -225,6 +249,9 @@ export default function AdminDashboard() {
                 <div className="flex gap-2">
                   <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors">🔄 Atualizar</button>
                   <button onClick={handleExportCSV} className="px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors">📊 Exportar Excel</button>
+                  <label className="px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
+                    📥 Importar CSV <input type="file" onChange={importarPedidos} className="hidden" />
+                  </label>
                 </div>
               </div>
 
@@ -237,7 +264,8 @@ export default function AdminDashboard() {
                           <strong className="text-sm text-black">{p.id}</strong>
                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
                             p.status === 'Pendente / A Separar' ? 'bg-amber-100 text-amber-800' :
-                            p.status === 'Separado' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                            p.status === 'Separado' ? 'bg-blue-100 text-blue-800' : 
+                            p.status === 'Cancelado' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
                           }`}>
                             {p.status}
                           </span>
@@ -248,10 +276,12 @@ export default function AdminDashboard() {
                         <p className="text-xs font-black text-black mt-2">Total: R$ {Number(p.total).toFixed(2)} ({p.forma_pagamento})</p>
                       </div>
 
+                      {/* Botões do Pedido preservados e botões novos adicionados na mesma estrutura */}
                       <div className="flex flex-wrap lg:flex-col gap-2 items-end justify-center min-w-[200px]">
                         <a href={`https://wa.me/55${p.telefone}?text=Olá ${p.nome}! Informamos sobre o seu pedido #${p.id} na Vascarin Beauty.`} target="_blank" className="w-full text-center px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors">
                           WhatsApp
                         </a>
+                        
                         {p.status === 'Pendente / A Separar' && (
                           <button onClick={() => handleUpdateStatus(p.id, 'Separado')} className="w-full px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
                             ✔ Marcar como Separado
@@ -262,6 +292,17 @@ export default function AdminDashboard() {
                             🚀 Marcar como Entregue
                           </button>
                         )}
+
+                        {/* Botões de Cancelar e Excluir no exato layout da coluna */}
+                        <div className="w-full flex gap-2">
+                          <button onClick={() => handleUpdateStatus(p.id, p.status === 'Cancelado' ? 'Pendente / A Separar' : 'Cancelado')} className="flex-1 px-2 py-1.5 bg-orange-100 text-orange-700 text-[10px] font-bold uppercase rounded-lg hover:bg-orange-200 transition-colors cursor-pointer">
+                            {p.status === 'Cancelado' ? 'Restaurar' : 'Cancelar'}
+                          </button>
+                          <button onClick={async () => { if(confirm("Excluir definitivamente?")) { await supabase.from('pedidos').delete().eq('id', p.id); carregarTudo(); } }} className="flex-1 px-2 py-1.5 bg-red-100 text-red-700 text-[10px] font-bold uppercase rounded-lg hover:bg-red-200 transition-colors cursor-pointer">
+                            Excluir
+                          </button>
+                        </div>
+                        
                       </div>
                     </div>
                   ))}
@@ -354,6 +395,35 @@ export default function AdminDashboard() {
                       <a href={`https://wa.me/55${c.telefone}?text=Olá ${c.nome}! Como posso te ajudar na Vascarin Beauty hoje?`} target="_blank" className="px-3 py-2 bg-black text-white text-xs font-bold rounded-lg hover:bg-zinc-800">
                         Conversar
                       </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ABA DE HISTÓRICO (Mesmo design da aba de clientes) */}
+          {activeTab === 'historico' && (
+            <div>
+              <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                <div>
+                  <h2 className="text-sm font-black uppercase text-black">Histórico de Acessos</h2>
+                  <p className="text-xs text-gray-400">Acompanhe quem entrou na sua loja e o horário exato.</p>
+                </div>
+                <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200">🔄 Atualizar</button>
+              </div>
+
+              {historico.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum histórico registrado.</p> : (
+                <div className="flex flex-col gap-4">
+                  {historico.map((h, i) => (
+                    <div key={i} className="border border-gray-200 p-4 rounded-xl flex justify-between items-center bg-gray-50">
+                      <div>
+                        <strong className="text-sm text-black block">{h.nome}</strong>
+                        <span className="text-xs text-gray-500">{h.telefone}</span>
+                      </div>
+                      <span className="text-xs font-mono bg-white border border-gray-200 px-3 py-1.5 rounded-lg text-gray-600">
+                        {new Date(h.acessado_em).toLocaleDateString('pt-BR')} às {new Date(h.acessado_em).toLocaleTimeString('pt-BR')}
+                      </span>
                     </div>
                   ))}
                 </div>
