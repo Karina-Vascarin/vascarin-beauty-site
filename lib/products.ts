@@ -1,9 +1,8 @@
 export async function getProducts() {
-  // 1. Cole aqui dentro das aspas o link CSV que você gerou no Google Sheets!
+  // 1. Cole aqui o link CSV publicado do seu Google Sheets!
   const PLANILHA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSEBFXb1d_7KFNXVBxCiclQcVy4_EhBITqtjFDqxvCm4_fHhB5z6mshvP41Vkqck8LB0lvL7rffu7zw/pub?gid=0&single=true&output=csv";
 
   try {
-    // Busca a planilha na web em tempo real (cache: 'no-store' garante dados frescos)
     const response = await fetch(PLANILHA_URL, { cache: 'no-store' });
     
     if (!response.ok) {
@@ -12,46 +11,67 @@ export async function getProducts() {
     
     const csvText = await response.text();
 
-    // 2. Transforma o texto do CSV em uma lista estruturada
-    const linhas = csvText.split('\n').filter(linha => linha.trim() !== '');
+    const linhas = csvText.split('\n').map(l => l.trim()).filter(l => l !== '');
     if (linhas.length === 0) return [];
 
-    // Descobre automaticamente se o Google exportou separando por vírgula ou ponto e vírgula
     const separador = linhas[0].includes(';') ? ';' : ',';
     
-    // Pega os títulos das colunas (nome, preco, estoque, imagem...)
-    const cabecalhos = linhas[0].split(separador).map(c => c.trim().toLowerCase());
+    // Função blindada para ler a linha do CSV (Respeita espaços vazios e aspas)
+    const parseLine = (linha: string) => {
+      const resultado = [];
+      let celula = '';
+      let dentroDeAspas = false;
+      for (let i = 0; i < linha.length; i++) {
+        const char = linha[i];
+        if (char === '"' && linha[i+1] === '"') {
+          celula += '"';
+          i++;
+        } else if (char === '"') {
+          dentroDeAspas = !dentroDeAspas;
+        } else if (char === separador && !dentroDeAspas) {
+          resultado.push(celula);
+          celula = '';
+        } else {
+          celula += char;
+        }
+      }
+      resultado.push(celula);
+      return resultado;
+    };
+
+    // Pega os cabeçalhos e tira acentos (ex: Preço -> preco)
+    const cabecalhosRaw = parseLine(linhas[0]);
+    const cabecalhos = cabecalhosRaw.map(c => 
+      c.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    );
 
     const produtos = linhas.slice(1).map((linha, index) => {
-      // Regex segura para separar as colunas sem quebrar caso tenha vírgula no nome do perfume
-      const regex = new RegExp(`(?:^|${separador})("([^"]*(?:""[^"]*)*)"|([^${separador}]+))`, 'g');
-      
-      // CORREÇÃO APLICADA AQUI: Avisamos que 'valores' é uma lista de textos (string[])
-      const valores: string[] = []; 
-      
-      let match;
-      
-      while ((match = regex.exec(linha)) !== null) {
-        let valor = match[2] || match[3] || '';
-        valores.push(valor.replace(/""/g, '"').trim());
-      }
-
-      const produto: any = { id: `prod_${index}` }; // Cria um ID único
+      const valores = parseLine(linha);
+      const produto: any = { id: `prod_${index}` };
       
       cabecalhos.forEach((cabecalho, idx) => {
-        if (cabecalho) {
-          produto[cabecalho] = valores[idx] || '';
-          
-          // Se for preço, formata certinho
-          if (cabecalho === 'preco') {
-            const numeroLimpo = produto[cabecalho].replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
-            produto[cabecalho] = Number(numeroLimpo) || 0;
-          }
-          
-          // Se for estoque, converte para número
-          if (cabecalho === 'estoque' || cabecalho === 'quantidade') {
-            produto[cabecalho] = Number(produto[cabecalho]) || 0;
-          }
+        let valor = (valores[idx] || '').trim();
+        
+        // Direciona as colunas da planilha para o lugar certo no site
+        if (cabecalho.includes('nome') || cabecalho.includes('produto')) {
+          produto.nome = valor;
+        } 
+        else if (cabecalho.includes('preco') || cabecalho.includes('valor') || cabecalho === 'preco atual') {
+          const numeroLimpo = valor.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+          produto.preco = Number(numeroLimpo) || 0;
+        } 
+        else if (cabecalho.includes('estoque') || cabecalho.includes('quantidade') || cabecalho.includes('qtd')) {
+          produto.estoque = Number(valor) || 0;
+          produto.quantidade = Number(valor) || 0; // Salva em ambos para garantir compatibilidade
+        } 
+        else if (cabecalho.includes('imagem') || cabecalho.includes('foto') || cabecalho.includes('img')) {
+          produto.imagem = valor;
+        } 
+        else if (cabecalho.includes('categoria') || cabecalho.includes('marca')) {
+          produto.categoria = valor;
+        } 
+        else {
+          produto[cabecalho] = valor;
         }
       });
       
@@ -62,6 +82,6 @@ export async function getProducts() {
 
   } catch (error) {
     console.error("Erro ao ler a planilha do Google Sheets:", error);
-    return []; // Retorna lista vazia para o site não sair do ar se a planilha falhar
+    return []; 
   }
 }
