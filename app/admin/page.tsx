@@ -9,8 +9,8 @@ export default function AdminDashboard() {
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  // Navegação das Abas
-  const [activeTab, setActiveTab] = useState<'pedidos' | 'abandonados' | 'favoritos' | 'clientes' | 'historico' | 'novo'>('pedidos');
+  // Navegação das Abas - Adicionado 'mensagens'
+  const [activeTab, setActiveTab] = useState<'pedidos' | 'abandonados' | 'favoritos' | 'clientes' | 'historico' | 'novo' | 'mensagens'>('pedidos');
 
   // Estados dos Dados do Banco
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -38,21 +38,27 @@ export default function AdminDashboard() {
   }, []);
 
   const carregarTudo = async () => {
+    // 1. Busca Pedidos
     const { data: ped } = await supabase.from('pedidos').select('*').order('created_at', { ascending: false });
     if (ped) setPedidos(ped);
 
+    // 2. Busca Carrinhos Abandonados
     const { data: aban } = await supabase.from('carrinhos_abandonados').select('*').order('updated_at', { ascending: false });
     if (aban) setAbandonados(aban);
 
+    // 3. Busca Favoritos
     const { data: fav } = await supabase.from('favoritos').select('*').order('updated_at', { ascending: false });
     if (fav) setFavoritos(fav);
 
+    // 4. Busca Clientes que acessaram
     const { data: cli } = await supabase.from('clientes').select('*').order('updated_at', { ascending: false });
     if (cli) setClientes(cli);
 
+    // 5. Busca Histórico
     const { data: hist } = await supabase.from('historico_acessos').select('*').order('acessado_em', { ascending: false });
     if (hist) setHistorico(hist);
 
+    // 6. Busca Produtos CSV
     try {
       const res = await fetch('/api/produtos');
       if (res.ok) setStoreProducts(await res.json());
@@ -94,14 +100,13 @@ export default function AdminDashboard() {
     return `Olá ${pedido.nome}! Informamos sobre o seu pedido #${pedido.id} na Vascarin Beauty.`;
   };
 
-  // Adicionamos 'pularMensagem' para não abrir o WhatsApp ao desfazer o status
-  const handleUpdateStatus = async (pedido: any, newStatus: string, pularMensagem: boolean = false) => {
+  const handleUpdateStatus = async (pedido: any, newStatus: string, isSilent: boolean = false) => {
     const { error } = await supabase.from('pedidos').update({ status: newStatus }).eq('id', pedido.id);
     
     if (!error) {
       setPedidos(pedidos.map(p => p.id === pedido.id ? { ...p, status: newStatus } : p));
 
-      if (!pularMensagem) {
+      if (!isSilent) {
         if (newStatus === 'Separado') {
           const msg = `Olá ${pedido.nome}! Tudo bem? Passando para avisar que o seu pedido #${pedido.id} já foi separado e está sendo preparado para entrega/envio! 📦✨ Em breve ele chegará até você! Qualquer dúvida, estamos à disposição.`;
           window.open(`https://wa.me/55${pedido.telefone}?text=${encodeURIComponent(msg)}`, '_blank');
@@ -110,8 +115,19 @@ export default function AdminDashboard() {
           window.open(`https://wa.me/55${pedido.telefone}?text=${encodeURIComponent(msg)}`, '_blank');
         }
       }
+
     } else {
       alert("Erro ao atualizar status: " + error.message);
+    }
+  };
+
+  // NOVA FUNÇÃO: Atualizar status de prospecção (Enviado / Não Enviado)
+  const handleUpdateContato = async (tabela: string, telefone: string, novoStatus: string) => {
+    const { error } = await supabase.from(tabela).update({ status_contato: novoStatus }).eq('telefone', telefone);
+    if (!error) {
+      carregarTudo(); // Recarrega os dados para mostrar o verdinho
+    } else {
+      alert("Aviso: Crie a coluna 'status_contato' (tipo texto) no seu banco de dados Supabase para salvar isso.");
     }
   };
 
@@ -153,15 +169,48 @@ export default function AdminDashboard() {
     setSelectedProduct(''); setSelectedQty(1);
   };
 
-  const handleExportCSV = () => {
-    if (pedidos.length === 0) return alert("Nenhum pedido para exportar.");
-    const headers = ['ID', 'Nome', 'Telefone', 'Itens', 'Total (R$)', 'Status', 'Origem', 'Data'];
-    const rows = pedidos.map(p => [p.id, p.nome, p.telefone, `"${p.items}"`, p.total, p.status, p.tipo, new Date(p.created_at).toLocaleDateString('pt-BR')]);
-    const csv = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(';'), ...rows.map(e => e.join(';'))].join("\n");
+  // ----- FUNÇÕES DE EXPORTAÇÃO -----
+  const exportToCSV = (filename: string, rows: string[][]) => {
+    const csv = "data:text/csv;charset=utf-8,\uFEFF" + rows.map(e => e.join(';')).join("\n");
     const link = document.createElement("a");
     link.href = encodeURI(csv);
-    link.download = `Vendas_Vascarin_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`;
+    link.download = `${filename}_Vascarin_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`;
     link.click();
+  };
+
+  const handleExportPedidos = () => {
+    if (pedidos.length === 0) return alert("Nenhum pedido para exportar.");
+    const headers = ['ID', 'Nome', 'Telefone', 'Itens', 'Total (R$)', 'Status', 'Origem', 'Data'];
+    const data = pedidos.map(p => [p.id, p.nome, p.telefone, `"${p.items}"`, p.total, p.status, p.tipo, new Date(p.created_at).toLocaleDateString('pt-BR')]);
+    exportToCSV('Pedidos', [headers, ...data]);
+  };
+
+  const handleExportAbandonados = () => {
+    if (abandonados.length === 0) return alert("Nenhum carrinho abandonado para exportar.");
+    const headers = ['Nome', 'Telefone', 'Itens', 'Status da Sacola', 'Status de Contato', 'Data da Atualização'];
+    const data = abandonados.map(a => [a.nome, a.telefone, `"${a.itens_summary}"`, a.status, a.status_contato || 'Pendente', new Date(a.updated_at).toLocaleDateString('pt-BR')]);
+    exportToCSV('Leads_Abandonados', [headers, ...data]);
+  };
+
+  const handleExportFavoritos = () => {
+    if (favoritos.length === 0) return alert("Nenhum favorito para exportar.");
+    const headers = ['Nome', 'Telefone', 'Produtos', 'Status de Contato', 'Data da Atualização'];
+    const data = favoritos.map(f => [f.nome, f.telefone, `"${f.produtos}"`, f.status_contato || 'Pendente', new Date(f.updated_at).toLocaleDateString('pt-BR')]);
+    exportToCSV('Favoritos', [headers, ...data]);
+  };
+
+  const handleExportClientes = () => {
+    if (clientes.length === 0) return alert("Nenhum cliente para exportar.");
+    const headers = ['Nome', 'Telefone', 'Qtd. Visitas', 'Status de Contato', 'Última Visita'];
+    const data = clientes.map(c => [c.nome, c.telefone, c.visitas, c.status_contato || 'Pendente', new Date(c.updated_at).toLocaleDateString('pt-BR')]);
+    exportToCSV('Clientes', [headers, ...data]);
+  };
+
+  const handleExportHistorico = () => {
+    if (historico.length === 0) return alert("Nenhum histórico para exportar.");
+    const headers = ['Nome', 'Telefone', 'Data do Acesso', 'Hora do Acesso'];
+    const data = historico.map(h => [h.nome, h.telefone, new Date(h.acessado_em).toLocaleDateString('pt-BR'), new Date(h.acessado_em).toLocaleTimeString('pt-BR')]);
+    exportToCSV('Historico_Acessos', [headers, ...data]);
   };
 
   const importarPedidos = (e: any) => {
@@ -191,6 +240,7 @@ export default function AdminDashboard() {
     reader.readAsText(file);
   };
 
+  // TELA DE LOGIN
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -208,6 +258,7 @@ export default function AdminDashboard() {
     );
   }
 
+  // MÉTRICAS GERAIS
   const pendentesSeparar = pedidos.filter(p => p.status === 'Pendente / A Separar').length;
   const pedidosSeparados = pedidos.filter(p => p.status === 'Separado').length;
   const totalFaturado = pedidos.reduce((acc, curr) => acc + Number(curr.total || 0), 0);
@@ -230,6 +281,7 @@ export default function AdminDashboard() {
             <button onClick={() => setActiveTab('clientes')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'clientes' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>👥 Clientes ({clientes.length})</button>
             <button onClick={() => setActiveTab('historico')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'historico' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>🕒 Histórico</button>
             <button onClick={() => setActiveTab('novo')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'novo' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>+ Venda Manual</button>
+            <button onClick={() => setActiveTab('mensagens')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'mensagens' ? 'bg-white text-black' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>💬 Scripts</button>
             <button onClick={handleLogout} className="px-4 py-2 text-xs font-bold uppercase rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors ml-auto">Sair</button>
           </div>
         </div>
@@ -257,7 +309,7 @@ export default function AdminDashboard() {
         {/* Conteúdo das Abas */}
         <div className="p-6 md:p-8">
           
-          {/* 1. ABA DE PEDIDOS */}
+          {/* 1. ABA DE PEDIDOS (COM SEPARAÇÃO E IMPORTAÇÃO) */}
           {activeTab === 'pedidos' && (
             <div>
               <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4 border-b border-gray-100 pb-4">
@@ -267,7 +319,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="flex gap-2">
                   <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors">🔄 Atualizar</button>
-                  <button onClick={handleExportCSV} className="px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors">📊 Exportar Excel</button>
+                  <button onClick={handleExportPedidos} className="px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors">📊 Exportar Excel</button>
                   <label className="px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-blue-700 transition-colors cursor-pointer flex items-center justify-center">
                     📥 Importar CSV
                     <input type="file" accept=".csv" onChange={importarPedidos} className="hidden" />
@@ -307,25 +359,25 @@ export default function AdminDashboard() {
                             ✔ Marcar como Separado
                           </button>
                         )}
-
+                        
                         {p.status === 'Separado' && (
                           <>
                             <button onClick={() => handleUpdateStatus(p, 'Entregue / Concluído')} className="w-full px-4 py-2 bg-black text-white text-xs font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">
                               🚀 Marcar como Entregue
                             </button>
-                            <button onClick={() => handleUpdateStatus(p, 'Pendente / A Separar', true)} className="w-full px-4 py-2 bg-gray-100 text-gray-600 text-[10px] font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer border border-gray-200">
-                              ⏪ Desfazer Separação
+                            <button onClick={() => handleUpdateStatus(p, 'Pendente / A Separar', true)} className="w-full px-4 py-2 bg-gray-200 text-gray-700 text-[10px] font-bold uppercase rounded-lg hover:bg-gray-300 transition-colors cursor-pointer text-center">
+                              ↩ Desfazer Separação
                             </button>
                           </>
                         )}
 
                         {p.status === 'Entregue / Concluído' && (
-                          <button onClick={() => handleUpdateStatus(p, 'Separado', true)} className="w-full px-4 py-2 bg-gray-100 text-gray-600 text-[10px] font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer border border-gray-200">
-                            ⏪ Desfazer Entrega
+                          <button onClick={() => handleUpdateStatus(p, 'Separado', true)} className="w-full px-4 py-2 bg-gray-200 text-gray-700 text-[10px] font-bold uppercase rounded-lg hover:bg-gray-300 transition-colors cursor-pointer text-center">
+                            ↩ Desfazer Entrega
                           </button>
                         )}
                         
-                        <div className="w-full flex gap-2">
+                        <div className="w-full flex gap-2 mt-1">
                           <button onClick={() => handleUpdateStatus(p, p.status === 'Cancelado' ? 'Pendente / A Separar' : 'Cancelado', true)} className="flex-1 px-2 py-2 bg-orange-100 text-orange-700 text-[10px] font-bold uppercase rounded-lg hover:bg-orange-200 transition-colors cursor-pointer text-center">
                             {p.status === 'Cancelado' ? 'Restaurar' : 'Cancelar'}
                           </button>
@@ -338,6 +390,7 @@ export default function AdminDashboard() {
                             Excluir
                           </button>
                         </div>
+
                       </div>
                     </div>
                   ))}
@@ -354,7 +407,10 @@ export default function AdminDashboard() {
                   <h2 className="text-sm font-black uppercase text-black">Carrinhos Abandonados (Leads)</h2>
                   <p className="text-xs text-gray-400">Pessoas que colocaram perfumes na sacola e não finalizaram.</p>
                 </div>
-                <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200">🔄 Atualizar</button>
+                <div className="flex gap-2">
+                  <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">🔄 Atualizar</button>
+                  <button onClick={handleExportAbandonados} className="px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors cursor-pointer">📊 Exportar</button>
+                </div>
               </div>
 
               {abandonados.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum carrinho abandonado recentemente.</p> : (
@@ -366,9 +422,14 @@ export default function AdminDashboard() {
                         <span className="text-xs text-gray-700 font-medium mt-1 block">🛍️ Produtos: {a.itens_summary}</span>
                         <span className="text-[10px] font-bold uppercase text-amber-700 mt-1 block">{a.status}</span>
                       </div>
-                      <a href={`https://wa.me/55${a.telefone}?text=Olá ${a.nome}! Notamos que você deixou itens na sacola da Vascarin Beauty (${a.itens_summary}). Posso te ajudar a finalizar seu pedido?`} target="_blank" className="px-5 py-3 bg-black text-white text-xs font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors text-center">
-                        Recuperar Venda
-                      </a>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <a href={`https://wa.me/55${a.telefone}?text=Olá ${a.nome}! Notamos que você deixou itens na sacola da Vascarin Beauty (${a.itens_summary}). Posso te ajudar a finalizar seu pedido?`} target="_blank" className="px-5 py-3 bg-black text-white text-[10px] font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors text-center flex items-center justify-center">
+                          📱 Chamar
+                        </a>
+                        <button onClick={() => handleUpdateContato('carrinhos_abandonados', a.telefone, a.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`px-5 py-3 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${a.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
+                          {a.status_contato === 'Enviado' ? '✔ Contatado' : 'Marcar Contato'}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -384,7 +445,10 @@ export default function AdminDashboard() {
                   <h2 className="text-sm font-black uppercase text-black">Produtos Mais Desejados (Favoritos)</h2>
                   <p className="text-xs text-gray-400">Descubra o perfume favorito de cada visitante da sua loja.</p>
                 </div>
-                <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200">🔄 Atualizar</button>
+                <div className="flex gap-2">
+                  <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">🔄 Atualizar</button>
+                  <button onClick={handleExportFavoritos} className="px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors cursor-pointer">📊 Exportar</button>
+                </div>
               </div>
 
               {favoritos.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum cliente favoritou produtos até o momento.</p> : (
@@ -395,9 +459,14 @@ export default function AdminDashboard() {
                         <strong className="text-sm text-black">{f.nome}</strong> ({f.telefone})<br/>
                         <span className="text-xs text-pink-700 font-bold mt-1 block">💖 Favoritou: {f.produtos}</span>
                       </div>
-                      <a href={`https://wa.me/55${f.telefone}?text=Olá ${f.nome}! Vimos que você se interessou pelo ${f.produtos} na Vascarin Beauty. Gostaria de garantir o seu antes que esgote?`} target="_blank" className="px-5 py-3 bg-pink-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-pink-700 transition-colors text-center">
-                        Oferecer no WhatsApp
-                      </a>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <a href={`https://wa.me/55${f.telefone}?text=Olá ${f.nome}! Vimos que você se interessou pelo ${f.produtos} na Vascarin Beauty. Gostaria de garantir o seu antes que esgote?`} target="_blank" className="px-5 py-3 bg-pink-600 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-pink-700 transition-colors text-center flex items-center justify-center">
+                          📱 Oferecer
+                        </a>
+                        <button onClick={() => handleUpdateContato('favoritos', f.telefone, f.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`px-5 py-3 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${f.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
+                          {f.status_contato === 'Enviado' ? '✔ Oferecido' : 'Marcar Oferta'}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -413,23 +482,31 @@ export default function AdminDashboard() {
                   <h2 className="text-sm font-black uppercase text-black">Visitantes Cadastrados (Acessos)</h2>
                   <p className="text-xs text-gray-400">Todos os clientes que entraram na loja pelo modal inicial.</p>
                 </div>
-                <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200">🔄 Atualizar</button>
+                <div className="flex gap-2">
+                  <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">🔄 Atualizar</button>
+                  <button onClick={handleExportClientes} className="px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors cursor-pointer">📊 Exportar</button>
+                </div>
               </div>
 
               {clientes.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum cliente registrado.</p> : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {clientes.map((c, i) => (
-                    <div key={i} className="border border-gray-200 p-5 rounded-xl flex justify-between items-center">
-                      <div>
+                    <div key={i} className="border border-gray-200 p-5 rounded-xl flex flex-col justify-between">
+                      <div className="mb-4">
                         <strong className="text-sm text-black block">{c.nome}</strong>
                         <span className="text-xs text-gray-500">{c.telefone}</span>
                         <span className="mt-2 inline-block bg-gray-100 text-gray-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
                           {c.visitas || 1} Visitas
                         </span>
                       </div>
-                      <a href={`https://wa.me/55${c.telefone}?text=Olá ${c.nome}! Como posso te ajudar na Vascarin Beauty hoje?`} target="_blank" className="px-3 py-2 bg-black text-white text-xs font-bold rounded-lg hover:bg-zinc-800">
-                        Conversar
-                      </a>
+                      <div className="flex gap-2 mt-auto">
+                        <a href={`https://wa.me/55${c.telefone}?text=Olá ${c.nome}! Como posso te ajudar na Vascarin Beauty hoje?`} target="_blank" className="flex-1 px-3 py-2 bg-black text-white text-[10px] uppercase font-bold rounded-lg hover:bg-zinc-800 text-center flex items-center justify-center">
+                          Conversar
+                        </a>
+                        <button onClick={() => handleUpdateContato('clientes', c.telefone, c.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`flex-1 px-3 py-2 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${c.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
+                          {c.status_contato === 'Enviado' ? '✔ Falou' : 'Marcar'}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -445,7 +522,10 @@ export default function AdminDashboard() {
                   <h2 className="text-sm font-black uppercase text-black">Histórico de Acessos</h2>
                   <p className="text-xs text-gray-400">Acompanhe quem entrou na sua loja e o horário exato.</p>
                 </div>
-                <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">🔄 Atualizar</button>
+                <div className="flex gap-2">
+                  <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">🔄 Atualizar</button>
+                  <button onClick={handleExportHistorico} className="px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors cursor-pointer">📊 Exportar</button>
+                </div>
               </div>
 
               {historico.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum histórico registrado.</p> : (
@@ -463,6 +543,50 @@ export default function AdminDashboard() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* NOVA ABA: TEMPLATES DE MENSAGENS (SCRIPTS) */}
+          {activeTab === 'mensagens' && (
+            <div>
+              <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                <div>
+                  <h2 className="text-sm font-black uppercase text-black">Scripts de Venda (Templates)</h2>
+                  <p className="text-xs text-gray-400">Modelos prontos para você copiar e prospectar clientes no WhatsApp.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Script Carrinho Abandonado */}
+                <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
+                  <h3 className="text-xs font-bold uppercase text-amber-700 mb-3">🛒 Abordagem de Carrinho</h3>
+                  <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Olá [Nome]! Tudo bem? Vi que você deixou produtos incríveis na sacola da Vascarin Beauty.\n\nPosso te ajudar a finalizar o pedido ou tirar alguma dúvida sobre a fragrância?"} />
+                  <button onClick={(e) => { navigator.clipboard.writeText("Olá [Nome]! Tudo bem? Vi que você deixou produtos incríveis na sacola da Vascarin Beauty.\n\nPosso te ajudar a finalizar o pedido ou tirar alguma dúvida sobre a fragrância?"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors">Copiar Script</button>
+                </div>
+
+                {/* Script Favoritos */}
+                <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
+                  <h3 className="text-xs font-bold uppercase text-pink-600 mb-3">💖 Abordagem de Favoritos</h3>
+                  <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Oii [Nome]! Vi que você amou o [Produto] na nossa loja.\n\nEstou passando pra te avisar que o estoque dele está acabando! Quer que eu já reserve o seu antes que acabe?"} />
+                  <button onClick={(e) => { navigator.clipboard.writeText("Oii [Nome]! Vi que você amou o [Produto] na nossa loja.\n\nEstou passando pra te avisar que o estoque dele está acabando! Quer que eu já reserve o seu antes que acabe?"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors">Copiar Script</button>
+                </div>
+
+                {/* Script Cliente Antigo */}
+                <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
+                  <h3 className="text-xs font-bold uppercase text-blue-600 mb-3">👥 Reativação de Cliente</h3>
+                  <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Olá [Nome], tudo bem por aí? Faz um tempo que não nos falamos!\n\nChegaram umas novidades maravilhosas na Vascarin Beauty que são super o seu estilo. Posso te mandar algumas fotos?"} />
+                  <button onClick={(e) => { navigator.clipboard.writeText("Olá [Nome], tudo bem por aí? Faz um tempo que não nos falamos!\n\nChegaram umas novidades maravilhosas na Vascarin Beauty que são super o seu estilo. Posso te mandar algumas fotos?"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors">Copiar Script</button>
+                </div>
+
+                {/* Script Pós Venda */}
+                <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
+                  <h3 className="text-xs font-bold uppercase text-green-600 mb-3">📦 Pós-venda (Feedback)</h3>
+                  <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Oii [Nome]! O seu pedido chegou hoje, né? 🎉\n\nEspero que você tenha uma experiência maravilhosa com os produtos! Se puder postar uma fotinho e marcar a @vascarin.beauty no Instagram, eu ficaria muito feliz! 🥰"} />
+                  <button onClick={(e) => { navigator.clipboard.writeText("Oii [Nome]! O seu pedido chegou hoje, né? 🎉\n\nEspero que você tenha uma experiência maravilhosa com os produtos! Se puder postar uma fotinho e marcar a @vascarin.beauty no Instagram, eu ficaria muito feliz! 🥰"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors">Copiar Script</button>
+                </div>
+
+              </div>
             </div>
           )}
 
