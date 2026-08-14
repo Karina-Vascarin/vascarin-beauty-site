@@ -11,6 +11,7 @@ export default function AdminDashboard() {
 
   const [activeTab, setActiveTab] = useState<'pedidos' | 'abandonados' | 'favoritos' | 'clientes' | 'historico' | 'novo' | 'mensagens' | 'estoque' | 'espera' | 'buscas'>('pedidos');
   const [searchQuery, setSearchQuery] = useState('');
+  const [estoqueSubTab, setEstoqueSubTab] = useState<'atual' | 'log'>('atual');
 
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [abandonados, setAbandonados] = useState<any[]>([]);
@@ -20,6 +21,7 @@ export default function AdminDashboard() {
   const [espera, setEspera] = useState<any[]>([]); 
   const [buscas, setBuscas] = useState<any[]>([]); 
   const [storeProducts, setStoreProducts] = useState<any[]>([]);
+  const [estoqueLogs, setEstoqueLogs] = useState<any[]>([]);
 
   const [manualName, setManualName] = useState('');
   const [manualPhone, setManualPhone] = useState('');
@@ -59,7 +61,51 @@ export default function AdminDashboard() {
 
     try {
       const res = await fetch('/api/produtos');
-      if (res.ok) setStoreProducts(await res.json());
+      if (res.ok) {
+        const produtosNovos = await res.json();
+        setStoreProducts(produtosNovos);
+
+        // Sistema inteligente que compara com o carregamento anterior para gerar o log automático de Chegou/Esgotou
+        const ultimoEstadoSalvo = localStorage.getItem('vascarin_last_estoque_state');
+        const estadoAtualMap: any = {};
+        produtosNovos.forEach((p: any) => {
+          estadoAtualMap[p.nome] = Number(p.estoque ?? p.quantidade ?? 0) > 0;
+        });
+
+        if (ultimoEstadoSalvo) {
+          const estadoAnteriorMap = JSON.parse(ultimoEstadoSalvo);
+          const logsAtuais = JSON.parse(localStorage.getItem('vascarin_estoque_logs') || '[]');
+          let houveMudanca = false;
+
+          produtosNovos.forEach((p: any) => {
+            const nome = p.nome;
+            const disponivelAgora = Number(p.estoque ?? p.quantidade ?? 0) > 0;
+            const estavaDisponivelAntes = estadoAnteriorMap[nome];
+
+            if (estavaDisponivelAntes !== undefined && estavaDisponivelAntes !== disponivelAgora) {
+              const novoLog = {
+                produto: nome,
+                tipo: disponivelAgora ? 'Chegou' : 'Esgotou',
+                data: new Date().toLocaleString('pt-BR')
+              };
+              logsAtuais.unshift(novoLog);
+              houveMudanca = true;
+            }
+          });
+
+          if (houveMudanca) {
+            const logsLimitados = logsAtuais.slice(0, 50); // Mantém os últimos 50 registros
+            setEstoqueLogs(logsLimitados);
+            localStorage.setItem('vascarin_estoque_logs', JSON.stringify(logsLimitados));
+          } else {
+            setEstoqueLogs(JSON.parse(localStorage.getItem('vascarin_estoque_logs') || '[]'));
+          }
+        } else {
+          setEstoqueLogs(JSON.parse(localStorage.getItem('vascarin_estoque_logs') || '[]'));
+        }
+
+        localStorage.setItem('vascarin_last_estoque_state', JSON.stringify(estadoAtualMap));
+      }
     } catch (e) {}
   };
 
@@ -689,53 +735,92 @@ export default function AdminDashboard() {
             </div>
           )}
 
+          {/* ABA DE ESTOQUE EM TEMPO REAL COM SUB-ABAS (LISTA ATUAL + HISTÓRICO DE CHEGOU/ESGOTOU) */}
           {activeTab === 'estoque' && (
             <div>
-              <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4 border-b border-gray-100 pb-4">
                 <div>
-                  <h2 className="text-sm font-black uppercase text-black">Estoque Atual em Tempo Real (Planilha)</h2>
-                  <p className="text-xs text-gray-400">Lido diretamente da sua planilha do Google Sheets. Produtos disponíveis e esgotados.</p>
+                  <h2 className="text-sm font-black uppercase text-black">Gestão de Estoque (Planilha)</h2>
+                  <p className="text-xs text-gray-400">Acompanhe a situação atual e o histórico de movimentações (Chegou / Esgotou).</p>
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">🔄 Atualizar da Planilha</button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div className="bg-green-50 border border-green-200 p-4 rounded-xl">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-green-700">Produtos Disponíveis (Estoque &gt; 0)</span>
-                  <div className="text-2xl font-black text-green-700 mt-1">{produtosDisponiveis.length} itens</div>
-                </div>
-                <div className="bg-red-50 border border-red-200 p-4 rounded-xl">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-red-700">Produtos Esgotados (Estoque = 0)</span>
-                  <div className="text-2xl font-black text-red-700 mt-1">{produtosEsgotados.length} itens</div>
+                <div className="flex gap-2 items-center">
+                  <div className="bg-gray-100 p-1 rounded-lg flex gap-1">
+                    <button onClick={() => setEstoqueSubTab('atual')} className={`px-3 py-1.5 text-[11px] font-bold uppercase rounded-md transition-colors ${estoqueSubTab === 'atual' ? 'bg-black text-white' : 'text-gray-600 hover:text-black'}`}>📦 Estoque Atual</button>
+                    <button onClick={() => setEstoqueSubTab('log')} className={`px-3 py-1.5 text-[11px] font-bold uppercase rounded-md transition-colors ${estoqueSubTab === 'log' ? 'bg-black text-white' : 'text-gray-600 hover:text-black'}`}>🕒 Histórico (Chegou/Esgotou)</button>
+                  </div>
+                  <button onClick={carregarTudo} className="px-3 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">🔄 Atualizar</button>
                 </div>
               </div>
 
-              <div className="mb-6">
-                <input type="text" placeholder="🔍 Pesquisar produto no estoque..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
-              </div>
+              {estoqueSubTab === 'atual' && (
+                <div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div className="bg-green-50 border border-green-200 p-4 rounded-xl">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-green-700">Produtos Disponíveis (Estoque &gt; 0)</span>
+                      <div className="text-2xl font-black text-green-700 mt-1">{produtosDisponiveis.length} itens</div>
+                    </div>
+                    <div className="bg-red-50 border border-red-200 p-4 rounded-xl">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-red-700">Produtos Esgotados (Estoque = 0)</span>
+                      <div className="text-2xl font-black text-red-700 mt-1">{produtosEsgotados.length} itens</div>
+                    </div>
+                  </div>
 
-              {filteredEstoque.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum produto encontrado na planilha.</p> : (
-                <div className="flex flex-col gap-3">
-                  {filteredEstoque.map((p, i) => {
-                    const qtd = Number(p.estoque ?? p.quantidade ?? 0);
-                    const isEsgotado = qtd <= 0;
-                    return (
-                      <div key={i} className={`border p-4 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-4 ${isEsgotado ? 'bg-red-50/40 border-red-200' : 'bg-white border-gray-200'}`}>
-                        <div>
-                          <strong className="text-xs text-black block">{p.nome}</strong>
-                          <span className="text-[10px] text-gray-500 uppercase mt-0.5 block">Categoria: {p.categoria || 'Geral'}</span>
-                          <span className={`inline-block mt-1.5 text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full ${isEsgotado ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                            {isEsgotado ? '❌ Esgotado na Planilha (0)' : `✔ Disponível (${qtd} un.)`}
+                  <div className="mb-6">
+                    <input type="text" placeholder="🔍 Pesquisar produto no estoque..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-gray-50 focus:bg-white outline-none focus:border-black transition-colors" />
+                  </div>
+
+                  {filteredEstoque.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum produto encontrado na planilha.</p> : (
+                    <div className="flex flex-col gap-3">
+                      {filteredEstoque.map((p, i) => {
+                        const qtd = Number(p.estoque ?? p.quantidade ?? 0);
+                        const isEsgotado = qtd <= 0;
+                        return (
+                          <div key={i} className={`border p-4 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-4 ${isEsgotado ? 'bg-red-50/40 border-red-200' : 'bg-white border-gray-200'}`}>
+                            <div>
+                              <strong className="text-xs text-black block">{p.nome}</strong>
+                              <span className="text-[10px] text-gray-500 uppercase mt-0.5 block">Categoria: {p.categoria || 'Geral'}</span>
+                              <span className={`inline-block mt-1.5 text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full ${isEsgotado ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                {isEsgotado ? '❌ Esgotado na Planilha (0)' : `✔ Disponível (${qtd} un.)`}
+                              </span>
+                            </div>
+                            <span className="text-xs font-bold text-black">
+                              R$ {Number(p.preco || 0).toFixed(2)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {estoqueSubTab === 'log' && (
+                <div>
+                  <div className="mb-4">
+                    <p className="text-xs text-gray-500">Este diário registra automaticamente todas as vezes que um produto mudou de status (quando chegou reposição ou quando esgotou).</p>
+                  </div>
+
+                  {estoqueLogs.length === 0 ? (
+                    <p className="text-xs text-gray-400 py-12 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                      Nenhuma alteração de estoque registrada ainda nesta sessão. Assim que houver atualização na planilha, o histórico aparecerá aqui.
+                    </p>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      {estoqueLogs.map((log, idx) => (
+                        <div key={idx} className={`border p-4 rounded-xl flex items-center justify-between gap-4 ${log.tipo === 'Chegou' ? 'bg-green-50/50 border-green-200' : 'bg-red-50/50 border-red-200'}`}>
+                          <div>
+                            <span className={`inline-block px-2.5 py-0.5 text-[9px] font-black uppercase rounded-full mb-1 ${log.tipo === 'Chegou' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
+                              {log.tipo === 'Chegou' ? '✨ Chegou Reposição' : '❌ Esgotou'}
+                            </span>
+                            <strong className="text-xs text-black block">{log.produto}</strong>
+                          </div>
+                          <span className="text-[11px] font-mono text-gray-500 bg-white px-3 py-1.5 rounded-lg border border-gray-200">
+                            {log.data}
                           </span>
                         </div>
-                        <span className="text-xs font-bold text-black">
-                          R$ {Number(p.preco || 0).toFixed(2)}
-                        </span>
-                      </div>
-                    );
-                  })}
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
