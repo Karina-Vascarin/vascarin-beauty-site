@@ -21,6 +21,7 @@ export default function AuthModal() {
     } else {
       try {
         const client = JSON.parse(savedClient);
+        // Se a cliente já está salva, registra a nova entrada silenciosamente
         registrarAcesso(client.name, client.phone);
       } catch (e) {}
     }
@@ -31,12 +32,20 @@ export default function AuthModal() {
       const { data: existing } = await supabase.from('clientes').select('visitas').eq('telefone', clienteTelefone).maybeSingle();
       const totalVisitas = (existing?.visitas || 0) + 1;
 
+      // 1. Atualiza a contagem geral de visitas na aba Clientes
       await supabase.from('clientes').upsert({
         telefone: clienteTelefone,
         nome: clienteNome,
         visitas: totalVisitas,
         updated_at: new Date().toISOString()
       }, { onConflict: 'telefone' });
+
+      // 2. AGORA SIM: Grava sempre uma linha nova na aba Histórico com a data e hora de HOJE/AGORA
+      await supabase.from('historico_acessos').insert([{ 
+        nome: clienteNome, 
+        telefone: clienteTelefone 
+      }]);
+
     } catch (error) {
       console.error("Erro ao registrar acesso:", error);
     }
@@ -54,10 +63,8 @@ export default function AuthModal() {
     const clientData = { name, phone: cleanPhone };
     localStorage.setItem('vascarin_client', JSON.stringify(clientData));
 
+    // Chama a função que salva o cliente e também gera a linha no histórico
     await registrarAcesso(name, cleanPhone);
-    
-    // Grava o Histórico de Acesso com data/hora
-    await supabase.from('historico_acessos').insert([{ nome: name, telefone: cleanPhone }]);
 
     setIsSubmitting(false);
     setIsOpen(false);
@@ -93,7 +100,7 @@ export default function AuthModal() {
               type="text" 
               placeholder="(11) 99999-9999" 
               value={phone} 
-              onChange={(e) => setPhone(formatPhone(e.target.value))} // Máscara aplicada aqui
+              onChange={(e) => setPhone(formatPhone(e.target.value))} 
               className="w-full border border-gray-300 p-3 text-xs rounded-lg focus:outline-none focus:border-black"
               required
             />

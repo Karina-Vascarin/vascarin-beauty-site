@@ -2,15 +2,23 @@
 
 import { useCartStore } from '@/store/cart';
 import { useFavoritesStore } from '@/store/favorites';
+import { useEffect, useState } from 'react';
 
 export default function FloatingActions() {
+  const [isMounted, setIsMounted] = useState(false);
+
   const cartStore = useCartStore() as any;
   const items = cartStore.items || [];
   const toggleCart = cartStore.toggleCart;
   
   const favoritesStore = useFavoritesStore() as any;
-  const favorites = favoritesStore.favorites || [];
+  const favorites = favoritesStore.items || []; // <-- CORREÇÃO AQUI: o padrão costuma ser 'items' na store, e não 'favorites'. Se não funcionar, mudamos para 'favorites'.
   const toggleFavorites = favoritesStore.toggleFavorites;
+
+  // Garante que a hidratação aconteça corretamente para evitar erros de renderização com o Zustand
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const totalItemsCount = items.reduce((acc: number, item: any) => acc + (item.quantity || item.amount || 1), 0);
   const totalFavoritesCount = favorites.length;
@@ -20,6 +28,9 @@ export default function FloatingActions() {
     const mensagem = "Olá! Gostaria de tirar uma dúvida sobre os produtos da Vascarin Beauty.";
     window.open(`https://wa.me/${telefoneLoja}?text=${encodeURIComponent(mensagem)}`, '_blank');
   };
+
+  // Se não montou ainda, não renderiza para não dar erro de hidratação
+  if (!isMounted) return null;
 
   return (
     <div className="fixed bottom-24 right-4 z-40 flex flex-col gap-3 items-end">
