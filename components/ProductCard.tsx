@@ -27,13 +27,10 @@ export default function ProductCard({ product }: ProductCardProps) {
     }
   };
 
-  // Verifica se o estoque é zero ou menor que zero
-  const estoqueNum = Number(product.estoque ?? 1);
+  const estoqueNum = Number(product.estoque ?? product.quantidade ?? 1);
   const isEsgotado = estoqueNum <= 0;
 
-  // NOVO: Função para registrar o cliente na Fila de Espera (Avise-me)
   const handleAviseMe = async () => {
-    // Tenta pegar os dados salvos do cliente no navegador
     let clientName = null;
     let clientPhone = null;
     
@@ -46,7 +43,6 @@ export default function ProductCard({ product }: ProductCardProps) {
       }
     } catch (e) {}
 
-    // Se não tiver salvo, pede via prompt
     const nome = clientName || prompt("Digite seu nome:");
     if (!nome) return;
 
@@ -75,9 +71,12 @@ export default function ProductCard({ product }: ProductCardProps) {
     imageSrc = encodeURI(`/produtos/${rawPath}${hasExtension ? '' : '.png'}`);
   }
 
+  // Pega a categoria real da coluna C da planilha
+  const categoriaExibida = product.categoria || product.marca || 'Perfumes';
+
   return (
     <>
-      <div className="bg-white border border-gray-100 flex flex-col relative group p-4">
+      <div className="bg-white border border-gray-100 flex flex-col relative group p-4 rounded-2xl shadow-sm hover:border-black transition-all">
         {/* Botão do Coração */}
         <button 
           onClick={handleToggleFavorite}
@@ -100,10 +99,10 @@ export default function ProductCard({ product }: ProductCardProps) {
           </svg>
         </button>
 
-        {/* Imagem do Produto (CLICÁVEL PARA EXPANDIR) */}
+        {/* Imagem do Produto */}
         <div 
           onClick={() => setIsModalOpen(true)}
-          className="relative w-full h-48 mb-4 bg-gray-50 flex items-center justify-center cursor-pointer group-hover:opacity-90 transition-opacity"
+          className="relative w-full h-48 mb-4 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer group-hover:opacity-90 transition-opacity"
           title="Clique para ampliar"
         >
           {imageSrc ? (
@@ -117,10 +116,9 @@ export default function ProductCard({ product }: ProductCardProps) {
             <span className="text-xs text-gray-400 uppercase">Sem foto</span>
           )}
 
-          {/* Selo visual de Esgotado em Vermelho destacado */}
           {isEsgotado && (
             <div className="absolute inset-0 bg-white/75 flex items-center justify-center">
-              <span className="bg-red-600 text-white text-[10px] uppercase font-bold px-3 py-1 tracking-wider shadow-sm">
+              <span className="bg-red-600 text-white text-[10px] uppercase font-bold px-3 py-1 tracking-wider shadow-sm rounded-full">
                 Esgotado
               </span>
             </div>
@@ -130,8 +128,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Detalhes do Produto */}
         <div className="flex flex-col flex-1 justify-between">
           <div>
+            {/* Exibe a categoria real da coluna C */}
             <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-              {product.categoria || product.marca || 'Perfumes'}
+              {categoriaExibida}
             </span>
             <h3 
               onClick={() => setIsModalOpen(true)}
@@ -148,18 +147,17 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
             </div>
 
-            {/* BOTÃO CONDICIONAL: Avise-me se esgotado, ou Comprar se houver estoque */}
             {isEsgotado ? (
               <button
                 onClick={handleAviseMe}
-                className="w-full bg-zinc-800 text-white text-[11px] font-bold uppercase py-2.5 hover:bg-black transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                className="w-full bg-zinc-800 text-white text-[10px] font-bold uppercase py-3 rounded-xl hover:bg-black transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
               >
                 ⏳ Avise-me quando chegar
               </button>
             ) : (
               <button
                 onClick={() => addItemToCart({ ...product, quantidade: 1 })}
-                className="w-full bg-black text-white text-xs font-bold uppercase py-2.5 hover:bg-zinc-800 transition-colors cursor-pointer"
+                className="w-full bg-black text-white text-xs font-bold uppercase py-3 rounded-xl hover:bg-zinc-800 transition-colors cursor-pointer"
               >
                 Comprar
               </button>

@@ -4,33 +4,67 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function Header() {
   const [searchTerm, setSearchTerm] = useState('');
   const [clientData, setClientData] = useState<{name: string, phone: string} | null>(null);
+  const [storeProducts, setStoreProducts] = useState<any[]>([]);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
+    const queryParam = searchParams.get('q') || '';
+    setSearchTerm(queryParam);
+
     const data = localStorage.getItem('vascarin_client');
     if (data) {
       try {
         setClientData(JSON.parse(data));
       } catch (e) {}
     }
-  }, []);
+
+    async function fetchProducts() {
+      try {
+        const res = await fetch('/api/produtos');
+        if (res.ok) {
+          setStoreProducts(await res.json());
+        }
+      } catch (e) {}
+    }
+    fetchProducts();
+  }, [searchParams]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    // Se o usuário apagar todo o texto, limpa a URL e volta para a página inicial
+    if (value.trim() === '') {
+      router.push('/');
+    }
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     const query = searchTerm.trim();
-    if (!query) return;
+    if (!query) {
+      router.push('/');
+      return;
+    }
+
+    const produtosFiltrados = storeProducts.filter((p: any) => 
+      p.nome?.toLowerCase().includes(query.toLowerCase()) ||
+      p.categoria?.toLowerCase().includes(query.toLowerCase())
+    );
+    const qtdResultados = produtosFiltrados.length;
 
     try {
       await supabase.from('buscas_site').insert([{
         termo: query,
         nome: clientData?.name || null,
         telefone: clientData?.phone ? clientData.phone.replace(/\D/g, '') : null,
-        resultados: 0 
+        resultados: qtdResultados
       }]);
     } catch (error) {
       console.error("Erro ao registrar busca:", error);
@@ -54,13 +88,13 @@ export default function Header() {
           />
         </Link>
 
-        {/* ÚNICA BARRA DE PESQUISA COM LUPA EM ÍCONE SVG */}
+        {/* BARRA DE PESQUISA */}
         <div className="flex-1 max-w-xl">
           <form onSubmit={handleSearch} className="relative flex items-center">
             <input 
               type="text" 
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleInputChange}
               placeholder="Pesquisar perfumes, marcas..." 
               className="w-full bg-gray-50 border border-gray-200 text-xs text-gray-800 rounded-full py-2.5 pl-4 pr-10 focus:outline-none focus:border-black transition-colors shadow-sm"
             />
