@@ -65,7 +65,6 @@ export default function AdminDashboard() {
         const produtosNovos = await res.json();
         setStoreProducts(produtosNovos);
 
-        // Sistema inteligente que compara com o carregamento anterior para gerar o log automático de Chegou/Esgotou
         const ultimoEstadoSalvo = localStorage.getItem('vascarin_last_estoque_state');
         const estadoAtualMap: any = {};
         produtosNovos.forEach((p: any) => {
@@ -94,7 +93,7 @@ export default function AdminDashboard() {
           });
 
           if (houveMudanca) {
-            const logsLimitados = logsAtuais.slice(0, 50); // Mantém os últimos 50 registros
+            const logsLimitados = logsAtuais.slice(0, 50);
             setEstoqueLogs(logsLimitados);
             localStorage.setItem('vascarin_estoque_logs', JSON.stringify(logsLimitados));
           } else {
@@ -144,6 +143,20 @@ export default function AdminDashboard() {
       return `Olá ${pedido.nome}, tudo bem? Aqui é da Vascarin Beauty. Infelizmente, no momento da separação do seu pedido #${pedido.id}, notamos que um dos itens esgotou no nosso fornecedor e não temos em estoque.\n\nComo você prefere seguir? Podemos trocar por outro perfume ou fazer o estorno para você! Pedimos mil desculpas pelo transtorno. 😔`;
     }
     return `Olá ${pedido.nome}! Informamos sobre o seu pedido #${pedido.id} na Vascarin Beauty.`;
+  };
+
+  // Verifica se algum item do pedido está esgotado na planilha atual
+  const temItemEsgotado = (itemsString: string) => {
+    if (!storeProducts || storeProducts.length === 0) return false;
+    // Percorre os produtos da loja para ver se algum mencionado no pedido está com estoque <= 0
+    return storeProducts.some((p: any) => {
+      const qtd = Number(p.estoque ?? p.quantidade ?? 0);
+      if (qtd <= 0) {
+        // Verifica se o nome do produto consta no texto dos itens do pedido
+        return itemsString.toLowerCase().includes(p.nome.toLowerCase());
+      }
+      return false;
+    });
   };
 
   const handleUpdateStatus = async (pedido: any, newStatus: string, isSilent: boolean = false) => {
@@ -338,10 +351,10 @@ export default function AdminDashboard() {
             <button onClick={() => switchTab('espera')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'espera' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>⏳ Fila ({espera.length})</button>
             <button onClick={() => switchTab('buscas')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'buscas' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>🔍 Buscas</button>
             <button onClick={() => switchTab('historico')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'historico' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>🕒 Histórico</button>
-            <button onClick={() => switchTab('estoque')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'estoque' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>📋 Estoque em Tempo Real</button>
+            <button onClick={() => switchTab('estoque')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'estoque' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>📋 Estoque</button>
             <button onClick={() => switchTab('novo')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'novo' ? 'bg-white text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}>+ Venda Manual</button>
             <button onClick={() => switchTab('mensagens')} className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${activeTab === 'mensagens' ? 'bg-white text-black' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>💬 Scripts</button>
-            <button onClick={handleLogout} className="px-4 py-2 text-xs font-bold uppercase rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors ml-auto">Sair</button>
+            <button onClick={handleLogout} className="px-4 py-2 text-xs font-bold uppercase rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors cursor-pointer">Sair</button>
           </div>
         </div>
 
@@ -374,8 +387,8 @@ export default function AdminDashboard() {
                   <p className="text-xs text-gray-400">Controle o status de separação dos produtos vendidos.</p>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors">🔄 Atualizar</button>
-                  <button onClick={handleExportPedidos} className="px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors">📊 Exportar Excel</button>
+                  <button onClick={carregarTudo} className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-bold uppercase rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">🔄 Atualizar</button>
+                  <button onClick={handleExportPedidos} className="px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors cursor-pointer">📊 Exportar Excel</button>
                   <label className="px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-blue-700 transition-colors cursor-pointer flex items-center justify-center">
                     📥 Importar CSV
                     <input type="file" accept=".csv" onChange={importarPedidos} className="hidden" />
@@ -389,78 +402,86 @@ export default function AdminDashboard() {
 
               {filteredPedidos.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum pedido encontrado com essa pesquisa.</p> : (
                 <div className="flex flex-col gap-4">
-                  {filteredPedidos.map((p, i) => (
-                    <div key={i} className="border border-gray-200 rounded-xl p-5 flex flex-col lg:flex-row justify-between lg:items-center gap-4 hover:border-black transition-all">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <strong className="text-sm text-black">{p.id}</strong>
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                            p.status === 'Pendente / A Separar' ? 'bg-amber-100 text-amber-800' : 
-                            p.status === 'Separado' ? 'bg-blue-100 text-blue-800' : 
-                            p.status === 'Problema de Estoque' ? 'bg-red-100 text-red-800' : 
-                            p.status === 'Cancelado' ? 'bg-gray-200 text-gray-800' : 
-                            'bg-green-100 text-green-800'
-                          }`}>
-                            {p.status}
-                          </span>
-                          <span className="text-[10px] text-gray-400 uppercase font-bold">({p.tipo})</span>
-                        </div>
-                        <p className="text-xs text-gray-800 font-semibold">{p.nome} — <span className="text-gray-500">{p.telefone}</span></p>
-                        <p className="text-xs text-gray-600 mt-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100 font-mono">📦 {p.items}</p>
-                        <p className="text-xs font-black text-black mt-2">Total: R$ {Number(p.total).toFixed(2)} ({p.forma_pagamento})</p>
-                      </div>
+                  {filteredPedidos.map((p, i) => {
+                    const esgotado = temItemEsgotado(p.items);
 
-                      <div className="flex flex-wrap lg:flex-col gap-2 items-end justify-center min-w-[200px]">
-                        <a href={`https://wa.me/55${p.telefone}?text=${encodeURIComponent(getWhatsAppMessage(p))}`} target="_blank" className="w-full text-center px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors">
-                          WhatsApp
-                        </a>
-                        
-                        {p.status === 'Pendente / A Separar' && (
-                          <>
-                            <button onClick={() => handleUpdateStatus(p, 'Separado')} className="w-full px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
-                              ✔ Marcar como Separado
-                            </button>
-                            <button onClick={() => handleUpdateStatus(p, 'Problema de Estoque')} className="w-full px-4 py-2 bg-red-600 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-red-700 transition-colors cursor-pointer text-center">
-                              ⚠️ Avisar Falta de Estoque
-                            </button>
-                          </>
-                        )}
-                        
-                        {(p.status === 'Separado' || p.status === 'Problema de Estoque') && (
-                          <>
-                            {p.status !== 'Problema de Estoque' && (
-                              <button onClick={() => handleUpdateStatus(p, 'Entregue / Concluído')} className="w-full px-4 py-2 bg-black text-white text-xs font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">
-                                🚀 Marcar como Entregue
+                    return (
+                      <div key={i} className="border border-gray-200 rounded-xl p-5 flex flex-col lg:flex-row justify-between lg:items-center gap-4 hover:border-black transition-all">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <strong className="text-sm text-black">{p.id}</strong>
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                              p.status === 'Pendente / A Separar' ? 'bg-amber-100 text-amber-800' : 
+                              p.status === 'Separado' ? 'bg-blue-100 text-blue-800' : 
+                              p.status === 'Problema de Estoque' ? 'bg-red-100 text-red-800' : 
+                              p.status === 'Cancelado' ? 'bg-gray-200 text-gray-800' : 
+                              'bg-green-100 text-green-800'
+                            }`}>
+                              {p.status}
+                            </span>
+                            <span className="text-[10px] text-gray-400 uppercase font-bold">({p.tipo})</span>
+                          </div>
+                          <p className="text-xs text-gray-800 font-semibold">{p.nome} — <span className="text-gray-500">{p.telefone}</span></p>
+                          <p className="text-xs text-gray-600 mt-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100 font-mono">📦 {p.items}</p>
+                          <p className="text-xs font-black text-black mt-2">Total: R$ {Number(p.total).toFixed(2)} ({p.forma_pagamento})</p>
+                        </div>
+
+                        <div className="flex flex-wrap lg:flex-col gap-2 items-end justify-center min-w-[200px]">
+                          <a href={`https://wa.me/55${p.telefone}?text=${encodeURIComponent(getWhatsAppMessage(p))}`} target="_blank" className="w-full text-center px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-green-700 transition-colors">
+                            WhatsApp
+                          </a>
+                          
+                          {p.status === 'Pendente / A Separar' && (
+                            <>
+                              <button onClick={() => handleUpdateStatus(p, 'Separado')} className="w-full px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
+                                ✔ Marcar como Separado
                               </button>
-                            )}
-                            <button onClick={() => handleUpdateStatus(p, 'Pendente / A Separar', true)} className="w-full px-4 py-2 bg-gray-200 text-gray-700 text-[10px] font-bold uppercase rounded-lg hover:bg-gray-300 transition-colors cursor-pointer text-center">
-                              ↩ Desfazer Status
-                            </button>
-                          </>
-                        )}
+                              
+                              {/* SÓ APARECE SE HOUVER PRODUTO ESGOTADO NA PLANILHA */}
+                              {esgotado && (
+                                <button onClick={() => handleUpdateStatus(p, 'Problema de Estoque')} className="w-full px-4 py-2 bg-red-600 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-red-700 transition-colors cursor-pointer text-center">
+                                  ⚠️ Avisar Falta de Estoque
+                                </button>
+                              )}
+                            </>
+                          )}
+                          
+                          {(p.status === 'Separado' || p.status === 'Problema de Estoque') && (
+                            <>
+                              {p.status !== 'Problema de Estoque' && (
+                                <button onClick={() => handleUpdateStatus(p, 'Entregue / Concluído')} className="w-full px-4 py-2 bg-black text-white text-xs font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">
+                                  🚀 Marcar como Entregue
+                                </button>
+                              )}
+                              <button onClick={() => handleUpdateStatus(p, 'Pendente / A Separar', true)} className="w-full px-4 py-2 bg-gray-200 text-gray-700 text-[10px] font-bold uppercase rounded-lg hover:bg-gray-300 transition-colors cursor-pointer text-center">
+                                ↩ Desfazer Status
+                              </button>
+                            </>
+                          )}
 
-                        {p.status === 'Entregue / Concluído' && (
-                          <button onClick={() => handleUpdateStatus(p, 'Separado', true)} className="w-full px-4 py-2 bg-gray-200 text-gray-700 text-[10px] font-bold uppercase rounded-lg hover:bg-gray-300 transition-colors cursor-pointer text-center">
-                            ↩ Desfazer Entrega
-                          </button>
-                        )}
-                        
-                        <div className="w-full flex gap-2 mt-1">
-                          <button onClick={() => handleUpdateStatus(p, p.status === 'Cancelado' ? 'Pendente / A Separar' : 'Cancelado', true)} className="flex-1 px-2 py-2 bg-orange-100 text-orange-700 text-[10px] font-bold uppercase rounded-lg hover:bg-orange-200 transition-colors cursor-pointer text-center">
-                            {p.status === 'Cancelado' ? 'Restaurar' : 'Cancelar'}
-                          </button>
-                          <button onClick={async () => {
-                            if(confirm("Tem certeza que deseja excluir este pedido permanentemente?")) {
-                              const { error } = await supabase.from('pedidos').delete().eq('id', p.id);
-                              if(!error) carregarTudo();
-                            }
-                          }} className="flex-1 px-2 py-2 bg-red-100 text-red-700 text-[10px] font-bold uppercase rounded-lg hover:bg-red-200 transition-colors cursor-pointer text-center">
-                            Excluir
-                          </button>
+                          {p.status === 'Entregue / Concluído' && (
+                            <button onClick={() => handleUpdateStatus(p, 'Separado', true)} className="w-full px-4 py-2 bg-gray-200 text-gray-700 text-[10px] font-bold uppercase rounded-lg hover:bg-gray-300 transition-colors cursor-pointer text-center">
+                              ↩ Desfazer Entrega
+                            </button>
+                          )}
+                          
+                          <div className="w-full flex gap-2 mt-1">
+                            <button onClick={() => handleUpdateStatus(p, p.status === 'Cancelado' ? 'Pendente / A Separar' : 'Cancelado', true)} className="flex-1 px-2 py-2 bg-orange-100 text-orange-700 text-[10px] font-bold uppercase rounded-lg hover:bg-orange-200 transition-colors cursor-pointer text-center">
+                              {p.status === 'Cancelado' ? 'Restaurar' : 'Cancelar'}
+                            </button>
+                            <button onClick={async () => {
+                              if(confirm("Tem certeza que deseja excluir este pedido permanentemente?")) {
+                                const { error } = await supabase.from('pedidos').delete().eq('id', p.id);
+                                if(!error) carregarTudo();
+                              }
+                            }} className="flex-1 px-2 py-2 bg-red-100 text-red-700 text-[10px] font-bold uppercase rounded-lg hover:bg-red-200 transition-colors cursor-pointer text-center">
+                              Excluir
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -735,7 +756,6 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* ABA DE ESTOQUE EM TEMPO REAL COM SUB-ABAS (LISTA ATUAL + HISTÓRICO DE CHEGOU/ESGOTOU) */}
           {activeTab === 'estoque' && (
             <div>
               <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4 border-b border-gray-100 pb-4">
@@ -840,25 +860,25 @@ export default function AdminDashboard() {
                 <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
                   <h3 className="text-xs font-bold uppercase text-blue-700 mb-3">🔔 Produto Chegou</h3>
                   <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Oii [Nome]! O perfume [Produto] que você estava querendo acabou de voltar para o nosso estoque na Vascarin Beauty! 🎉\n\nPosso reservar o seu?"} />
-                  <button onClick={(e) => { navigator.clipboard.writeText("Oii [Nome]! O perfume [Produto] que você estava querendo acabou de voltar para o nosso estoque na Vascarin Beauty! 🎉\n\nPosso reservar o seu?"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors">Copiar Script</button>
+                  <button onClick={(e) => { navigator.clipboard.writeText("Oii [Nome]! O perfume [Produto] que você estava querendo acabou de voltar para o nosso estoque na Vascarin Beauty! 🎉\n\nPosso reservar o seu?"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">Copiar Script</button>
                 </div>
 
                 <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
                   <h3 className="text-xs font-bold uppercase text-amber-700 mb-3">🛒 Abordagem de Carrinho</h3>
                   <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Olá [Nome]! Tudo bem? Vi que você deixou produtos incríveis na sacola da Vascarin Beauty.\n\nPosso te ajudar a finalizar o pedido ou tirar alguma dúvida sobre a fragrância?"} />
-                  <button onClick={(e) => { navigator.clipboard.writeText("Olá [Nome]! Tudo bem? Vi que você deixou produtos incríveis na sacola da Vascarin Beauty.\n\nPosso te ajudar a finalizar o pedido ou tirar alguma dúvida sobre a fragrância?"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors">Copiar Script</button>
+                  <button onClick={(e) => { navigator.clipboard.writeText("Olá [Nome]! Tudo bem? Vi que você deixou produtos incríveis na sacola da Vascarin Beauty.\n\nPosso te ajudar a finalizar o pedido ou tirar alguma dúvida sobre a fragrância?"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">Copiar Script</button>
                 </div>
 
                 <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
                   <h3 className="text-xs font-bold uppercase text-pink-600 mb-3">💖 Abordagem de Favoritos</h3>
                   <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Oii [Nome]! Vi que você amou o [Produto] na nossa loja.\n\nEstou passando pra te avisar que o estoque dele está acabando! Quer que eu já reserve o seu antes que acabe?"} />
-                  <button onClick={(e) => { navigator.clipboard.writeText("Oii [Nome]! Vi que você amou o [Produto] na nossa loja.\n\nEstou passando pra te avisar que o estoque dele está acabando! Quer que eu já reserve o seu antes que acabe?"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors">Copiar Script</button>
+                  <button onClick={(e) => { navigator.clipboard.writeText("Oii [Nome]! Vi que você amou o [Produto] na nossa loja.\n\nEstou passando pra te avisar que o estoque dele está acabando! Quer que eu já reserve o seu antes que acabe?"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">Copiar Script</button>
                 </div>
 
                 <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
                   <h3 className="text-xs font-bold uppercase text-blue-600 mb-3">👥 Reativação de Cliente</h3>
                   <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Olá [Nome], tudo bem por aí? Faz um tempo que não nos falamos!\n\nChegaram umas novidades maravilhosas na Vascarin Beauty que são super o seu estilo. Posso te mandar algumas fotos?"} />
-                  <button onClick={(e) => { navigator.clipboard.writeText("Olá [Nome], tudo bem por aí? Faz um tempo que não nos falamos!\n\nChegaram umas novidades maravilhosas na Vascarin Beauty que são super o seu estilo. Posso te mandar algumas fotos?"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors">Copiar Script</button>
+                  <button onClick={(e) => { navigator.clipboard.writeText("Olá [Nome], tudo bem por aí? Faz um tempo que não nos falamos!\n\nChegaram umas novidades maravilhosas na Vascarin Beauty que são super o seu estilo. Posso te mandar algumas fotos?"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">Copiar Script</button>
                 </div>
 
               </div>
