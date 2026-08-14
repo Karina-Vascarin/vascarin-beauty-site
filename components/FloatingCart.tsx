@@ -25,15 +25,7 @@ export default function FloatingCart() {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
 
-  // Função da Máscara de Telefone
-  const formatPhone = (value: string) => {
-    return value
-      .replace(/\D/g, "")
-      .replace(/(\d{2})(\d)/, "($1) $2")
-      .replace(/(\d{5})(\d)/, "$1-$2")
-      .slice(0, 15);
-  };
-
+  // 1. Carrega dados do cliente
   useEffect(() => {
     setIsMounted(true);
     const clientData = localStorage.getItem('vascarin_client');
@@ -46,6 +38,7 @@ export default function FloatingCart() {
     }
   }, []);
 
+  // 2. Grava no Supabase em Tempo Real (Carrinho Abandonado)
   useEffect(() => {
     if (!isMounted) return;
 
@@ -95,6 +88,8 @@ export default function FloatingCart() {
   const baseTotal = totalProducts; 
   const taxRate = (step === 'checkout' && paymentMethod === 'credit') ? getInfinitePayRate(selectedInstallment) : 0;
   const simulatedTotalWithTax = taxRate > 0 ? (totalProducts / (1 - taxRate)) : baseTotal;
+  const installmentValue = (step === 'checkout' && paymentMethod === 'credit' && selectedInstallment > 1) 
+    ? simulatedTotalWithTax / selectedInstallment : simulatedTotalWithTax;
 
   const formatPrice = (value: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
@@ -135,6 +130,7 @@ export default function FloatingCart() {
         console.error("Erro ao gerar InfinitePay:", e);
       }
 
+      // 1. GRAVA O PEDIDO NO SUPABASE IMEDIATAMENTE COMO PENDENTE / A SEPARAR
       await supabase.from('pedidos').insert([{
         id: orderId,
         nome: customerName,
@@ -147,8 +143,10 @@ export default function FloatingCart() {
         tipo: 'Site'
       }]);
 
+      // 2. Limpa o carrinho do Supabase
       await supabase.from('carrinhos_abandonados').delete().eq('telefone', cleanPhone);
 
+      // 3. Prepara mensagem para o WhatsApp
       let msg = `✨ NOVO PEDIDO #${orderId} ✨\n\n`;
       msg += `👤 Cliente: ${customerName}\n📱 WhatsApp: ${customerPhone}\n\n`;
       msg += `🛒 ITENS:\n`;
@@ -181,6 +179,7 @@ export default function FloatingCart() {
     <div className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-sm transition-opacity">
       <div className="w-full max-w-md bg-white h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
         
+        {/* Cabeçalho */}
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
           <h2 className="text-sm font-black uppercase tracking-wider text-black">
             Sua Sacola ({items.length})
@@ -190,6 +189,7 @@ export default function FloatingCart() {
           </button>
         </div>
 
+        {/* Lista de Itens */}
         <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
           {items.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center">
@@ -251,21 +251,104 @@ export default function FloatingCart() {
                     />
                     <input 
                       type="text" 
-                      placeholder="(00) 00000-0000" 
-                      value={formatPhone(customerPhone)} 
+                      placeholder="WhatsApp" 
+                      value={customerPhone} 
                       onChange={(e) => setCustomerPhone(e.target.value)}
                       className="w-full border border-gray-300 p-3 text-xs rounded-lg focus:outline-none focus:border-black"
                     />
                   </div>
-                  {/* ... resto do checkout ... */}
+
+                  <div className="mt-2">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Forma de Pagamento</h3>
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      <button 
+                        type="button" 
+                        onClick={() => setPaymentMethod('pix')} 
+                        className={`p-3 text-xs font-bold uppercase border rounded-lg transition-colors cursor-pointer ${paymentMethod === 'pix' ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-700 bg-white'}`}
+                      >
+                        PIX
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setPaymentMethod('credit')} 
+                        className={`p-3 text-xs font-bold uppercase border rounded-lg transition-colors cursor-pointer ${paymentMethod === 'credit' ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-700 bg-white'}`}
+                      >
+                        Cartão
+                      </button>
+                    </div>
+
+                    {paymentMethod === 'credit' && (
+                      <select 
+                        value={selectedInstallment} 
+                        onChange={(e) => setSelectedInstallment(Number(e.target.value))}
+                        className="w-full border border-gray-300 p-3 text-xs font-bold rounded-lg bg-white focus:outline-none focus:border-black"
+                      >
+                        <option value={1}>1x de {formatPrice(totalProducts / (1 - 0.0420))}</option>
+                        <option value={2}>2x de {formatPrice((totalProducts / (1 - 0.0609)) / 2)}</option>
+                        <option value={3}>3x de {formatPrice((totalProducts / (1 - 0.0701)) / 3)}</option>
+                        <option value={4}>4x de {formatPrice((totalProducts / (1 - 0.0791)) / 4)}</option>
+                        <option value={5}>5x de {formatPrice((totalProducts / (1 - 0.0880)) / 5)}</option>
+                        <option value={6}>6x de {formatPrice((totalProducts / (1 - 0.0967)) / 6)}</option>
+                      </select>
+                    )}
+                  </div>
+
+                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg flex items-start gap-3 mt-2">
+                    <input 
+                      type="checkbox" 
+                      id="acceptTerms" 
+                      checked={hasAcceptedTerms} 
+                      onChange={(e) => setHasAcceptedTerms(e.target.checked)} 
+                      className="mt-0.5 cursor-pointer"
+                    />
+                    <label htmlFor="acceptTerms" className="text-[10px] text-gray-700 leading-tight">
+                       Declaro que li e aceito os <TermsModal /> antes de finalizar a compra.
+                    </label>
+                  </div>
                 </div>
               )}
             </>
           )}
         </div>
-        
-        {/* ... rodapé ... */}
+
+        {/* Rodapé */}
+        {items.length > 0 && (
+          <div className="p-6 border-t border-gray-100 bg-gray-50 flex flex-col gap-3">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-gray-500 font-medium">Total:</span>
+              <span className="text-xl font-black text-black">
+                {formatPrice(step === 'checkout' ? simulatedTotalWithTax : baseTotal)}
+              </span>
+            </div>
+
+            {step === 'cart' ? (
+              <button 
+                onClick={() => setStep('checkout')} 
+                className="w-full bg-black text-white text-xs font-bold uppercase py-4 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
+              >
+                Avançar para Pagamento
+              </button>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <button 
+                  onClick={handleCheckout} 
+                  disabled={isProcessing || !hasAcceptedTerms} 
+                  className="w-full bg-green-600 text-white text-xs font-bold uppercase py-4 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 cursor-pointer shadow-md"
+                >
+                  {isProcessing ? "GERANDO PEDIDO..." : "IR PARA PAGAMENTO E WHATSAPP"}
+                </button>
+                <button 
+                  onClick={() => setStep('cart')} 
+                  className="w-full text-gray-500 text-[10px] font-bold uppercase py-2 hover:text-black transition-colors cursor-pointer"
+                >
+                  Voltar para sacola
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </div>
   );
-}
+} 
