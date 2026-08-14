@@ -11,7 +11,6 @@ interface CatalogProps {
 export default function Catalog({ initialProducts = [] }: CatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [submittedQuery, setSubmittedQuery] = useState<string>(''); // Só filtra ao dar Enter/Lupa
   const [sortBy, setSortBy] = useState<string>('default');
   const [clientData, setClientData] = useState<{name: string, phone: string} | null>(null);
 
@@ -29,11 +28,10 @@ export default function Catalog({ initialProducts = [] }: CatalogProps) {
     return Array.from(new Set(cats)) as string[];
   }, [initialProducts]);
 
-  // A filtragem agora só ocorre baseada no termo enviado (submittedQuery)
   const filteredProducts = useMemo(() => {
     let result = initialProducts.filter((product) => {
       const matchesCategory = selectedCategory === 'Todos' || product.categoria === selectedCategory;
-      const matchesSearch = !submittedQuery || product.nome?.toLowerCase().includes(submittedQuery.toLowerCase());
+      const matchesSearch = !searchQuery || product.nome?.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
 
@@ -42,50 +40,42 @@ export default function Catalog({ initialProducts = [] }: CatalogProps) {
     else if (sortBy === 'name-asc') result.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
 
     return result;
-  }, [initialProducts, selectedCategory, submittedQuery, sortBy]);
+  }, [initialProducts, selectedCategory, searchQuery, sortBy]);
 
-  // Função disparada ao dar Enter ou clicar na lupa na página principal
-  const handleSearchSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const query = searchQuery.trim();
-    setSubmittedQuery(query);
-
-    if (query) {
-      // Faz o filtro e verifica se encontrou resultados
-      const encontrou = initialProducts.some(p => p.nome?.toLowerCase().includes(query.toLowerCase()));
-      
-      try {
-        await supabase.from('buscas_site').insert([{
-          termo: query,
-          nome: clientData?.name || null,
-          telefone: clientData?.phone ? clientData.phone.replace(/\D/g, '') : null,
-          resultados: encontrou ? 1 : 0
-        }]);
-      } catch (err) {
-        console.error("Erro ao registrar busca:", err);
+  // Registra no Supabase quando a pessoa pesquisa algo e não acha nenhum resultado
+  useEffect(() => {
+    const registrarBuscaVazia = async () => {
+      if (searchQuery.trim().length > 2 && filteredProducts.length === 0) {
+        try {
+          await supabase.from('buscas_site').insert([{
+            termo: searchQuery.trim(),
+            nome: clientData?.name || null,
+            telefone: clientData?.phone ? clientData.phone.replace(/\D/g, '') : null,
+            resultados: 0
+          }]);
+        } catch (err) {}
       }
-    }
-  };
+    };
+    const timer = setTimeout(registrarBuscaVazia, 1500); // Espera o usuário terminar de digitar
+    return () => clearTimeout(timer);
+  }, [searchQuery, filteredProducts.length, clientData]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col gap-6">
       
-      {/* TOPO: BUSCA COM LUPA E CATEGORIAS EM ABAS */}
+      {/* TOPO: BUSCA CLEAN E CATEGORIAS EM ABAS */}
       <div className="flex flex-col gap-4">
         
-        {/* Barra de Busca com Lupa Visível */}
-        <form onSubmit={handleSearchSubmit} className="relative w-full max-w-md flex items-center">
+        {/* Barra de Busca Minimalista */}
+        <div className="relative w-full max-w-md">
           <input 
             type="text"
-            placeholder="O que você está procurando? (Dê Enter)"
+            placeholder="O que você está procurando?"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-300 rounded-full pl-4 pr-12 py-2.5 text-xs text-black focus:outline-none focus:border-black transition-all shadow-sm"
+            className="w-full bg-gray-50 border border-gray-200 rounded-full px-4 py-2.5 text-xs text-black focus:outline-none focus:border-black transition-all shadow-sm"
           />
-          <button type="submit" className="absolute right-4 text-black font-bold text-sm cursor-pointer" title="Pesquisar">
-            🔍
-          </button>
-        </form>
+        </div>
 
         {/* Abas de Categorias Roláveis */}
         <div>
@@ -132,28 +122,27 @@ export default function Catalog({ initialProducts = [] }: CatalogProps) {
         </div>
       </div>
 
-      {/* GRADE DE PRODUTOS OU BOTÃO DE Fila de Espera se não achar nada */}
+      {/* GRADE DE PRODUTOS */}
       {filteredProducts.length === 0 ? (
         <div className="text-center py-16 flex flex-col items-center gap-3">
-          <p className="text-gray-400 text-xs">Nenhum produto encontrado com "{submittedQuery || searchQuery}".</p>
+          <p className="text-gray-400 text-xs">Nenhum produto encontrado com "{searchQuery}".</p>
           <button 
             onClick={async () => {
-              const termoBusca = submittedQuery || searchQuery;
-              if (!termoBusca) return;
+              if (!searchQuery) return;
               const nomeCli = clientData?.name || prompt("Digite seu nome:");
-              const telCli = clientData?.phone || prompt("Digite seu WhatsApp para avisarmos quando chegar:");
+              const telCli = clientData?.phone || prompt("Digite seu WhatsApp para avisarmos quando tivermos:");
               if (nomeCli && telCli) {
                 await supabase.from('fila_espera').insert([{
                   nome: nomeCli,
                   telefone: telCli.replace(/\D/g, ''),
-                  produto: termoBusca
+                  produto: searchQuery
                 }]);
                 alert("Pronto! Salvamos na nossa fila de espera. Assim que chegarem novidades, te avisaremos!");
               }
             }}
-            className="bg-blue-600 text-white text-[10px] font-bold uppercase px-6 py-3 rounded-full hover:bg-blue-700 transition-colors cursor-pointer shadow-md"
+            className="bg-black text-white text-[10px] font-bold uppercase px-6 py-3 rounded-full hover:bg-zinc-800 transition-colors cursor-pointer"
           >
-            ⏳ Avise-me quando chegar / Encomendar
+            Quero encomendar / Avise-me deste item
           </button>
         </div>
       ) : (
