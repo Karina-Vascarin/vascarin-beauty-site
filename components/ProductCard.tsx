@@ -16,6 +16,9 @@ export default function ProductCard({ product }: ProductCardProps) {
   const addItemToCart = useCartStore((state) => state.addItem);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Estado para controlar se a imagem deu erro ao carregar
+  const [imageError, setImageError] = useState(false);
 
   const isFavorite = favoriteItems.some((item) => (item.id && item.id === product.id) || item.nome === product.nome);
 
@@ -61,6 +64,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     }
   };
 
+  // Montagem do caminho da imagem
   let imageSrc = "";
   const semImagem = !product.imagem || String(product.imagem).includes('default-image');
   if (!semImagem) {
@@ -70,6 +74,9 @@ export default function ProductCard({ product }: ProductCardProps) {
     const hasExtension = /\.(png|jpe?g|webp)$/i.test(rawPath);
     imageSrc = encodeURI(`/produtos/${rawPath}${hasExtension ? '' : '.png'}`);
   }
+
+  // Se der erro ou vier sem imagem, usamos o fallback (Pode mudar para '/logo.png' se preferir)
+  const finalImageSrc = (imageError || semImagem || !imageSrc) ? '/logo.png' : imageSrc;
 
   // Pega a categoria real da coluna C da planilha
   const categoriaExibida = product.categoria || product.marca || 'Perfumes';
@@ -99,22 +106,19 @@ export default function ProductCard({ product }: ProductCardProps) {
           </svg>
         </button>
 
-        {/* Imagem do Produto */}
+        {/* Imagem do Produto com sistema anti-falha */}
         <div 
           onClick={() => setIsModalOpen(true)}
           className="relative w-full h-48 mb-4 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer group-hover:opacity-90 transition-opacity"
           title="Clique para ampliar"
         >
-          {imageSrc ? (
-            <Image 
-              src={imageSrc} 
-              alt={product.nome} 
-              fill 
-              className="object-contain p-2" 
-            />
-          ) : (
-            <span className="text-xs text-gray-400 uppercase">Sem foto</span>
-          )}
+          <Image 
+            src={finalImageSrc} 
+            alt={product.nome} 
+            fill 
+            className={`object-contain p-2 ${(imageError || semImagem) ? 'opacity-30' : ''}`}
+            onError={() => setImageError(true)} 
+          />
 
           {isEsgotado && (
             <div className="absolute inset-0 bg-white/75 flex items-center justify-center">
