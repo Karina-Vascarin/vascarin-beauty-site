@@ -145,14 +145,11 @@ export default function AdminDashboard() {
     return `Olá ${pedido.nome}! Informamos sobre o seu pedido #${pedido.id} na Vascarin Beauty.`;
   };
 
-  // Verifica se algum item do pedido está esgotado na planilha atual
   const temItemEsgotado = (itemsString: string) => {
     if (!storeProducts || storeProducts.length === 0) return false;
-    // Percorre os produtos da loja para ver se algum mencionado no pedido está com estoque <= 0
     return storeProducts.some((p: any) => {
       const qtd = Number(p.estoque ?? p.quantidade ?? 0);
       if (qtd <= 0) {
-        // Verifica se o nome do produto consta no texto dos itens do pedido
         return itemsString.toLowerCase().includes(p.nome.toLowerCase());
       }
       return false;
@@ -437,7 +434,6 @@ export default function AdminDashboard() {
                                 ✔ Marcar como Separado
                               </button>
                               
-                              {/* SÓ APARECE SE HOUVER PRODUTO ESGOTADO NA PLANILHA */}
                               {esgotado && (
                                 <button onClick={() => handleUpdateStatus(p, 'Problema de Estoque')} className="w-full px-4 py-2 bg-red-600 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-red-700 transition-colors cursor-pointer text-center">
                                   ⚠️ Avisar Falta de Estoque
@@ -816,8 +812,21 @@ export default function AdminDashboard() {
 
               {estoqueSubTab === 'log' && (
                 <div>
-                  <div className="mb-4">
+                  <div className="flex justify-between items-center mb-4">
                     <p className="text-xs text-gray-500">Este diário registra automaticamente todas as vezes que um produto mudou de status (quando chegou reposição ou quando esgotou).</p>
+                    {estoqueLogs.length > 0 && (
+                      <button 
+                        onClick={() => {
+                          if (confirm("Tem certeza que deseja apagar todo o histórico de Chegou/Esgotou?")) {
+                            localStorage.removeItem('vascarin_estoque_logs');
+                            setEstoqueLogs([]);
+                          }
+                        }}
+                        className="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer"
+                      >
+                        🗑️ Limpar Histórico
+                      </button>
+                    )}
                   </div>
 
                   {estoqueLogs.length === 0 ? (
