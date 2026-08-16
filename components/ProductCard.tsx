@@ -75,8 +75,8 @@ export default function ProductCard({ product }: ProductCardProps) {
     imageSrc = encodeURI(`/produtos/${rawPath}${hasExtension ? '' : '.png'}`);
   }
 
-  // Se der erro ou vier sem imagem, usamos o fallback (Pode mudar para '/logo.png' se preferir)
-  const finalImageSrc = (imageError || semImagem || !imageSrc) ? '/logo.png' : imageSrc;
+  // Verifica se pode exibir a foto (não é vazia, tem src e não deu erro de carregamento)
+  const mostrarImagem = !semImagem && !!imageSrc && !imageError;
 
   // Pega a categoria real da coluna C da planilha
   const categoriaExibida = product.categoria || product.marca || 'Perfumes';
@@ -112,13 +112,17 @@ export default function ProductCard({ product }: ProductCardProps) {
           className="relative w-full h-48 mb-4 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer group-hover:opacity-90 transition-opacity"
           title="Clique para ampliar"
         >
-          <Image 
-            src={finalImageSrc} 
-            alt={product.nome} 
-            fill 
-            className={`object-contain p-2 ${(imageError || semImagem) ? 'opacity-30' : ''}`}
-            onError={() => setImageError(true)} 
-          />
+          {mostrarImagem ? (
+            <Image 
+              src={imageSrc} 
+              alt={product.nome} 
+              fill 
+              className="object-contain p-2"
+              onError={() => setImageError(true)} 
+            />
+          ) : (
+            <span className="text-xs text-gray-400 font-bold uppercase tracking-widest">Sem foto</span>
+          )}
 
           {isEsgotado && (
             <div className="absolute inset-0 bg-white/75 flex items-center justify-center">
