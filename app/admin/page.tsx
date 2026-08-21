@@ -176,6 +176,18 @@ export default function AdminDashboard() {
     if (!error) carregarTudo();
   };
 
+  // NOVA FUNÇÃO: Excluir termo de pesquisa individual
+  const handleDeleteBusca = async (id: string | number) => {
+    if (confirm("Tem certeza que deseja excluir esta pesquisa do painel?")) {
+      const { error } = await supabase.from('buscas_site').delete().eq('id', id);
+      if (!error) {
+        carregarTudo();
+      } else {
+        alert("Erro ao excluir pesquisa: " + error.message);
+      }
+    }
+  };
+
   const handleSaveManualOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     const orderId = `VASC-MANUAL-${Date.now().toString().slice(-4)}`;
@@ -627,13 +639,12 @@ export default function AdminDashboard() {
               {filteredEspera.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Não há clientes na fila de espera no momento.</p> : (
                 <div className="flex flex-col gap-4">
                   {filteredEspera.map((e, i) => {
-                    // 🔴 BUSCA INTELIGENTE ADICIONADA AQUI: Ignora "Brand Collection", acentos e símbolos para não perder o match!
                     const normalizeName = (name: string) => {
                       return String(name || '')
                         .toLowerCase()
-                        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove acentos (Inspiração -> Inspiracao)
-                        .replace(/brand collection/g, "") // Ignora a marca que foi removida dos nomes recentes
-                        .replace(/[^a-z0-9]/g, ""); // Remove espaços, traços e símbolos
+                        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
+                        .replace(/brand collection/g, "") 
+                        .replace(/[^a-z0-9]/g, ""); 
                     };
 
                     const produtoNaLoja = storeProducts.find((p: any) => {
@@ -642,12 +653,9 @@ export default function AdminDashboard() {
                       
                       if (!nomeLoja || !nomeEspera) return false;
 
-                      // 1. Tenta o match exato após a limpeza
                       if (nomeLoja === nomeEspera) return true;
 
-                      // 2. Se um contém o outro
                       if (nomeLoja.includes(nomeEspera) || nomeEspera.includes(nomeLoja)) {
-                        // Trava do Kit
                         const isKitLoja = String(p.nome).toLowerCase().includes('kit');
                         const isKitEspera = String(e.produto).toLowerCase().includes('kit');
                         return isKitLoja === isKitEspera;
@@ -729,13 +737,17 @@ export default function AdminDashboard() {
                         )}
                       </div>
                       
-                      {b.telefone && (
-                        <div className="flex flex-col sm:flex-row gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        {b.telefone && (
                           <a href={`https://wa.me/55${b.telefone}?text=Olá ${b.nome}! Vi que você procurou por "${b.termo}" no nosso site. Posso te ajudar a encontrar ou encomendar para você?`} target="_blank" className="px-5 py-3 bg-purple-600 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-purple-700 transition-colors text-center flex items-center justify-center">
                             📱 Oferecer Encomenda
                           </a>
-                        </div>
-                      )}
+                        )}
+                        {/* NOVO BOTÃO DE EXCLUIR PESQUISA AQUI */}
+                        <button onClick={() => handleDeleteBusca(b.id)} className="px-5 py-3 bg-red-100 text-red-700 text-[10px] font-bold uppercase rounded-lg hover:bg-red-200 transition-colors cursor-pointer text-center flex items-center justify-center border border-red-200">
+                          🗑️ Excluir
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
