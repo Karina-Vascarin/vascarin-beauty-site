@@ -60,7 +60,8 @@ export default function AdminDashboard() {
     if (bsc) setBuscas(bsc);
 
     try {
-      const res = await fetch('/api/produtos');
+      // 🔴 FORÇADOR DE CACHE ADICIONADO AQUI: Garante que vai ler o estoque novo
+      const res = await fetch(`/api/produtos?nocache=${Date.now()}`, { cache: 'no-store' });
       if (res.ok) {
         const produtosNovos = await res.json();
         setStoreProducts(produtosNovos);
@@ -627,10 +628,11 @@ export default function AdminDashboard() {
               {filteredEspera.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Não há clientes na fila de espera no momento.</p> : (
                 <div className="flex flex-col gap-4">
                   {filteredEspera.map((e, i) => {
+                    // 🔴 BUSCA EXATA ADICIONADA AQUI: Evita que confunda nomes parecidos
                     const produtoNaLoja = storeProducts.find((p: any) => 
-                      p.nome?.toLowerCase().includes(e.produto?.toLowerCase())
+                      String(p.nome).trim().toLowerCase() === String(e.produto).trim().toLowerCase()
                     );
-                    const estoqueAtual = produtoNaLoja ? Number(produtoNaLoja.estoque ?? produtoNaLoja.quantidade ?? 1) : 0;
+                    const estoqueAtual = produtoNaLoja ? Number(produtoNaLoja.estoque ?? produtoNaLoja.quantidade ?? 0) : 0;
                     const chegouNoEstoque = estoqueAtual > 0;
 
                     return (
