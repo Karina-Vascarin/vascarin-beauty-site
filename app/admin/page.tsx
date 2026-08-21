@@ -60,7 +60,6 @@ export default function AdminDashboard() {
     if (bsc) setBuscas(bsc);
 
     try {
-      // 🔴 FORÇADOR DE CACHE ADICIONADO AQUI: Garante que vai ler o estoque novo
       const res = await fetch(`/api/produtos?nocache=${Date.now()}`, { cache: 'no-store' });
       if (res.ok) {
         const produtosNovos = await res.json();
@@ -628,10 +627,35 @@ export default function AdminDashboard() {
               {filteredEspera.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Não há clientes na fila de espera no momento.</p> : (
                 <div className="flex flex-col gap-4">
                   {filteredEspera.map((e, i) => {
-                    // 🔴 BUSCA EXATA ADICIONADA AQUI: Evita que confunda nomes parecidos
-                    const produtoNaLoja = storeProducts.find((p: any) => 
-                      String(p.nome).trim().toLowerCase() === String(e.produto).trim().toLowerCase()
-                    );
+                    // 🔴 BUSCA INTELIGENTE ADICIONADA AQUI: Ignora "Brand Collection", acentos e símbolos para não perder o match!
+                    const normalizeName = (name: string) => {
+                      return String(name || '')
+                        .toLowerCase()
+                        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove acentos (Inspiração -> Inspiracao)
+                        .replace(/brand collection/g, "") // Ignora a marca que foi removida dos nomes recentes
+                        .replace(/[^a-z0-9]/g, ""); // Remove espaços, traços e símbolos
+                    };
+
+                    const produtoNaLoja = storeProducts.find((p: any) => {
+                      const nomeLoja = normalizeName(p.nome);
+                      const nomeEspera = normalizeName(e.produto);
+                      
+                      if (!nomeLoja || !nomeEspera) return false;
+
+                      // 1. Tenta o match exato após a limpeza
+                      if (nomeLoja === nomeEspera) return true;
+
+                      // 2. Se um contém o outro
+                      if (nomeLoja.includes(nomeEspera) || nomeEspera.includes(nomeLoja)) {
+                        // Trava do Kit
+                        const isKitLoja = String(p.nome).toLowerCase().includes('kit');
+                        const isKitEspera = String(e.produto).toLowerCase().includes('kit');
+                        return isKitLoja === isKitEspera;
+                      }
+                      
+                      return false;
+                    });
+
                     const estoqueAtual = produtoNaLoja ? Number(produtoNaLoja.estoque ?? produtoNaLoja.quantidade ?? 0) : 0;
                     const chegouNoEstoque = estoqueAtual > 0;
 
