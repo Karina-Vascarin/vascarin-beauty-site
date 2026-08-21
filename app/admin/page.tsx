@@ -67,8 +67,17 @@ export default function AdminDashboard() {
 
         const ultimoEstadoSalvo = localStorage.getItem('vascarin_last_estoque_state');
         const estadoAtualMap: any = {};
+        
+        // 🔴 CORREÇÃO 1: Consolidar produtos pelo nome para evitar conflito de ioiô
         produtosNovos.forEach((p: any) => {
-          estadoAtualMap[p.nome] = Number(p.estoque ?? p.quantidade ?? 0) > 0;
+          const nomeFormatado = String(p.nome).trim();
+          const temEstoque = Number(p.estoque ?? p.quantidade ?? 0) > 0;
+          
+          // Se o produto já foi marcado como "COM ESTOQUE" na varredura, 
+          // não deixa um duplicado sem estoque sobrescrevê-lo.
+          if (estadoAtualMap[nomeFormatado] !== true) {
+            estadoAtualMap[nomeFormatado] = temEstoque;
+          }
         });
 
         if (ultimoEstadoSalvo) {
@@ -76,24 +85,32 @@ export default function AdminDashboard() {
           const logsAtuais = JSON.parse(localStorage.getItem('vascarin_estoque_logs') || '[]');
           let houveMudanca = false;
 
-          produtosNovos.forEach((p: any) => {
-            const nome = p.nome;
-            const disponivelAgora = Number(p.estoque ?? p.quantidade ?? 0) > 0;
+          // 🔴 CORREÇÃO 2: Fazemos o loop nas chaves únicas (nomes) em vez da lista bruta
+          Object.keys(estadoAtualMap).forEach((nome) => {
+            const disponivelAgora = estadoAtualMap[nome];
             const estavaDisponivelAntes = estadoAnteriorMap[nome];
 
             if (estavaDisponivelAntes !== undefined && estavaDisponivelAntes !== disponivelAgora) {
-              const novoLog = {
-                produto: nome,
-                tipo: disponivelAgora ? 'Chegou' : 'Esgotou',
-                data: new Date().toLocaleString('pt-BR')
-              };
-              logsAtuais.unshift(novoLog);
-              houveMudanca = true;
+              
+              // 🔴 CORREÇÃO 3: Trava anti-spam (Se já tem um log igualzinho recém criado, ignora)
+              const jaTemLogRecente = logsAtuais.slice(0, 5).some((log: any) => 
+                log.produto === nome && log.tipo === (disponivelAgora ? 'Chegou' : 'Esgotou')
+              );
+              
+              if (!jaTemLogRecente) {
+                const novoLog = {
+                  produto: nome,
+                  tipo: disponivelAgora ? 'Chegou' : 'Esgotou',
+                  data: new Date().toLocaleString('pt-BR')
+                };
+                logsAtuais.unshift(novoLog);
+                houveMudanca = true;
+              }
             }
           });
 
           if (houveMudanca) {
-            const logsLimitados = logsAtuais.slice(0, 50);
+            const logsLimitados = logsAtuais.slice(0, 50); // Mantém no máximo os 50 últimos logs
             setEstoqueLogs(logsLimitados);
             localStorage.setItem('vascarin_estoque_logs', JSON.stringify(logsLimitados));
           } else {
@@ -103,6 +120,7 @@ export default function AdminDashboard() {
           setEstoqueLogs(JSON.parse(localStorage.getItem('vascarin_estoque_logs') || '[]'));
         }
 
+        // Salva o mapa limpo e sem duplicatas
         localStorage.setItem('vascarin_last_estoque_state', JSON.stringify(estadoAtualMap));
       }
     } catch (e) {}
@@ -176,7 +194,6 @@ export default function AdminDashboard() {
     if (!error) carregarTudo();
   };
 
-  // NOVA FUNÇÃO: Excluir termo de pesquisa individual
   const handleDeleteBusca = async (id: string | number) => {
     if (confirm("Tem certeza que deseja excluir esta pesquisa do painel?")) {
       const { error } = await supabase.from('buscas_site').delete().eq('id', id);
