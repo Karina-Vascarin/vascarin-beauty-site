@@ -66,17 +66,17 @@ export default function AdminDashboard() {
         setStoreProducts(produtosNovos);
 
         const ultimoEstadoSalvo = localStorage.getItem('vascarin_last_estoque_state');
-        const estadoAtualMap: any = {};
+        const estadoAtualMap: Record<string, boolean> = {};
         
-        // 🔴 CORREÇÃO 1: Consolidar produtos pelo nome para evitar conflito de ioiô
+        // 1. Mapeamento usando o NOME EXATO da coluna B
         produtosNovos.forEach((p: any) => {
-          const nomeFormatado = String(p.nome).trim();
-          const temEstoque = Number(p.estoque ?? p.quantidade ?? 0) > 0;
+          if (!p.nome) return;
+          const nomeExato = p.nome; // Nome exato como na planilha (Coluna B)
+          const temEstoque = Number(p.estoque ?? p.quantidade ?? 0) > 0; // Verifica coluna I
           
-          // Se o produto já foi marcado como "COM ESTOQUE" na varredura, 
-          // não deixa um duplicado sem estoque sobrescrevê-lo.
-          if (estadoAtualMap[nomeFormatado] !== true) {
-            estadoAtualMap[nomeFormatado] = temEstoque;
+          // Se houver dois produtos com nomes idênticos na planilha, o com estoque positivo sempre ganha.
+          if (estadoAtualMap[nomeExato] !== true) {
+            estadoAtualMap[nomeExato] = temEstoque;
           }
         });
 
@@ -85,21 +85,22 @@ export default function AdminDashboard() {
           const logsAtuais = JSON.parse(localStorage.getItem('vascarin_estoque_logs') || '[]');
           let houveMudanca = false;
 
-          // 🔴 CORREÇÃO 2: Fazemos o loop nas chaves únicas (nomes) em vez da lista bruta
-          Object.keys(estadoAtualMap).forEach((nome) => {
-            const disponivelAgora = estadoAtualMap[nome];
-            const estavaDisponivelAntes = estadoAnteriorMap[nome];
+          // 2. Comparação Rigorosa de Estado
+          Object.keys(estadoAtualMap).forEach((nomeExato) => {
+            const disponivelAgora = estadoAtualMap[nomeExato];
+            const estavaDisponivelAntes = estadoAnteriorMap[nomeExato];
 
+            // Só ativa o gatilho se o produto já existia antes e o status realmente MUDOU
             if (estavaDisponivelAntes !== undefined && estavaDisponivelAntes !== disponivelAgora) {
               
-              // 🔴 CORREÇÃO 3: Trava anti-spam (Se já tem um log igualzinho recém criado, ignora)
-              const jaTemLogRecente = logsAtuais.slice(0, 5).some((log: any) => 
-                log.produto === nome && log.tipo === (disponivelAgora ? 'Chegou' : 'Esgotou')
+              // Evita que recarregamentos duplos rápidos gerem linhas idênticas
+              const jaTemLogRecente = logsAtuais.slice(0, 3).some((log: any) => 
+                log.produto === nomeExato && log.tipo === (disponivelAgora ? 'Chegou' : 'Esgotou')
               );
               
               if (!jaTemLogRecente) {
                 const novoLog = {
-                  produto: nome,
+                  produto: nomeExato,
                   tipo: disponivelAgora ? 'Chegou' : 'Esgotou',
                   data: new Date().toLocaleString('pt-BR')
                 };
@@ -110,17 +111,17 @@ export default function AdminDashboard() {
           });
 
           if (houveMudanca) {
-            const logsLimitados = logsAtuais.slice(0, 50); // Mantém no máximo os 50 últimos logs
+            const logsLimitados = logsAtuais.slice(0, 50); // Mantém até 50 registros
             setEstoqueLogs(logsLimitados);
             localStorage.setItem('vascarin_estoque_logs', JSON.stringify(logsLimitados));
           } else {
-            setEstoqueLogs(JSON.parse(localStorage.getItem('vascarin_estoque_logs') || '[]'));
+            setEstoqueLogs(logsAtuais);
           }
         } else {
           setEstoqueLogs(JSON.parse(localStorage.getItem('vascarin_estoque_logs') || '[]'));
         }
 
-        // Salva o mapa limpo e sem duplicatas
+        // 3. Salva a fotografia do estoque para a próxima checagem
         localStorage.setItem('vascarin_last_estoque_state', JSON.stringify(estadoAtualMap));
       }
     } catch (e) {}
@@ -168,7 +169,7 @@ export default function AdminDashboard() {
     return storeProducts.some((p: any) => {
       const qtd = Number(p.estoque ?? p.quantidade ?? 0);
       if (qtd <= 0) {
-        return itemsString.toLowerCase().includes(p.nome.toLowerCase());
+        return itemsString.toLowerCase().includes(String(p.nome).toLowerCase());
       }
       return false;
     });
@@ -760,7 +761,6 @@ export default function AdminDashboard() {
                             📱 Oferecer Encomenda
                           </a>
                         )}
-                        {/* NOVO BOTÃO DE EXCLUIR PESQUISA AQUI */}
                         <button onClick={() => handleDeleteBusca(b.id)} className="px-5 py-3 bg-red-100 text-red-700 text-[10px] font-bold uppercase rounded-lg hover:bg-red-200 transition-colors cursor-pointer text-center flex items-center justify-center border border-red-200">
                           🗑️ Excluir
                         </button>
