@@ -68,13 +68,11 @@ export default function AdminDashboard() {
         const ultimoEstadoSalvo = localStorage.getItem('vascarin_last_estoque_state');
         const estadoAtualMap: Record<string, boolean> = {};
         
-        // 1. Mapeamento usando o NOME EXATO da coluna B
         produtosNovos.forEach((p: any) => {
           if (!p.nome) return;
-          const nomeExato = p.nome; // Nome exato como na planilha (Coluna B)
-          const temEstoque = Number(p.estoque ?? p.quantidade ?? 0) > 0; // Verifica coluna I
+          const nomeExato = p.nome;
+          const temEstoque = Number(p.estoque ?? p.quantidade ?? 0) > 0;
           
-          // Se houver dois produtos com nomes idênticos na planilha, o com estoque positivo sempre ganha.
           if (estadoAtualMap[nomeExato] !== true) {
             estadoAtualMap[nomeExato] = temEstoque;
           }
@@ -85,15 +83,12 @@ export default function AdminDashboard() {
           const logsAtuais = JSON.parse(localStorage.getItem('vascarin_estoque_logs') || '[]');
           let houveMudanca = false;
 
-          // 2. Comparação Rigorosa de Estado
           Object.keys(estadoAtualMap).forEach((nomeExato) => {
             const disponivelAgora = estadoAtualMap[nomeExato];
             const estavaDisponivelAntes = estadoAnteriorMap[nomeExato];
 
-            // Só ativa o gatilho se o produto já existia antes e o status realmente MUDOU
             if (estavaDisponivelAntes !== undefined && estavaDisponivelAntes !== disponivelAgora) {
               
-              // Evita que recarregamentos duplos rápidos gerem linhas idênticas
               const jaTemLogRecente = logsAtuais.slice(0, 3).some((log: any) => 
                 log.produto === nomeExato && log.tipo === (disponivelAgora ? 'Chegou' : 'Esgotou')
               );
@@ -111,7 +106,7 @@ export default function AdminDashboard() {
           });
 
           if (houveMudanca) {
-            const logsLimitados = logsAtuais.slice(0, 50); // Mantém até 50 registros
+            const logsLimitados = logsAtuais.slice(0, 50);
             setEstoqueLogs(logsLimitados);
             localStorage.setItem('vascarin_estoque_logs', JSON.stringify(logsLimitados));
           } else {
@@ -121,7 +116,6 @@ export default function AdminDashboard() {
           setEstoqueLogs(JSON.parse(localStorage.getItem('vascarin_estoque_logs') || '[]'));
         }
 
-        // 3. Salva a fotografia do estoque para a próxima checagem
         localStorage.setItem('vascarin_last_estoque_state', JSON.stringify(estadoAtualMap));
       }
     } catch (e) {}
@@ -747,6 +741,9 @@ export default function AdminDashboard() {
                         <strong className="text-sm text-purple-900 block">"{b.termo}"</strong>
                         <span className="text-[10px] font-bold text-gray-500 uppercase mt-1 block">
                           Pesquisado por: <span className="text-black">{b.nome || 'Visitante Anônimo'}</span> {b.telefone && `(${b.telefone})`}
+                        </span>
+                        <span className="text-[10px] text-gray-500 font-bold mt-1 block">
+                          🕒 {new Date(b.created_at).toLocaleDateString('pt-BR')} às {new Date(b.created_at).toLocaleTimeString('pt-BR')}
                         </span>
                         {b.resultados > 0 ? (
                           <span className="text-[10px] text-green-600 font-bold block mt-1">✔ Encontrou produtos</span>
