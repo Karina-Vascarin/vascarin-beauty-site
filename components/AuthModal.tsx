@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export default function AuthModal() {
@@ -10,29 +10,52 @@ export default function AuthModal() {
   const [wantsUpdates, setWantsUpdates] = useState(true); // Checkbox ativado por padrão
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Trava para evitar o React Strict Mode de renderizar 2 vezes seguidas
+  const hasChecked = useRef(false);
+
   // Função da Máscara
   const formatPhone = (value: string) => {
     return value.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2").slice(0, 15);
   };
 
+  // 🔴 TRAVA ANTI-SPAM (Impede visitas duplicadas em um intervalo de 30 minutos)
+  const checkAndLogVisit = (type: 'client' | 'anonymous', clientName?: string, clientPhone?: string) => {
+    const now = new Date().getTime();
+    const lastVisit = localStorage.getItem('vascarin_last_visit_time');
+    
+    // 30 minutos = 1.800.000 milissegundos
+    if (lastVisit && (now - Number(lastVisit)) < 1800000) {
+      return; // Se passou menos de 30 minutos, aborta e não grava nada!
+    }
+
+    // Marca o momento exato desta visita
+    localStorage.setItem('vascarin_last_visit_time', now.toString());
+
+    if (type === 'client' && clientName && clientPhone) {
+      registrarAcesso(clientName, clientPhone);
+    } else {
+      registrarAcessoAnonimo();
+    }
+  };
+
   useEffect(() => {
+    if (hasChecked.current) return;
+    hasChecked.current = true;
+
     const savedClient = localStorage.getItem('vascarin_client');
     const closedModal = sessionStorage.getItem('vascarin_modal_closed'); 
-    const visitLogged = sessionStorage.getItem('vascarin_visit_logged'); // Evita registrar a mesma visita duas vezes na mesma sessão
     
     if (!savedClient && !closedModal) {
       setIsOpen(true);
-    } else if (savedClient && !visitLogged) {
+    } else if (savedClient) {
       try {
         const client = JSON.parse(savedClient);
-        registrarAcesso(client.name, client.phone);
-        sessionStorage.setItem('vascarin_visit_logged', 'true');
+        checkAndLogVisit('client', client.name, client.phone);
       } catch (e) {}
-    } else if (!savedClient && closedModal && !visitLogged) {
-      // Caso a pessoa já tenha fechado o modal, mas abriu uma nova aba e a visita ainda não foi registrada
-      registrarAcessoAnonimo();
-      sessionStorage.setItem('vascarin_visit_logged', 'true');
+    } else if (!savedClient && closedModal) {
+      checkAndLogVisit('anonymous');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // REGISTRA CLIENTE CADASTRADO
@@ -60,7 +83,7 @@ export default function AuthModal() {
     }
   };
 
-  // REGISTRA VISITANTE ANÔNIMO (Só vai pro Histórico, não polui a aba Clientes)
+  // REGISTRA VISITANTE ANÔNIMO
   const registrarAcessoAnonimo = async () => {
     try {
       await supabase.from('historico_acessos').insert([{ 
@@ -72,18 +95,14 @@ export default function AuthModal() {
     }
   };
 
-  // QUANDO A PESSOA CLICA NO "X"
+  // QUANDO A PESSOA CLICA NO "X" (VISITANTE ANÔNIMO)
   const handleClose = () => {
     sessionStorage.setItem('vascarin_modal_closed', 'true');
     setIsOpen(false);
-    
-    // Se a visita ainda não foi registrada nesta sessão, registra como anônima
-    if (!sessionStorage.getItem('vascarin_visit_logged')) {
-      registrarAcessoAnonimo();
-      sessionStorage.setItem('vascarin_visit_logged', 'true');
-    }
+    checkAndLogVisit('anonymous'); // Chama a trava anti-spam antes de registrar
   };
 
+  // QUANDO A PESSOA SE CADASTRA
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !phone) {
@@ -103,13 +122,14 @@ export default function AuthModal() {
     const clientData = { name, phone: cleanPhone, wantsUpdates };
     localStorage.setItem('vascarin_client', JSON.stringify(clientData));
 
-    // Registra a pessoa e marca a sessão
+    // Como o cliente acabou de colocar os dados, forçamos o registro imediato (zerando a trava de tempo)
+    const now = new Date().getTime();
+    localStorage.setItem('vascarin_last_visit_time', now.toString());
     await registrarAcesso(name, cleanPhone);
-    sessionStorage.setItem('vascarin_visit_logged', 'true');
 
     setIsSubmitting(false);
     setIsOpen(false);
-    window.location.reload();
+    window.location.reload(); // O recarregamento não vai mais duplicar, pois a trava de 30 minutos agora bloqueia a segunda rodada
   };
 
   if (!isOpen) return null;
