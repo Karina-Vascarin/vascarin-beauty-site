@@ -7,6 +7,7 @@ export default function AuthModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [wantsUpdates, setWantsUpdates] = useState(true); // Checkbox ativado por padrão
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Função da Máscara (Não altera o layout)
@@ -16,9 +17,12 @@ export default function AuthModal() {
 
   useEffect(() => {
     const savedClient = localStorage.getItem('vascarin_client');
-    if (!savedClient) {
+    const closedModal = sessionStorage.getItem('vascarin_modal_closed'); // Verifica se já fechou o modal hoje
+    
+    // Só abre se o cliente não estiver logado E não tiver fechado o modal nesta sessão
+    if (!savedClient && !closedModal) {
       setIsOpen(true);
-    } else {
+    } else if (savedClient) {
       try {
         const client = JSON.parse(savedClient);
         // Se a cliente já está salva, registra a nova entrada silenciosamente
@@ -40,7 +44,7 @@ export default function AuthModal() {
         updated_at: new Date().toISOString()
       }, { onConflict: 'telefone' });
 
-      // 2. AGORA SIM: Grava sempre uma linha nova na aba Histórico com a data e hora de HOJE/AGORA
+      // 2. Grava sempre uma linha nova na aba Histórico
       await supabase.from('historico_acessos').insert([{ 
         nome: clienteNome, 
         telefone: clienteTelefone 
@@ -49,6 +53,12 @@ export default function AuthModal() {
     } catch (error) {
       console.error("Erro ao registrar acesso:", error);
     }
+  };
+
+  // Função para fechar o modal sem obrigar o cadastro
+  const handleClose = () => {
+    sessionStorage.setItem('vascarin_modal_closed', 'true');
+    setIsOpen(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,7 +77,9 @@ export default function AuthModal() {
     }
 
     setIsSubmitting(true);
-    const clientData = { name, phone: cleanPhone };
+    
+    // Salva a preferência de receber atualizações no cadastro do cliente
+    const clientData = { name, phone: cleanPhone, wantsUpdates };
     localStorage.setItem('vascarin_client', JSON.stringify(clientData));
 
     // Chama a função que salva o cliente e também gera a linha no histórico
@@ -82,10 +94,23 @@ export default function AuthModal() {
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 flex flex-col gap-5 animate-in fade-in zoom-in duration-300">
-        <div className="text-center">
+      <div className="bg-white relative w-full max-w-md rounded-2xl shadow-2xl p-8 flex flex-col gap-5 animate-in fade-in zoom-in duration-300">
+        
+        {/* BOTÃO FECHAR (X) */}
+        <button 
+          onClick={handleClose}
+          title="Fechar e ver catálogo"
+          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <div className="text-center mt-2">
           <span className="text-xs font-black uppercase tracking-widest text-black block mb-1">Vascarin Beauty</span>
-          <h2 className="text-sm font-bold text-gray-800">Identifique-se para ver os preços exclusivos e catálogo.</h2>
+          <h2 className="text-sm font-bold text-gray-800 pr-4 pl-4">Identifique-se para ver os preços exclusivos e catálogo.</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3 mt-2">
@@ -112,6 +137,19 @@ export default function AuthModal() {
               required
             />
           </div>
+
+          {/* CHECKBOX DE ATUALIZAÇÕES */}
+          <label className="flex items-center gap-2 mt-1 mb-1 cursor-pointer group">
+            <input 
+              type="checkbox" 
+              checked={wantsUpdates} 
+              onChange={(e) => setWantsUpdates(e.target.checked)} 
+              className="w-4 h-4 accent-black cursor-pointer"
+            />
+            <span className="text-[10px] text-gray-600 font-bold uppercase group-hover:text-black transition-colors">
+              Desejo receber promoções e novidades no WhatsApp
+            </span>
+          </label>
 
           <button 
             type="submit" 

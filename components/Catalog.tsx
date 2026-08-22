@@ -16,25 +16,51 @@ function CatalogContent({ initialProducts }: CatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const [sortBy, setSortBy] = useState<string>('default');
 
-  // Extrai as categorias únicas lendo corretamente a Coluna D (propriedade 'categoria')
+  // TRAVA DE SEGURANÇA: Limpa espaços invisíveis e padroniza Maiúsculas/Minúsculas
+  const getCategoriaPadronizada = (p: any) => {
+    const raw = String(p.categoria || p.Coluna_D || p.coluna_d || p.marca || 'Diversos').trim();
+    return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
+  };
+
+  // Extrai as categorias únicas
   const categories = useMemo(() => {
-    const cats = initialProducts.map((p) => {
-      return p.categoria || p.Coluna_D || p.coluna_d || '';
-    }).filter(Boolean);
-    return Array.from(new Set(cats)) as string[];
+    const cats = initialProducts.map(getCategoriaPadronizada);
+    return Array.from(new Set(cats)).sort(); 
   }, [initialProducts]);
 
   const filteredProducts = useMemo(() => {
+    // 1. PRIMEIRO PASSO: Filtrar por categoria e busca
     let result = initialProducts.filter((product) => {
-      const catProduto = product.categoria || product.Coluna_D || product.coluna_d || '';
-      const matchesCategory = selectedCategory === 'Todos' || catProduto.toLowerCase() === selectedCategory.toLowerCase();
-      const matchesSearch = !queryParam || product.nome?.toLowerCase().includes(queryParam.toLowerCase());
+      const catProduto = getCategoriaPadronizada(product);
+      
+      const matchesCategory = selectedCategory === 'Todos' || catProduto === selectedCategory;
+      const matchesSearch = !queryParam || String(product.nome || '').toLowerCase().includes(queryParam.toLowerCase());
+      
       return matchesCategory && matchesSearch;
     });
 
-    if (sortBy === 'price-asc') result.sort((a, b) => Number(a.preco) - Number(b.preco));
-    else if (sortBy === 'price-desc') result.sort((a, b) => Number(b.preco) - Number(a.preco));
-    else if (sortBy === 'name-asc') result.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+    // 2. SEGUNDO PASSO: Ordenar (Esgotados pro final + Ordenação do usuário)
+    result.sort((a, b) => {
+      // Verifica o estoque de cada um
+      const estoqueA = Number(a.estoque ?? a.quantidade ?? 0);
+      const estoqueB = Number(b.estoque ?? b.quantidade ?? 0);
+      
+      const isEsgotadoA = estoqueA <= 0;
+      const isEsgotadoB = estoqueB <= 0;
+
+      // Regra de Ouro: Se um está esgotado e o outro não, o esgotado vai pra baixo (retorna 1)
+      if (isEsgotadoA !== isEsgotadoB) {
+        return isEsgotadoA ? 1 : -1;
+      }
+
+      // Se os dois tiverem o mesmo status (ambos com estoque OU ambos esgotados), 
+      // aplica a ordenação que o cliente escolheu (Preço ou A-Z)
+      if (sortBy === 'price-asc') return Number(a.preco || 0) - Number(b.preco || 0);
+      if (sortBy === 'price-desc') return Number(b.preco || 0) - Number(a.preco || 0);
+      if (sortBy === 'name-asc') return String(a.nome || '').localeCompare(String(b.nome || ''));
+
+      return 0; // Padrão
+    });
 
     return result;
   }, [initialProducts, selectedCategory, queryParam, sortBy]);
@@ -58,7 +84,7 @@ function CatalogContent({ initialProducts }: CatalogProps) {
               onClick={() => setSelectedCategory(cat)}
               className={`whitespace-nowrap px-4 py-2 text-[11px] font-bold uppercase rounded-full transition-all cursor-pointer ${selectedCategory === cat ? 'bg-black text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
-              {cat} ({initialProducts.filter((p: any) => (p.categoria || p.Coluna_D || p.coluna_d || '').toLowerCase() === cat.toLowerCase()).length})
+              {cat} ({initialProducts.filter((p: any) => getCategoriaPadronizada(p) === cat).length})
             </button>
           ))}
         </div>
