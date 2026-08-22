@@ -16,30 +16,34 @@ function CatalogContent({ initialProducts }: CatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('TODOS');
   const [sortBy, setSortBy] = useState<string>('default');
 
-  // TRAVA ABSOLUTA DE CATEGORIA: Tudo vira maiúsculo e sem espaços sobrando para garantir match perfeito
+  // LIMPEZA ABSOLUTA DE CATEGORIA
   const getCategoriaPadronizada = (p: any) => {
-    const raw = String(p.categoria || p.Coluna_D || p.coluna_d || p.marca || 'DIVERSOS');
+    const raw = String(p.categoria || p.marca || 'DIVERSOS');
     return raw.trim().toUpperCase();
   };
 
-  // Extrai as categorias únicas perfeitamente padronizadas e em ordem alfabética
   const categories = useMemo(() => {
     const cats = initialProducts.map(getCategoriaPadronizada);
     return Array.from(new Set(cats)).filter(c => c !== '').sort(); 
   }, [initialProducts]);
 
   const filteredProducts = useMemo(() => {
-    // 1. PRIMEIRO PASSO: Filtrar estritamente pela categoria selecionada
     let result = initialProducts.filter((product) => {
-      const catProduto = getCategoriaPadronizada(product);
+      if (!product || !product.nome) return false;
       
+      const catProduto = getCategoriaPadronizada(product);
       const matchesCategory = selectedCategory === 'TODOS' || catProduto === selectedCategory;
-      const matchesSearch = !queryParam || String(product.nome || '').toLowerCase().includes(queryParam.toLowerCase());
+      const matchesSearch = !queryParam || String(product.nome).toLowerCase().includes(queryParam.toLowerCase());
       
       return matchesCategory && matchesSearch;
     });
 
-    // 2. SEGUNDO PASSO: Ordenar (Esgotados SEMPRE no final, independente da categoria)
+    // 🔴 CONVERSOR INTELIGENTE DE PREÇOS (Lê vírgulas sem travar o site)
+    const parsePreco = (val: any) => {
+      if (!val) return 0;
+      return Number(String(val).replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+    };
+
     result.sort((a, b) => {
       const estoqueA = Number(a.estoque ?? a.quantidade ?? 0);
       const estoqueB = Number(b.estoque ?? b.quantidade ?? 0);
@@ -47,14 +51,12 @@ function CatalogContent({ initialProducts }: CatalogProps) {
       const isEsgotadoA = estoqueA <= 0;
       const isEsgotadoB = estoqueB <= 0;
 
-      // Se um está esgotado e o outro não, joga o esgotado para o fundo
       if (isEsgotadoA !== isEsgotadoB) {
         return isEsgotadoA ? 1 : -1;
       }
 
-      // Se ambos têm estoque (ou ambos esgotados), aplica a ordem escolhida pelo cliente
-      if (sortBy === 'price-asc') return Number(a.preco || 0) - Number(b.preco || 0);
-      if (sortBy === 'price-desc') return Number(b.preco || 0) - Number(a.preco || 0);
+      if (sortBy === 'price-asc') return parsePreco(a.preco) - parsePreco(b.preco);
+      if (sortBy === 'price-desc') return parsePreco(b.preco) - parsePreco(a.preco);
       if (sortBy === 'name-asc') return String(a.nome || '').localeCompare(String(b.nome || ''));
 
       return 0; // Padrão
@@ -131,9 +133,10 @@ function CatalogContent({ initialProducts }: CatalogProps) {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        // 🔴 TRAVA ANTI-FANTASMA: O "key" com a categoria destrói a tela e recria limpa toda vez que você clica!
+        <div key={selectedCategory} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {filteredProducts.map((product, index) => (
-            <ProductCard key={product.id || index} product={product} />
+            <ProductCard key={`${product.id || 'prod'}-${index}`} product={product} />
           ))}
         </div>
       )}
