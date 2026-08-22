@@ -27,10 +27,7 @@ export default function AdminDashboard() {
   const [manualPhone, setManualPhone] = useState('');
   const [manualItems, setManualItems] = useState('');
   const [manualTotal, setManualTotal] = useState('');
-  
-  // ESTADOS DA BUSCA INTELIGENTE DE PERFUMES NO PEDIDO MANUAL
-  const [productSearchInput, setProductSearchInput] = useState('');
-  const [selectedProductObj, setSelectedProductObj] = useState<any>(null);
+  const [selectedProduct, setSelectedProduct] = useState('');
   const [selectedQty, setSelectedQty] = useState(1);
 
   // ESTADOS PARA EDIÇÃO DE CLIENTE
@@ -260,15 +257,15 @@ export default function AdminDashboard() {
   };
 
   const handleAddItemToOrder = () => {
-    if (!selectedProductObj) return;
-    const itemString = `${selectedQty}x ${selectedProductObj.nome}`;
+    if (!selectedProduct) return;
+    const product = storeProducts.find((p: any) => p.nome === selectedProduct);
+    const itemString = `${selectedQty}x ${selectedProduct}`;
     setManualItems(prev => prev ? `${prev}, ${itemString}` : itemString);
-    if (selectedProductObj.preco) {
+    if (product && product.preco) {
       const totalAtual = Number(manualTotal) || 0;
-      setManualTotal((totalAtual + (Number(selectedProductObj.preco) * selectedQty)).toFixed(2));
+      setManualTotal((totalAtual + (Number(product.preco) * selectedQty)).toFixed(2));
     }
-    setProductSearchInput('');
-    setSelectedProductObj(null);
+    setSelectedProduct(''); 
     setSelectedQty(1);
   };
 
@@ -1083,7 +1080,7 @@ export default function AdminDashboard() {
                             setManualPhone(clienteEncontrado.telefone);
                           }
                         }}
-                        className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-white outline-none focus:border-black"
+                        className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-white outline-none focus:border-black cursor-pointer"
                       >
                         <option value="">Selecione um cliente já cadastrado ou digite abaixo...</option>
                         {clientes.map((c: any) => (
@@ -1100,44 +1097,23 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 relative">
+                  <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
                     <h3 className="text-xs font-bold uppercase text-gray-700 mb-3">2. Selecionar Perfumes</h3>
                     
-                    {/* CAMPO DE BUSCA INTELIGENTE DE PERFUMES */}
-                    <div className="flex gap-2 relative">
-                      <div className="flex-1 relative">
-                        <input 
-                          type="text"
-                          placeholder="Digite o nome do perfume para buscar..."
-                          value={productSearchInput}
-                          onChange={(e) => {
-                            setProductSearchInput(e.target.value);
-                            setSelectedProductObj(null);
-                          }}
-                          className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-white outline-none focus:border-black"
-                        />
-
-                        {/* LISTA FLUTUANTE DE SUGESTÕES */}
-                        {productSearchInput.trim().length > 0 && !selectedProductObj && (
-                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto z-50">
-                            {storeProducts
-                              .filter((p: any) => String(p.nome || '').toLowerCase().includes(productSearchInput.toLowerCase()))
-                              .map((p: any) => (
-                                <div 
-                                  key={p.id || p.nome}
-                                  onClick={() => {
-                                    setSelectedProductObj(p);
-                                    setProductSearchInput(p.nome);
-                                  }}
-                                  className="p-3 text-xs hover:bg-gray-100 cursor-pointer flex justify-between items-center border-b border-gray-50 last:border-none"
-                                >
-                                  <span className="font-medium text-gray-800">{p.nome}</span>
-                                  <span className="font-bold text-black">R$ {Number(p.preco || 0).toFixed(2)}</span>
-                                </div>
-                              ))}
-                          </div>
-                        )}
-                      </div>
+                    {/* SELETOR DE PERFUMES LIMPO E ORGANIZADO */}
+                    <div className="flex gap-2">
+                      <select 
+                        value={selectedProduct} 
+                        onChange={e => setSelectedProduct(e.target.value)}
+                        className="flex-1 border border-gray-300 p-3 text-xs rounded-lg bg-white outline-none focus:border-black cursor-pointer"
+                      >
+                        <option value="">Selecione um perfume da lista...</option>
+                        {storeProducts.map((p: any) => (
+                          <option key={p.id || p.nome} value={p.nome}>
+                            {p.nome} — R$ {Number(p.preco || 0).toFixed(2)}
+                          </option>
+                        ))}
+                      </select>
 
                       <input 
                         type="number" 
@@ -1154,12 +1130,6 @@ export default function AdminDashboard() {
                         Incluir
                       </button>
                     </div>
-
-                    {selectedProductObj && (
-                      <span className="text-[10px] text-green-700 font-bold block mt-2">
-                        ✔ Selecionado: {selectedProductObj.nome} (R$ {Number(selectedProductObj.preco || 0).toFixed(2)})
-                      </span>
-                    )}
                   </div>
                 </div>
 
