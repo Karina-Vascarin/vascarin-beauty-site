@@ -13,48 +13,46 @@ function CatalogContent({ initialProducts }: CatalogProps) {
   const router = useRouter();
   const queryParam = searchParams.get('q') || '';
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
+  const [selectedCategory, setSelectedCategory] = useState<string>('TODOS');
   const [sortBy, setSortBy] = useState<string>('default');
 
-  // TRAVA DE SEGURANÇA: Limpa espaços invisíveis e padroniza Maiúsculas/Minúsculas
+  // TRAVA ABSOLUTA DE CATEGORIA: Tudo vira maiúsculo e sem espaços sobrando para garantir match perfeito
   const getCategoriaPadronizada = (p: any) => {
-    const raw = String(p.categoria || p.Coluna_D || p.coluna_d || p.marca || 'Diversos').trim();
-    return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
+    const raw = String(p.categoria || p.Coluna_D || p.coluna_d || p.marca || 'DIVERSOS');
+    return raw.trim().toUpperCase();
   };
 
-  // Extrai as categorias únicas
+  // Extrai as categorias únicas perfeitamente padronizadas e em ordem alfabética
   const categories = useMemo(() => {
     const cats = initialProducts.map(getCategoriaPadronizada);
-    return Array.from(new Set(cats)).sort(); 
+    return Array.from(new Set(cats)).filter(c => c !== '').sort(); 
   }, [initialProducts]);
 
   const filteredProducts = useMemo(() => {
-    // 1. PRIMEIRO PASSO: Filtrar por categoria e busca
+    // 1. PRIMEIRO PASSO: Filtrar estritamente pela categoria selecionada
     let result = initialProducts.filter((product) => {
       const catProduto = getCategoriaPadronizada(product);
       
-      const matchesCategory = selectedCategory === 'Todos' || catProduto === selectedCategory;
+      const matchesCategory = selectedCategory === 'TODOS' || catProduto === selectedCategory;
       const matchesSearch = !queryParam || String(product.nome || '').toLowerCase().includes(queryParam.toLowerCase());
       
       return matchesCategory && matchesSearch;
     });
 
-    // 2. SEGUNDO PASSO: Ordenar (Esgotados pro final + Ordenação do usuário)
+    // 2. SEGUNDO PASSO: Ordenar (Esgotados SEMPRE no final, independente da categoria)
     result.sort((a, b) => {
-      // Verifica o estoque de cada um
       const estoqueA = Number(a.estoque ?? a.quantidade ?? 0);
       const estoqueB = Number(b.estoque ?? b.quantidade ?? 0);
       
       const isEsgotadoA = estoqueA <= 0;
       const isEsgotadoB = estoqueB <= 0;
 
-      // Regra de Ouro: Se um está esgotado e o outro não, o esgotado vai pra baixo (retorna 1)
+      // Se um está esgotado e o outro não, joga o esgotado para o fundo
       if (isEsgotadoA !== isEsgotadoB) {
         return isEsgotadoA ? 1 : -1;
       }
 
-      // Se os dois tiverem o mesmo status (ambos com estoque OU ambos esgotados), 
-      // aplica a ordenação que o cliente escolheu (Preço ou A-Z)
+      // Se ambos têm estoque (ou ambos esgotados), aplica a ordem escolhida pelo cliente
       if (sortBy === 'price-asc') return Number(a.preco || 0) - Number(b.preco || 0);
       if (sortBy === 'price-desc') return Number(b.preco || 0) - Number(a.preco || 0);
       if (sortBy === 'name-asc') return String(a.nome || '').localeCompare(String(b.nome || ''));
@@ -73,8 +71,8 @@ function CatalogContent({ initialProducts }: CatalogProps) {
         <h2 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Categorias</h2>
         <div className="flex overflow-x-auto gap-2 pb-1 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
           <button 
-            onClick={() => setSelectedCategory('Todos')}
-            className={`whitespace-nowrap px-4 py-2 text-[11px] font-bold uppercase rounded-full transition-all cursor-pointer ${selectedCategory === 'Todos' ? 'bg-black text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            onClick={() => setSelectedCategory('TODOS')}
+            className={`whitespace-nowrap px-4 py-2 text-[11px] font-bold uppercase rounded-full transition-all cursor-pointer ${selectedCategory === 'TODOS' ? 'bg-black text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
           >
             Todos ({initialProducts.length})
           </button>
