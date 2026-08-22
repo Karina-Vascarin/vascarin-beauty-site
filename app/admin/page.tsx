@@ -154,6 +154,8 @@ export default function AdminDashboard() {
       return `Olá ${pedido.nome}! 🎉 Vimos que o seu pedido #${pedido.id} foi entregue!\n\nEsperamos muito que você ame os seus produtos! Quando puder, nos mande um feedback contando o que achou ou poste uma foto e nos marque no Instagram *@vascarin.beauty* 📸💖\n\nMuito obrigada por escolher a Vascarin Beauty!`;
     } else if (pedido.status === 'Problema de Estoque') {
       return `Olá ${pedido.nome}, tudo bem? Aqui é da Vascarin Beauty. Infelizmente, no momento da separação do seu pedido #${pedido.id}, notamos que um dos itens esgotou no nosso fornecedor e não temos em estoque.\n\nComo você prefere seguir? Podemos trocar por outro perfume ou fazer o estorno para você! Pedimos mil desculpas pelo transtorno. 😔`;
+    } else if (pedido.status === 'Aguardando Pagamento') {
+      return `Olá ${pedido.nome}! Tudo bem? Aqui é da Vascarin Beauty.\n\nRecebemos o seu pedido #${pedido.id}, mas notamos que o pagamento ainda não foi concluído no sistema.\n\nPrecisa de alguma ajuda com o link ou com a chave PIX? Estou aqui para te ajudar a garantir os seus produtos antes que esgotem! 💖`;
     }
     return `Olá ${pedido.nome}! Informamos sobre o seu pedido #${pedido.id} na Vascarin Beauty.`;
   };
@@ -174,7 +176,7 @@ export default function AdminDashboard() {
     if (!error) {
       setPedidos(pedidos.map(p => p.id === pedido.id ? { ...p, status: newStatus } : p));
       if (!isSilent) {
-        if (newStatus === 'Separado' || newStatus === 'Entregue / Concluído' || newStatus === 'Problema de Estoque') {
+        if (newStatus === 'Separado' || newStatus === 'Entregue / Concluído' || newStatus === 'Problema de Estoque' || newStatus === 'Aguardando Pagamento') {
           const msg = getWhatsAppMessage({ ...pedido, status: newStatus });
           window.open(`https://wa.me/55${pedido.telefone}?text=${encodeURIComponent(msg)}`, '_blank');
         }
@@ -433,6 +435,7 @@ export default function AdminDashboard() {
                             <strong className="text-sm text-black">{p.id}</strong>
                             <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
                               p.status === 'Pendente / A Separar' ? 'bg-amber-100 text-amber-800' : 
+                              p.status === 'Aguardando Pagamento' ? 'bg-purple-100 text-purple-800' :
                               p.status === 'Separado' ? 'bg-blue-100 text-blue-800' : 
                               p.status === 'Problema de Estoque' ? 'bg-red-100 text-red-800' : 
                               p.status === 'Cancelado' ? 'bg-gray-200 text-gray-800' : 
@@ -452,11 +455,18 @@ export default function AdminDashboard() {
                             WhatsApp
                           </a>
                           
-                          {p.status === 'Pendente / A Separar' && (
+                          {/* BOTÕES PARA PEDIDOS PENDENTES E AGUARDANDO PAGAMENTO */}
+                          {(p.status === 'Pendente / A Separar' || p.status === 'Aguardando Pagamento') && (
                             <>
                               <button onClick={() => handleUpdateStatus(p, 'Separado')} className="w-full px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
                                 ✔ Marcar como Separado
                               </button>
+
+                              {p.status === 'Pendente / A Separar' && (
+                                <button onClick={() => handleUpdateStatus(p, 'Aguardando Pagamento')} className="w-full px-4 py-2 bg-purple-600 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-purple-700 transition-colors cursor-pointer text-center">
+                                  💸 Cobrar Pagamento
+                                </button>
+                              )}
                               
                               {esgotado && (
                                 <button onClick={() => handleUpdateStatus(p, 'Problema de Estoque')} className="w-full px-4 py-2 bg-red-600 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-red-700 transition-colors cursor-pointer text-center">
@@ -466,9 +476,9 @@ export default function AdminDashboard() {
                             </>
                           )}
                           
-                          {(p.status === 'Separado' || p.status === 'Problema de Estoque') && (
+                          {(p.status === 'Separado' || p.status === 'Problema de Estoque' || p.status === 'Aguardando Pagamento') && (
                             <>
-                              {p.status !== 'Problema de Estoque' && (
+                              {p.status !== 'Problema de Estoque' && p.status !== 'Aguardando Pagamento' && (
                                 <button onClick={() => handleUpdateStatus(p, 'Entregue / Concluído')} className="w-full px-4 py-2 bg-black text-white text-xs font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">
                                   🚀 Marcar como Entregue
                                 </button>
@@ -918,6 +928,13 @@ export default function AdminDashboard() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
+                {/* NOVO: Cobrança de Pagamento */}
+                <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
+                  <h3 className="text-xs font-bold uppercase text-purple-700 mb-3">💸 Cobrança de Pagamento</h3>
+                  <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Olá [Nome]! Tudo bem? Aqui é da Vascarin Beauty.\n\nRecebemos o seu pedido, mas notamos que o pagamento ainda não foi concluído no sistema.\n\nPrecisa de alguma ajuda com o link ou com a chave PIX? Estou aqui para te ajudar a garantir os seus produtos antes que esgotem! 💖"} />
+                  <button onClick={(e) => { navigator.clipboard.writeText("Olá [Nome]! Tudo bem? Aqui é da Vascarin Beauty.\n\nRecebemos o seu pedido, mas notamos que o pagamento ainda não foi concluído no sistema.\n\nPrecisa de alguma ajuda com o link ou com a chave PIX? Estou aqui para te ajudar a garantir os seus produtos antes que esgotem! 💖"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">Copiar Script</button>
+                </div>
+
                 <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
                   <h3 className="text-xs font-bold uppercase text-blue-700 mb-3">🔔 Produto Chegou</h3>
                   <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Oii [Nome]! O perfume [Produto] que você estava querendo acabou de voltar para o nosso estoque na Vascarin Beauty! 🎉\n\nPosso reservar o seu?"} />
