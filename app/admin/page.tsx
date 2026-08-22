@@ -191,14 +191,27 @@ export default function AdminDashboard() {
     if (!error) carregarTudo();
   };
 
+  // EXCLUIR REGISTROS
   const handleDeleteBusca = async (id: string | number) => {
     if (confirm("Tem certeza que deseja excluir esta pesquisa do painel?")) {
       const { error } = await supabase.from('buscas_site').delete().eq('id', id);
-      if (!error) {
-        carregarTudo();
-      } else {
-        alert("Erro ao excluir pesquisa: " + error.message);
-      }
+      if (!error) carregarTudo();
+    }
+  };
+
+  const handleDeleteCliente = async (telefone: string) => {
+    if (confirm("Tem certeza que deseja excluir este cliente cadastrado?")) {
+      const { error } = await supabase.from('clientes').delete().eq('telefone', telefone);
+      if (!error) carregarTudo();
+      else alert("Erro ao excluir: " + error.message);
+    }
+  };
+
+  const handleDeleteHistorico = async (id: any) => {
+    if (confirm("Tem certeza que deseja excluir este acesso do histórico?")) {
+      const { error } = await supabase.from('historico_acessos').delete().eq('id', id);
+      if (!error) carregarTudo();
+      else alert("Erro ao excluir: " + error.message);
     }
   };
 
@@ -355,6 +368,7 @@ export default function AdminDashboard() {
   const pendentesSeparar = pedidos.filter(p => p.status === 'Pendente / A Separar').length;
   const pedidosSeparados = pedidos.filter(p => p.status === 'Separado').length;
   const totalFaturado = pedidos.reduce((acc, curr) => acc + Number(curr.total || 0), 0);
+  const visitantesAnonimos = historico.filter(h => h.nome === 'Visitante Anônimo').length;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-10">
@@ -390,10 +404,15 @@ export default function AdminDashboard() {
             <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">Separados / Prontos</span>
             <div className="text-2xl font-black text-blue-600 mt-1">{pedidosSeparados}</div>
           </div>
-          <div className="bg-white p-4 rounded-xl border border-gray-200">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Visitantes na Loja</span>
-            <div className="text-2xl font-black text-black mt-1">{clientes.length}</div>
+          
+          {/* CARD ATUALIZADO: Cadastros e Anônimos */}
+          <div className="bg-white p-4 rounded-xl border border-gray-200 flex flex-col justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Acessos (Cadastros / Anônimos)</span>
+            <div className="text-2xl font-black text-black mt-1">
+              {clientes.length} <span className="text-base text-gray-400 font-medium">/ {visitantesAnonimos}</span>
+            </div>
           </div>
+
           <div className="bg-white p-4 rounded-xl border border-gray-200">
             <span className="text-[10px] font-bold uppercase tracking-wider text-green-600">Faturamento Total</span>
             <div className="text-2xl font-black text-green-600 mt-1">R$ {totalFaturado.toFixed(2)}</div>
@@ -455,7 +474,6 @@ export default function AdminDashboard() {
                             WhatsApp
                           </a>
                           
-                          {/* BOTÕES PARA PEDIDOS PENDENTES E AGUARDANDO PAGAMENTO */}
                           {(p.status === 'Pendente / A Separar' || p.status === 'Aguardando Pagamento') && (
                             <>
                               <button onClick={() => handleUpdateStatus(p, 'Separado')} className="w-full px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
@@ -618,8 +636,17 @@ export default function AdminDashboard() {
               {filteredClientes.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum cliente encontrado com essa pesquisa.</p> : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredClientes.map((c, i) => (
-                    <div key={i} className="border border-gray-200 p-5 rounded-xl flex flex-col justify-between">
-                      <div className="mb-4">
+                    <div key={i} className="border border-gray-200 p-5 rounded-xl flex flex-col justify-between relative group hover:border-gray-300 transition-colors">
+                      {/* BOTÃO EXCLUIR CLIENTE */}
+                      <button 
+                        onClick={() => handleDeleteCliente(c.telefone)} 
+                        className="absolute top-3 right-3 text-gray-300 hover:text-red-500 transition-colors p-1"
+                        title="Excluir Cliente"
+                      >
+                        ✕
+                      </button>
+
+                      <div className="mb-4 pr-6">
                         <strong className="text-sm text-black block">{c.nome}</strong>
                         <span className="text-xs text-gray-500">{c.telefone}</span>
                         <span className="mt-2 inline-block bg-gray-100 text-gray-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
@@ -799,14 +826,25 @@ export default function AdminDashboard() {
               {filteredHistorico.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum histórico encontrado com essa pesquisa.</p> : (
                 <div className="flex flex-col gap-4">
                   {filteredHistorico.map((h, i) => (
-                    <div key={i} className="border border-gray-200 p-5 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-gray-50">
+                    <div key={i} className="border border-gray-200 p-5 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-gray-50 relative group">
                       <div>
                         <strong className="text-sm text-black block">{h.nome}</strong>
                         <span className="text-xs text-gray-500">{h.telefone}</span>
                       </div>
-                      <span className="text-xs font-mono bg-white border border-gray-200 px-4 py-2 rounded-lg text-gray-600 font-bold">
-                        {new Date(h.acessado_em).toLocaleDateString('pt-BR')} às {new Date(h.acessado_em).toLocaleTimeString('pt-BR')}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-mono bg-white border border-gray-200 px-4 py-2 rounded-lg text-gray-600 font-bold">
+                          {new Date(h.acessado_em).toLocaleDateString('pt-BR')} às {new Date(h.acessado_em).toLocaleTimeString('pt-BR')}
+                        </span>
+                        
+                        {/* BOTÃO EXCLUIR HISTÓRICO */}
+                        <button 
+                          onClick={() => handleDeleteHistorico(h.id)} 
+                          className="text-gray-300 hover:text-red-500 transition-colors p-2 text-lg leading-none cursor-pointer"
+                          title="Excluir Histórico"
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -928,7 +966,6 @@ export default function AdminDashboard() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
-                {/* NOVO: Cobrança de Pagamento */}
                 <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
                   <h3 className="text-xs font-bold uppercase text-purple-700 mb-3">💸 Cobrança de Pagamento</h3>
                   <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Olá [Nome]! Tudo bem? Aqui é da Vascarin Beauty.\n\nRecebemos o seu pedido, mas notamos que o pagamento ainda não foi concluído no sistema.\n\nPrecisa de alguma ajuda com o link ou com a chave PIX? Estou aqui para te ajudar a garantir os seus produtos antes que esgotem! 💖"} />
