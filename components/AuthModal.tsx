@@ -10,33 +10,38 @@ export default function AuthModal() {
   const [wantsUpdates, setWantsUpdates] = useState(true); // Checkbox ativado por padrão
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Função da Máscara (Não altera o layout)
+  // Função da Máscara
   const formatPhone = (value: string) => {
     return value.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2").slice(0, 15);
   };
 
   useEffect(() => {
     const savedClient = localStorage.getItem('vascarin_client');
-    const closedModal = sessionStorage.getItem('vascarin_modal_closed'); // Verifica se já fechou o modal hoje
+    const closedModal = sessionStorage.getItem('vascarin_modal_closed'); 
+    const visitLogged = sessionStorage.getItem('vascarin_visit_logged'); // Evita registrar a mesma visita duas vezes na mesma sessão
     
-    // Só abre se o cliente não estiver logado E não tiver fechado o modal nesta sessão
     if (!savedClient && !closedModal) {
       setIsOpen(true);
-    } else if (savedClient) {
+    } else if (savedClient && !visitLogged) {
       try {
         const client = JSON.parse(savedClient);
-        // Se a cliente já está salva, registra a nova entrada silenciosamente
         registrarAcesso(client.name, client.phone);
+        sessionStorage.setItem('vascarin_visit_logged', 'true');
       } catch (e) {}
+    } else if (!savedClient && closedModal && !visitLogged) {
+      // Caso a pessoa já tenha fechado o modal, mas abriu uma nova aba e a visita ainda não foi registrada
+      registrarAcessoAnonimo();
+      sessionStorage.setItem('vascarin_visit_logged', 'true');
     }
   }, []);
 
+  // REGISTRA CLIENTE CADASTRADO
   const registrarAcesso = async (clienteNome: string, clienteTelefone: string) => {
     try {
       const { data: existing } = await supabase.from('clientes').select('visitas').eq('telefone', clienteTelefone).maybeSingle();
       const totalVisitas = (existing?.visitas || 0) + 1;
 
-      // 1. Atualiza a contagem geral de visitas na aba Clientes
+      // 1. Atualiza a contagem na aba Clientes
       await supabase.from('clientes').upsert({
         telefone: clienteTelefone,
         nome: clienteNome,
@@ -44,7 +49,7 @@ export default function AuthModal() {
         updated_at: new Date().toISOString()
       }, { onConflict: 'telefone' });
 
-      // 2. Grava sempre uma linha nova na aba Histórico
+      // 2. Grava no Histórico
       await supabase.from('historico_acessos').insert([{ 
         nome: clienteNome, 
         telefone: clienteTelefone 
@@ -55,10 +60,28 @@ export default function AuthModal() {
     }
   };
 
-  // Função para fechar o modal sem obrigar o cadastro
+  // REGISTRA VISITANTE ANÔNIMO (Só vai pro Histórico, não polui a aba Clientes)
+  const registrarAcessoAnonimo = async () => {
+    try {
+      await supabase.from('historico_acessos').insert([{ 
+        nome: 'Visitante Anônimo', 
+        telefone: 'Não informado' 
+      }]);
+    } catch (error) {
+      console.error("Erro ao registrar acesso anônimo:", error);
+    }
+  };
+
+  // QUANDO A PESSOA CLICA NO "X"
   const handleClose = () => {
     sessionStorage.setItem('vascarin_modal_closed', 'true');
     setIsOpen(false);
+    
+    // Se a visita ainda não foi registrada nesta sessão, registra como anônima
+    if (!sessionStorage.getItem('vascarin_visit_logged')) {
+      registrarAcessoAnonimo();
+      sessionStorage.setItem('vascarin_visit_logged', 'true');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,7 +93,6 @@ export default function AuthModal() {
 
     const cleanPhone = phone.replace(/\D/g, '');
 
-    // VALIDAÇÃO EXATA DE 11 DÍGITOS (DDD + 9º DÍGITO + 8 NÚMEROS)
     if (cleanPhone.length !== 11) {
       alert("Por favor, digite um número de WhatsApp válido contendo exatamente 11 dígitos (com DDD e o 9º dígito).");
       return;
@@ -78,12 +100,12 @@ export default function AuthModal() {
 
     setIsSubmitting(true);
     
-    // Salva a preferência de receber atualizações no cadastro do cliente
     const clientData = { name, phone: cleanPhone, wantsUpdates };
     localStorage.setItem('vascarin_client', JSON.stringify(clientData));
 
-    // Chama a função que salva o cliente e também gera a linha no histórico
+    // Registra a pessoa e marca a sessão
     await registrarAcesso(name, cleanPhone);
+    sessionStorage.setItem('vascarin_visit_logged', 'true');
 
     setIsSubmitting(false);
     setIsOpen(false);
