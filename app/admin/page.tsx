@@ -30,6 +30,11 @@ export default function AdminDashboard() {
   const [selectedProduct, setSelectedProduct] = useState('');
   const [selectedQty, setSelectedQty] = useState(1);
 
+  // ESTADOS PARA EDIÇÃO DE CLIENTE
+  const [editingClientPhone, setEditingClientPhone] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+
   useEffect(() => {
     if (localStorage.getItem('vascarin_admin_auth') === 'true') {
       setIsLoggedIn(true);
@@ -191,7 +196,7 @@ export default function AdminDashboard() {
     if (!error) carregarTudo();
   };
 
-  // EXCLUIR REGISTROS
+  // EXCLUIR E EDITAR REGISTROS
   const handleDeleteBusca = async (id: string | number) => {
     if (confirm("Tem certeza que deseja excluir esta pesquisa do painel?")) {
       const { error } = await supabase.from('buscas_site').delete().eq('id', id);
@@ -204,6 +209,26 @@ export default function AdminDashboard() {
       const { error } = await supabase.from('clientes').delete().eq('telefone', telefone);
       if (!error) carregarTudo();
       else alert("Erro ao excluir: " + error.message);
+    }
+  };
+
+  const handleSaveEditCliente = async (oldPhone: string) => {
+    if (!editName || !editPhone) {
+      alert("Preencha nome e telefone.");
+      return;
+    }
+    const cleanPhone = editPhone.replace(/\D/g, '');
+    const { error } = await supabase.from('clientes').update({
+      nome: editName,
+      telefone: cleanPhone,
+      updated_at: new Date().toISOString()
+    }).eq('telefone', oldPhone);
+
+    if (!error) {
+      setEditingClientPhone(null);
+      carregarTudo();
+    } else {
+      alert("Erro ao atualizar cliente: " + error.message);
     }
   };
 
@@ -404,15 +429,12 @@ export default function AdminDashboard() {
             <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">Separados / Prontos</span>
             <div className="text-2xl font-black text-blue-600 mt-1">{pedidosSeparados}</div>
           </div>
-          
-          {/* CARD ATUALIZADO: Cadastros e Anônimos */}
           <div className="bg-white p-4 rounded-xl border border-gray-200 flex flex-col justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Acessos (Cadastros / Anônimos)</span>
             <div className="text-2xl font-black text-black mt-1">
               {clientes.length} <span className="text-base text-gray-400 font-medium">/ {visitantesAnonimos}</span>
             </div>
           </div>
-
           <div className="bg-white p-4 rounded-xl border border-gray-200">
             <span className="text-[10px] font-bold uppercase tracking-wider text-green-600">Faturamento Total</span>
             <div className="text-2xl font-black text-green-600 mt-1">R$ {totalFaturado.toFixed(2)}</div>
@@ -635,34 +657,72 @@ export default function AdminDashboard() {
 
               {filteredClientes.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum cliente encontrado com essa pesquisa.</p> : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredClientes.map((c, i) => (
-                    <div key={i} className="border border-gray-200 p-5 rounded-xl flex flex-col justify-between relative group hover:border-gray-300 transition-colors">
-                      {/* BOTÃO EXCLUIR CLIENTE */}
-                      <button 
-                        onClick={() => handleDeleteCliente(c.telefone)} 
-                        className="absolute top-3 right-3 text-gray-300 hover:text-red-500 transition-colors p-1"
-                        title="Excluir Cliente"
-                      >
-                        ✕
-                      </button>
+                  {filteredClientes.map((c, i) => {
+                    const isEditing = editingClientPhone === c.telefone;
 
-                      <div className="mb-4 pr-6">
-                        <strong className="text-sm text-black block">{c.nome}</strong>
-                        <span className="text-xs text-gray-500">{c.telefone}</span>
-                        <span className="mt-2 inline-block bg-gray-100 text-gray-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                          {c.visitas || 1} Visitas
-                        </span>
-                      </div>
-                      <div className="flex gap-2 mt-auto">
-                        <a href={`https://wa.me/55${c.telefone}?text=Olá ${c.nome}! Como posso te ajudar na Vascarin Beauty hoje?`} target="_blank" className="flex-1 px-3 py-2 bg-black text-white text-[10px] uppercase font-bold rounded-lg hover:bg-zinc-800 text-center flex items-center justify-center">
-                          Conversar
-                        </a>
-                        <button onClick={() => handleUpdateContato('clientes', c.telefone, c.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`flex-1 px-3 py-2 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${c.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
-                          {c.status_contato === 'Enviado' ? '✔ Falou' : 'Marcar'}
+                    return (
+                      <div key={i} className="border border-gray-200 p-5 rounded-xl flex flex-col justify-between relative group hover:border-gray-300 transition-colors bg-white">
+                        
+                        {/* BOTÃO EXCLUIR CLIENTE (X) */}
+                        <button 
+                          onClick={() => handleDeleteCliente(c.telefone)} 
+                          className="absolute top-3 right-3 text-gray-300 hover:text-red-500 transition-colors p-1 cursor-pointer font-bold"
+                          title="Excluir Cliente"
+                        >
+                          ✕
                         </button>
+
+                        {isEditing ? (
+                          <div className="flex flex-col gap-2 my-2 pr-6">
+                            <input 
+                              type="text" 
+                              value={editName} 
+                              onChange={(e) => setEditName(e.target.value)} 
+                              placeholder="Nome"
+                              className="border p-2 text-xs rounded outline-none focus:border-black"
+                            />
+                            <input 
+                              type="text" 
+                              value={editPhone} 
+                              onChange={(e) => setEditPhone(e.target.value)} 
+                              placeholder="Telefone"
+                              className="border p-2 text-xs rounded outline-none focus:border-black"
+                            />
+                            <div className="flex gap-2 mt-1">
+                              <button onClick={() => handleSaveEditCliente(c.telefone)} className="bg-black text-white text-[10px] font-bold uppercase px-3 py-1.5 rounded cursor-pointer">Salvar</button>
+                              <button onClick={() => setEditingClientPhone(null)} className="bg-gray-200 text-gray-700 text-[10px] font-bold uppercase px-3 py-1.5 rounded cursor-pointer">Cancelar</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mb-4 pr-6">
+                            <div className="flex items-center gap-2">
+                              <strong className="text-sm text-black">{c.nome}</strong>
+                              <button 
+                                onClick={() => { setEditingClientPhone(c.telefone); setEditName(c.nome); setEditPhone(c.telefone); }}
+                                className="text-gray-400 hover:text-black text-[11px] cursor-pointer"
+                                title="Editar dados"
+                              >
+                                ✏️
+                              </button>
+                            </div>
+                            <span className="text-xs text-gray-500 block">{c.telefone}</span>
+                            <span className="mt-2 inline-block bg-gray-100 text-gray-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                              {c.visitas || 1} Visitas
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2 mt-auto pt-2 border-t border-gray-100">
+                          <a href={`https://wa.me/55${c.telefone}?text=Olá ${c.nome}! Como posso te ajudar na Vascarin Beauty hoje?`} target="_blank" className="flex-1 px-3 py-2 bg-black text-white text-[10px] uppercase font-bold rounded-lg hover:bg-zinc-800 text-center flex items-center justify-center">
+                            Conversar
+                          </a>
+                          <button onClick={() => handleUpdateContato('clientes', c.telefone, c.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`flex-1 px-3 py-2 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${c.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
+                            {c.status_contato === 'Enviado' ? '✔ Falou' : 'Marcar'}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -836,7 +896,6 @@ export default function AdminDashboard() {
                           {new Date(h.acessado_em).toLocaleDateString('pt-BR')} às {new Date(h.acessado_em).toLocaleTimeString('pt-BR')}
                         </span>
                         
-                        {/* BOTÃO EXCLUIR HISTÓRICO */}
                         <button 
                           onClick={() => handleDeleteHistorico(h.id)} 
                           className="text-gray-300 hover:text-red-500 transition-colors p-2 text-lg leading-none cursor-pointer"
@@ -1009,6 +1068,31 @@ export default function AdminDashboard() {
                 <div className="flex-1 flex flex-col gap-5">
                   <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
                     <h3 className="text-xs font-bold uppercase text-gray-700 mb-3">1. Dados do Cliente</h3>
+                    
+                    {/* SELETOR DE CLIENTE CADASTRADO */}
+                    <div className="mb-3">
+                      <label className="text-[10px] font-bold uppercase text-gray-500 block mb-1">Selecionar da Lista de Clientes</label>
+                      <select 
+                        onChange={(e) => {
+                          const tel = e.target.value;
+                          if (!tel) { setManualName(''); setManualPhone(''); return; }
+                          const clienteEncontrado = clientes.find((c: any) => c.telefone === tel);
+                          if (clienteEncontrado) {
+                            setManualName(clienteEncontrado.nome);
+                            setManualPhone(clienteEncontrado.telefone);
+                          }
+                        }}
+                        className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-white outline-none focus:border-black"
+                      >
+                        <option value="">Selecione um cliente já cadastrado ou digite abaixo...</option>
+                        {clientes.map((c: any) => (
+                          <option key={c.telefone} value={c.telefone}>
+                            {c.nome} ({c.telefone})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <input type="text" placeholder="Nome Completo" value={manualName} onChange={e => setManualName(e.target.value)} className="border border-gray-300 p-3 text-xs rounded-lg bg-white outline-none focus:border-black" required />
                       <input type="text" placeholder="WhatsApp" value={manualPhone} onChange={e => setManualPhone(e.target.value)} className="border border-gray-300 p-3 text-xs rounded-lg bg-white outline-none focus:border-black" required />
