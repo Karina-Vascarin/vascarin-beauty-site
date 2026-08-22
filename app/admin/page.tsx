@@ -30,6 +30,11 @@ export default function AdminDashboard() {
   const [selectedProduct, setSelectedProduct] = useState('');
   const [selectedQty, setSelectedQty] = useState(1);
 
+  // ESTADOS PARA EDIÇÃO DE CLIENTE
+  const [editingClientPhone, setEditingClientPhone] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+
   useEffect(() => {
     if (localStorage.getItem('vascarin_admin_auth') === 'true') {
       setIsLoggedIn(true);
@@ -154,6 +159,8 @@ export default function AdminDashboard() {
       return `Olá ${pedido.nome}! 🎉 Vimos que o seu pedido #${pedido.id} foi entregue!\n\nEsperamos muito que você ame os seus produtos! Quando puder, nos mande um feedback contando o que achou ou poste uma foto e nos marque no Instagram *@vascarin.beauty* 📸💖\n\nMuito obrigada por escolher a Vascarin Beauty!`;
     } else if (pedido.status === 'Problema de Estoque') {
       return `Olá ${pedido.nome}, tudo bem? Aqui é da Vascarin Beauty. Infelizmente, no momento da separação do seu pedido #${pedido.id}, notamos que um dos itens esgotou no nosso fornecedor e não temos em estoque.\n\nComo você prefere seguir? Podemos trocar por outro perfume ou fazer o estorno para você! Pedimos mil desculpas pelo transtorno. 😔`;
+    } else if (pedido.status === 'Aguardando Pagamento') {
+      return `Olá ${pedido.nome}! Tudo bem? Aqui é da Vascarin Beauty.\n\nRecebemos o seu pedido #${pedido.id}, mas notamos que o pagamento ainda não foi concluído no sistema.\n\nPrecisa de alguma ajuda com o link ou com a chave PIX? Estou aqui para te ajudar a garantir os seus produtos antes que esgotem! 💖`;
     }
     return `Olá ${pedido.nome}! Informamos sobre o seu pedido #${pedido.id} na Vascarin Beauty.`;
   };
@@ -174,7 +181,7 @@ export default function AdminDashboard() {
     if (!error) {
       setPedidos(pedidos.map(p => p.id === pedido.id ? { ...p, status: newStatus } : p));
       if (!isSilent) {
-        if (newStatus === 'Separado' || newStatus === 'Entregue / Concluído' || newStatus === 'Problema de Estoque') {
+        if (newStatus === 'Separado' || newStatus === 'Entregue / Concluído' || newStatus === 'Problema de Estoque' || newStatus === 'Aguardando Pagamento') {
           const msg = getWhatsAppMessage({ ...pedido, status: newStatus });
           window.open(`https://wa.me/55${pedido.telefone}?text=${encodeURIComponent(msg)}`, '_blank');
         }
@@ -192,11 +199,43 @@ export default function AdminDashboard() {
   const handleDeleteBusca = async (id: string | number) => {
     if (confirm("Tem certeza que deseja excluir esta pesquisa do painel?")) {
       const { error } = await supabase.from('buscas_site').delete().eq('id', id);
-      if (!error) {
-        carregarTudo();
-      } else {
-        alert("Erro ao excluir pesquisa: " + error.message);
-      }
+      if (!error) carregarTudo();
+    }
+  };
+
+  const handleDeleteCliente = async (telefone: string) => {
+    if (confirm("Tem certeza que deseja excluir este cliente cadastrado?")) {
+      const { error } = await supabase.from('clientes').delete().eq('telefone', telefone);
+      if (!error) carregarTudo();
+      else alert("Erro ao excluir: " + error.message);
+    }
+  };
+
+  const handleSaveEditCliente = async (oldPhone: string) => {
+    if (!editName || !editPhone) {
+      alert("Preencha nome e telefone.");
+      return;
+    }
+    const cleanPhone = editPhone.replace(/\D/g, '');
+    const { error } = await supabase.from('clientes').update({
+      nome: editName,
+      telefone: cleanPhone,
+      updated_at: new Date().toISOString()
+    }).eq('telefone', oldPhone);
+
+    if (!error) {
+      setEditingClientPhone(null);
+      carregarTudo();
+    } else {
+      alert("Erro ao atualizar cliente: " + error.message);
+    }
+  };
+
+  const handleDeleteHistorico = async (id: any) => {
+    if (confirm("Tem certeza que deseja excluir este acesso do histórico?")) {
+      const { error } = await supabase.from('historico_acessos').delete().eq('id', id);
+      if (!error) carregarTudo();
+      else alert("Erro ao excluir: " + error.message);
     }
   };
 
@@ -226,7 +265,8 @@ export default function AdminDashboard() {
       const totalAtual = Number(manualTotal) || 0;
       setManualTotal((totalAtual + (Number(product.preco) * selectedQty)).toFixed(2));
     }
-    setSelectedProduct(''); setSelectedQty(1);
+    setSelectedProduct(''); 
+    setSelectedQty(1);
   };
 
   const exportToCSV = (filename: string, rows: string[][]) => {
@@ -353,6 +393,7 @@ export default function AdminDashboard() {
   const pendentesSeparar = pedidos.filter(p => p.status === 'Pendente / A Separar').length;
   const pedidosSeparados = pedidos.filter(p => p.status === 'Separado').length;
   const totalFaturado = pedidos.reduce((acc, curr) => acc + Number(curr.total || 0), 0);
+  const visitantesAnonimos = historico.filter(h => h.nome === 'Visitante Anônimo').length;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-10">
@@ -388,9 +429,11 @@ export default function AdminDashboard() {
             <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">Separados / Prontos</span>
             <div className="text-2xl font-black text-blue-600 mt-1">{pedidosSeparados}</div>
           </div>
-          <div className="bg-white p-4 rounded-xl border border-gray-200">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Visitantes na Loja</span>
-            <div className="text-2xl font-black text-black mt-1">{clientes.length}</div>
+          <div className="bg-white p-4 rounded-xl border border-gray-200 flex flex-col justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Acessos (Cadastros / Anônimos)</span>
+            <div className="text-2xl font-black text-black mt-1">
+              {clientes.length} <span className="text-base text-gray-400 font-medium">/ {visitantesAnonimos}</span>
+            </div>
           </div>
           <div className="bg-white p-4 rounded-xl border border-gray-200">
             <span className="text-[10px] font-bold uppercase tracking-wider text-green-600">Faturamento Total</span>
@@ -433,6 +476,7 @@ export default function AdminDashboard() {
                             <strong className="text-sm text-black">{p.id}</strong>
                             <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
                               p.status === 'Pendente / A Separar' ? 'bg-amber-100 text-amber-800' : 
+                              p.status === 'Aguardando Pagamento' ? 'bg-purple-100 text-purple-800' :
                               p.status === 'Separado' ? 'bg-blue-100 text-blue-800' : 
                               p.status === 'Problema de Estoque' ? 'bg-red-100 text-red-800' : 
                               p.status === 'Cancelado' ? 'bg-gray-200 text-gray-800' : 
@@ -452,11 +496,17 @@ export default function AdminDashboard() {
                             WhatsApp
                           </a>
                           
-                          {p.status === 'Pendente / A Separar' && (
+                          {(p.status === 'Pendente / A Separar' || p.status === 'Aguardando Pagamento') && (
                             <>
                               <button onClick={() => handleUpdateStatus(p, 'Separado')} className="w-full px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
                                 ✔ Marcar como Separado
                               </button>
+
+                              {p.status === 'Pendente / A Separar' && (
+                                <button onClick={() => handleUpdateStatus(p, 'Aguardando Pagamento')} className="w-full px-4 py-2 bg-purple-600 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-purple-700 transition-colors cursor-pointer text-center">
+                                  💸 Cobrar Pagamento
+                                </button>
+                              )}
                               
                               {esgotado && (
                                 <button onClick={() => handleUpdateStatus(p, 'Problema de Estoque')} className="w-full px-4 py-2 bg-red-600 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-red-700 transition-colors cursor-pointer text-center">
@@ -466,9 +516,9 @@ export default function AdminDashboard() {
                             </>
                           )}
                           
-                          {(p.status === 'Separado' || p.status === 'Problema de Estoque') && (
+                          {(p.status === 'Separado' || p.status === 'Problema de Estoque' || p.status === 'Aguardando Pagamento') && (
                             <>
-                              {p.status !== 'Problema de Estoque' && (
+                              {p.status !== 'Problema de Estoque' && p.status !== 'Aguardando Pagamento' && (
                                 <button onClick={() => handleUpdateStatus(p, 'Entregue / Concluído')} className="w-full px-4 py-2 bg-black text-white text-xs font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">
                                   🚀 Marcar como Entregue
                                 </button>
@@ -607,25 +657,71 @@ export default function AdminDashboard() {
 
               {filteredClientes.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum cliente encontrado com essa pesquisa.</p> : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredClientes.map((c, i) => (
-                    <div key={i} className="border border-gray-200 p-5 rounded-xl flex flex-col justify-between">
-                      <div className="mb-4">
-                        <strong className="text-sm text-black block">{c.nome}</strong>
-                        <span className="text-xs text-gray-500">{c.telefone}</span>
-                        <span className="mt-2 inline-block bg-gray-100 text-gray-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                          {c.visitas || 1} Visitas
-                        </span>
-                      </div>
-                      <div className="flex gap-2 mt-auto">
-                        <a href={`https://wa.me/55${c.telefone}?text=Olá ${c.nome}! Como posso te ajudar na Vascarin Beauty hoje?`} target="_blank" className="flex-1 px-3 py-2 bg-black text-white text-[10px] uppercase font-bold rounded-lg hover:bg-zinc-800 text-center flex items-center justify-center">
-                          Conversar
-                        </a>
-                        <button onClick={() => handleUpdateContato('clientes', c.telefone, c.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`flex-1 px-3 py-2 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${c.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
-                          {c.status_contato === 'Enviado' ? '✔ Falou' : 'Marcar'}
+                  {filteredClientes.map((c, i) => {
+                    const isEditing = editingClientPhone === c.telefone;
+
+                    return (
+                      <div key={i} className="border border-gray-200 p-5 rounded-xl flex flex-col justify-between relative group hover:border-gray-300 transition-colors bg-white">
+                        
+                        <button 
+                          onClick={() => handleDeleteCliente(c.telefone)} 
+                          className="absolute top-3 right-3 text-gray-300 hover:text-red-500 transition-colors p-1 cursor-pointer font-bold"
+                          title="Excluir Cliente"
+                        >
+                          ✕
                         </button>
+
+                        {isEditing ? (
+                          <div className="flex flex-col gap-2 my-2 pr-6">
+                            <input 
+                              type="text" 
+                              value={editName} 
+                              onChange={(e) => setEditName(e.target.value)} 
+                              placeholder="Nome"
+                              className="border p-2 text-xs rounded outline-none focus:border-black"
+                            />
+                            <input 
+                              type="text" 
+                              value={editPhone} 
+                              onChange={(e) => setEditPhone(e.target.value)} 
+                              placeholder="Telefone"
+                              className="border p-2 text-xs rounded outline-none focus:border-black"
+                            />
+                            <div className="flex gap-2 mt-1">
+                              <button onClick={() => handleSaveEditCliente(c.telefone)} className="bg-black text-white text-[10px] font-bold uppercase px-3 py-1.5 rounded cursor-pointer">Salvar</button>
+                              <button onClick={() => setEditingClientPhone(null)} className="bg-gray-200 text-gray-700 text-[10px] font-bold uppercase px-3 py-1.5 rounded cursor-pointer">Cancelar</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mb-4 pr-6">
+                            <div className="flex items-center gap-2">
+                              <strong className="text-sm text-black">{c.nome}</strong>
+                              <button 
+                                onClick={() => { setEditingClientPhone(c.telefone); setEditName(c.nome); setEditPhone(c.telefone); }}
+                                className="text-gray-400 hover:text-black text-[11px] cursor-pointer"
+                                title="Editar dados"
+                              >
+                                ✏️
+                              </button>
+                            </div>
+                            <span className="text-xs text-gray-500 block">{c.telefone}</span>
+                            <span className="mt-2 inline-block bg-gray-100 text-gray-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                              {c.visitas || 1} Visitas
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2 mt-auto pt-2 border-t border-gray-100">
+                          <a href={`https://wa.me/55${c.telefone}?text=Olá ${c.nome}! Como posso te ajudar na Vascarin Beauty hoje?`} target="_blank" className="flex-1 px-3 py-2 bg-black text-white text-[10px] uppercase font-bold rounded-lg hover:bg-zinc-800 text-center flex items-center justify-center">
+                            Conversar
+                          </a>
+                          <button onClick={() => handleUpdateContato('clientes', c.telefone, c.status_contato === 'Enviado' ? 'Pendente' : 'Enviado')} className={`flex-1 px-3 py-2 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center border ${c.status_contato === 'Enviado' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
+                            {c.status_contato === 'Enviado' ? '✔ Falou' : 'Marcar'}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -789,14 +885,24 @@ export default function AdminDashboard() {
               {filteredHistorico.length === 0 ? <p className="text-xs text-gray-400 py-8 text-center">Nenhum histórico encontrado com essa pesquisa.</p> : (
                 <div className="flex flex-col gap-4">
                   {filteredHistorico.map((h, i) => (
-                    <div key={i} className="border border-gray-200 p-5 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-gray-50">
+                    <div key={i} className="border border-gray-200 p-5 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-gray-50 relative group">
                       <div>
                         <strong className="text-sm text-black block">{h.nome}</strong>
                         <span className="text-xs text-gray-500">{h.telefone}</span>
                       </div>
-                      <span className="text-xs font-mono bg-white border border-gray-200 px-4 py-2 rounded-lg text-gray-600 font-bold">
-                        {new Date(h.acessado_em).toLocaleDateString('pt-BR')} às {new Date(h.acessado_em).toLocaleTimeString('pt-BR')}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-mono bg-white border border-gray-200 px-4 py-2 rounded-lg text-gray-600 font-bold">
+                          {new Date(h.acessado_em).toLocaleDateString('pt-BR')} às {new Date(h.acessado_em).toLocaleTimeString('pt-BR')}
+                        </span>
+                        
+                        <button 
+                          onClick={() => handleDeleteHistorico(h.id)} 
+                          className="text-gray-300 hover:text-red-500 transition-colors p-2 text-lg leading-none cursor-pointer"
+                          title="Excluir Histórico"
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -919,6 +1025,12 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
+                  <h3 className="text-xs font-bold uppercase text-purple-700 mb-3">💸 Cobrança de Pagamento</h3>
+                  <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Olá [Nome]! Tudo bem? Aqui é da Vascarin Beauty.\n\nRecebemos o seu pedido, mas notamos que o pagamento ainda não foi concluído no sistema.\n\nPrecisa de alguma ajuda com o link ou com a chave PIX? Estou aqui para te ajudar a garantir os seus produtos antes que esgotem! 💖"} />
+                  <button onClick={(e) => { navigator.clipboard.writeText("Olá [Nome]! Tudo bem? Aqui é da Vascarin Beauty.\n\nRecebemos o seu pedido, mas notamos que o pagamento ainda não foi concluído no sistema.\n\nPrecisa de alguma ajuda com o link ou com a chave PIX? Estou aqui para te ajudar a garantir os seus produtos antes que esgotem! 💖"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">Copiar Script</button>
+                </div>
+
+                <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 flex flex-col">
                   <h3 className="text-xs font-bold uppercase text-blue-700 mb-3">🔔 Produto Chegou</h3>
                   <textarea readOnly className="flex-1 w-full p-3 text-xs border border-gray-300 rounded-lg bg-white outline-none resize-none min-h-[120px]" value={"Oii [Nome]! O perfume [Produto] que você estava querendo acabou de voltar para o nosso estoque na Vascarin Beauty! 🎉\n\nPosso reservar o seu?"} />
                   <button onClick={(e) => { navigator.clipboard.writeText("Oii [Nome]! O perfume [Produto] que você estava querendo acabou de voltar para o nosso estoque na Vascarin Beauty! 🎉\n\nPosso reservar o seu?"); (e.target as any).innerText = '✔ Copiado!'; setTimeout(() => (e.target as any).innerText = 'Copiar Script', 2000) }} className="mt-3 w-full bg-black text-white text-[10px] font-bold uppercase py-2 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">Copiar Script</button>
@@ -955,6 +1067,30 @@ export default function AdminDashboard() {
                 <div className="flex-1 flex flex-col gap-5">
                   <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
                     <h3 className="text-xs font-bold uppercase text-gray-700 mb-3">1. Dados do Cliente</h3>
+                    
+                    <div className="mb-3">
+                      <label className="text-[10px] font-bold uppercase text-gray-500 block mb-1">Selecionar da Lista de Clientes</label>
+                      <select 
+                        onChange={(e) => {
+                          const tel = e.target.value;
+                          if (!tel) { setManualName(''); setManualPhone(''); return; }
+                          const clienteEncontrado = clientes.find((c: any) => c.telefone === tel);
+                          if (clienteEncontrado) {
+                            setManualName(clienteEncontrado.nome);
+                            setManualPhone(clienteEncontrado.telefone);
+                          }
+                        }}
+                        className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-white outline-none focus:border-black cursor-pointer"
+                      >
+                        <option value="">Selecione um cliente já cadastrado ou digite abaixo...</option>
+                        {clientes.map((c: any) => (
+                          <option key={c.telefone} value={c.telefone}>
+                            {c.nome} ({c.telefone})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <input type="text" placeholder="Nome Completo" value={manualName} onChange={e => setManualName(e.target.value)} className="border border-gray-300 p-3 text-xs rounded-lg bg-white outline-none focus:border-black" required />
                       <input type="text" placeholder="WhatsApp" value={manualPhone} onChange={e => setManualPhone(e.target.value)} className="border border-gray-300 p-3 text-xs rounded-lg bg-white outline-none focus:border-black" required />
@@ -963,13 +1099,36 @@ export default function AdminDashboard() {
 
                   <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
                     <h3 className="text-xs font-bold uppercase text-gray-700 mb-3">2. Selecionar Perfumes</h3>
+                    
+                    {/* SELETOR DE PERFUMES LIMPO E ORGANIZADO */}
                     <div className="flex gap-2">
-                      <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)} className="flex-1 border border-gray-300 p-3 text-xs rounded-lg bg-white outline-none focus:border-black">
-                        <option value="">Selecione um perfume...</option>
-                        {storeProducts.map((p: any) => <option key={p.id} value={p.nome}>{p.nome} — R$ {p.preco.toFixed(2)}</option>)}
+                      <select 
+                        value={selectedProduct} 
+                        onChange={e => setSelectedProduct(e.target.value)}
+                        className="flex-1 border border-gray-300 p-3 text-xs rounded-lg bg-white outline-none focus:border-black cursor-pointer"
+                      >
+                        <option value="">Selecione um perfume da lista...</option>
+                        {storeProducts.map((p: any) => (
+                          <option key={p.id || p.nome} value={p.nome}>
+                            {p.nome} — R$ {Number(p.preco || 0).toFixed(2)}
+                          </option>
+                        ))}
                       </select>
-                      <input type="number" min="1" value={selectedQty} onChange={e => setSelectedQty(Number(e.target.value))} className="w-16 border border-gray-300 p-3 text-xs rounded-lg text-center bg-white outline-none" />
-                      <button type="button" onClick={handleAddItemToOrder} className="bg-black text-white text-xs font-bold px-5 rounded-lg hover:bg-zinc-800 cursor-pointer">Incluir</button>
+
+                      <input 
+                        type="number" 
+                        min="1" 
+                        value={selectedQty} 
+                        onChange={e => setSelectedQty(Number(e.target.value))} 
+                        className="w-16 border border-gray-300 p-3 text-xs rounded-lg text-center bg-white outline-none" 
+                      />
+                      <button 
+                        type="button" 
+                        onClick={handleAddItemToOrder} 
+                        className="bg-black text-white text-xs font-bold px-5 rounded-lg hover:bg-zinc-800 cursor-pointer"
+                      >
+                        Incluir
+                      </button>
                     </div>
                   </div>
                 </div>

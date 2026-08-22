@@ -13,28 +13,54 @@ function CatalogContent({ initialProducts }: CatalogProps) {
   const router = useRouter();
   const queryParam = searchParams.get('q') || '';
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
+  const [selectedCategory, setSelectedCategory] = useState<string>('TODOS');
   const [sortBy, setSortBy] = useState<string>('default');
 
-  // Extrai as categorias únicas lendo corretamente a Coluna D (propriedade 'categoria')
+  // LIMPEZA ABSOLUTA DE CATEGORIA
+  const getCategoriaPadronizada = (p: any) => {
+    const raw = String(p.categoria || p.marca || 'DIVERSOS');
+    return raw.trim().toUpperCase();
+  };
+
   const categories = useMemo(() => {
-    const cats = initialProducts.map((p) => {
-      return p.categoria || p.Coluna_D || p.coluna_d || '';
-    }).filter(Boolean);
-    return Array.from(new Set(cats)) as string[];
+    const cats = initialProducts.map(getCategoriaPadronizada);
+    return Array.from(new Set(cats)).filter(c => c !== '').sort(); 
   }, [initialProducts]);
 
   const filteredProducts = useMemo(() => {
     let result = initialProducts.filter((product) => {
-      const catProduto = product.categoria || product.Coluna_D || product.coluna_d || '';
-      const matchesCategory = selectedCategory === 'Todos' || catProduto.toLowerCase() === selectedCategory.toLowerCase();
-      const matchesSearch = !queryParam || product.nome?.toLowerCase().includes(queryParam.toLowerCase());
+      if (!product || !product.nome) return false;
+      
+      const catProduto = getCategoriaPadronizada(product);
+      const matchesCategory = selectedCategory === 'TODOS' || catProduto === selectedCategory;
+      const matchesSearch = !queryParam || String(product.nome).toLowerCase().includes(queryParam.toLowerCase());
+      
       return matchesCategory && matchesSearch;
     });
 
-    if (sortBy === 'price-asc') result.sort((a, b) => Number(a.preco) - Number(b.preco));
-    else if (sortBy === 'price-desc') result.sort((a, b) => Number(b.preco) - Number(a.preco));
-    else if (sortBy === 'name-asc') result.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+    // 🔴 CONVERSOR INTELIGENTE DE PREÇOS (Lê vírgulas sem travar o site)
+    const parsePreco = (val: any) => {
+      if (!val) return 0;
+      return Number(String(val).replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+    };
+
+    result.sort((a, b) => {
+      const estoqueA = Number(a.estoque ?? a.quantidade ?? 0);
+      const estoqueB = Number(b.estoque ?? b.quantidade ?? 0);
+      
+      const isEsgotadoA = estoqueA <= 0;
+      const isEsgotadoB = estoqueB <= 0;
+
+      if (isEsgotadoA !== isEsgotadoB) {
+        return isEsgotadoA ? 1 : -1;
+      }
+
+      if (sortBy === 'price-asc') return parsePreco(a.preco) - parsePreco(b.preco);
+      if (sortBy === 'price-desc') return parsePreco(b.preco) - parsePreco(a.preco);
+      if (sortBy === 'name-asc') return String(a.nome || '').localeCompare(String(b.nome || ''));
+
+      return 0; // Padrão
+    });
 
     return result;
   }, [initialProducts, selectedCategory, queryParam, sortBy]);
@@ -47,8 +73,8 @@ function CatalogContent({ initialProducts }: CatalogProps) {
         <h2 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Categorias</h2>
         <div className="flex overflow-x-auto gap-2 pb-1 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
           <button 
-            onClick={() => setSelectedCategory('Todos')}
-            className={`whitespace-nowrap px-4 py-2 text-[11px] font-bold uppercase rounded-full transition-all cursor-pointer ${selectedCategory === 'Todos' ? 'bg-black text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            onClick={() => setSelectedCategory('TODOS')}
+            className={`whitespace-nowrap px-4 py-2 text-[11px] font-bold uppercase rounded-full transition-all cursor-pointer ${selectedCategory === 'TODOS' ? 'bg-black text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
           >
             Todos ({initialProducts.length})
           </button>
@@ -58,7 +84,7 @@ function CatalogContent({ initialProducts }: CatalogProps) {
               onClick={() => setSelectedCategory(cat)}
               className={`whitespace-nowrap px-4 py-2 text-[11px] font-bold uppercase rounded-full transition-all cursor-pointer ${selectedCategory === cat ? 'bg-black text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
-              {cat} ({initialProducts.filter((p: any) => (p.categoria || p.Coluna_D || p.coluna_d || '').toLowerCase() === cat.toLowerCase()).length})
+              {cat} ({initialProducts.filter((p: any) => getCategoriaPadronizada(p) === cat).length})
             </button>
           ))}
         </div>
@@ -107,9 +133,10 @@ function CatalogContent({ initialProducts }: CatalogProps) {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        // 🔴 TRAVA ANTI-FANTASMA: O "key" com a categoria destrói a tela e recria limpa toda vez que você clica!
+        <div key={selectedCategory} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {filteredProducts.map((product, index) => (
-            <ProductCard key={product.id || index} product={product} />
+            <ProductCard key={`${product.id || 'prod'}-${index}`} product={product} />
           ))}
         </div>
       )}

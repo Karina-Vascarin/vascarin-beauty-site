@@ -180,7 +180,7 @@ export default function FloatingCart() {
   if (!isMounted || !isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-sm transition-opacity">
+    <div className="fixed inset-0 z-[60] flex justify-end bg-black/50 backdrop-blur-sm transition-opacity">
       <div className="w-full max-w-md bg-white h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
         
         {/* Cabeçalho */}
@@ -251,14 +251,14 @@ export default function FloatingCart() {
                       placeholder="Nome Completo" 
                       value={customerName} 
                       onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full border border-gray-300 p-3 text-xs rounded-lg focus:outline-none focus:border-black"
+                      className="w-full border border-gray-300 p-3 text-xs rounded-lg focus:outline-none focus:border-black text-gray-900"
                     />
                     <input 
                       type="text" 
                       placeholder="WhatsApp" 
                       value={customerPhone} 
                       onChange={(e) => setCustomerPhone(formatPhone(e.target.value))}
-                      className="w-full border border-gray-300 p-3 text-xs rounded-lg focus:outline-none focus:border-black"
+                      className="w-full border border-gray-300 p-3 text-xs rounded-lg focus:outline-none focus:border-black text-gray-900"
                     />
                   </div>
 
@@ -315,14 +315,14 @@ export default function FloatingCart() {
                       <select 
                         value={selectedInstallment} 
                         onChange={(e) => setSelectedInstallment(Number(e.target.value))}
-                        className="w-full border border-gray-300 p-3 text-xs font-bold rounded-lg bg-white focus:outline-none focus:border-black"
+                        className="w-full border border-gray-300 p-3 text-xs font-bold rounded-lg bg-white text-gray-900 focus:outline-none focus:border-black cursor-pointer"
                       >
-                        <option value={1}>1x de {formatPrice((totalProducts / (1 - 0.0420)) + frete)}</option>
-                        <option value={2}>2x de {formatPrice(((totalProducts / (1 - 0.0609)) + frete) / 2)}</option>
-                        <option value={3}>3x de {formatPrice(((totalProducts / (1 - 0.0701)) + frete) / 3)}</option>
-                        <option value={4}>4x de {formatPrice(((totalProducts / (1 - 0.0791)) + frete) / 4)}</option>
-                        <option value={5}>5x de {formatPrice(((totalProducts / (1 - 0.0880)) + frete) / 5)}</option>
-                        <option value={6}>6x de {formatPrice(((totalProducts / (1 - 0.0967)) + frete) / 6)}</option>
+                        <option value={1} className="text-gray-900 font-medium">1x de {formatPrice((totalProducts / (1 - 0.0420)) + frete)}</option>
+                        <option value={2} className="text-gray-900 font-medium">2x de {formatPrice(((totalProducts / (1 - 0.0609)) + frete) / 2)}</option>
+                        <option value={3} className="text-gray-900 font-medium">3x de {formatPrice(((totalProducts / (1 - 0.0701)) + frete) / 3)}</option>
+                        <option value={4} className="text-gray-900 font-medium">4x de {formatPrice(((totalProducts / (1 - 0.0791)) + frete) / 4)}</option>
+                        <option value={5} className="text-gray-900 font-medium">5x de {formatPrice(((totalProducts / (1 - 0.0880)) + frete) / 5)}</option>
+                        <option value={6} className="text-gray-900 font-medium">6x de {formatPrice(((totalProducts / (1 - 0.0967)) + frete) / 6)}</option>
                       </select>
                     )}
                   </div>
@@ -333,7 +333,7 @@ export default function FloatingCart() {
                       id="acceptTerms" 
                       checked={hasAcceptedTerms} 
                       onChange={(e) => setHasAcceptedTerms(e.target.checked)} 
-                      className="mt-0.5 cursor-pointer"
+                      className="mt-0.5 cursor-pointer accent-black"
                     />
                     <label htmlFor="acceptTerms" className="text-[10px] text-gray-700 leading-tight">
                         Declaro que li e aceito os <TermsModal /> antes de finalizar a compra.

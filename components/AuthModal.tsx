@@ -1,38 +1,70 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export default function AuthModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [wantsUpdates, setWantsUpdates] = useState(true); // Checkbox ativado por padrão
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Função da Máscara (Não altera o layout)
+  // Trava para evitar o React Strict Mode de renderizar 2 vezes seguidas
+  const hasChecked = useRef(false);
+
+  // Função da Máscara
   const formatPhone = (value: string) => {
     return value.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2").slice(0, 15);
   };
 
-  useEffect(() => {
-    const savedClient = localStorage.getItem('vascarin_client');
-    if (!savedClient) {
-      setIsOpen(true);
+  // 🔴 TRAVA ANTI-SPAM (Impede visitas duplicadas em um intervalo de 30 minutos)
+  const checkAndLogVisit = (type: 'client' | 'anonymous', clientName?: string, clientPhone?: string) => {
+    const now = new Date().getTime();
+    const lastVisit = localStorage.getItem('vascarin_last_visit_time');
+    
+    // 30 minutos = 1.800.000 milissegundos
+    if (lastVisit && (now - Number(lastVisit)) < 1800000) {
+      return; // Se passou menos de 30 minutos, aborta e não grava nada!
+    }
+
+    // Marca o momento exato desta visita
+    localStorage.setItem('vascarin_last_visit_time', now.toString());
+
+    if (type === 'client' && clientName && clientPhone) {
+      registrarAcesso(clientName, clientPhone);
     } else {
+      registrarAcessoAnonimo();
+    }
+  };
+
+  useEffect(() => {
+    if (hasChecked.current) return;
+    hasChecked.current = true;
+
+    const savedClient = localStorage.getItem('vascarin_client');
+    const closedModal = sessionStorage.getItem('vascarin_modal_closed'); 
+    
+    if (!savedClient && !closedModal) {
+      setIsOpen(true);
+    } else if (savedClient) {
       try {
         const client = JSON.parse(savedClient);
-        // Se a cliente já está salva, registra a nova entrada silenciosamente
-        registrarAcesso(client.name, client.phone);
+        checkAndLogVisit('client', client.name, client.phone);
       } catch (e) {}
+    } else if (!savedClient && closedModal) {
+      checkAndLogVisit('anonymous');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // REGISTRA CLIENTE CADASTRADO
   const registrarAcesso = async (clienteNome: string, clienteTelefone: string) => {
     try {
       const { data: existing } = await supabase.from('clientes').select('visitas').eq('telefone', clienteTelefone).maybeSingle();
       const totalVisitas = (existing?.visitas || 0) + 1;
 
-      // 1. Atualiza a contagem geral de visitas na aba Clientes
+      // 1. Atualiza a contagem na aba Clientes
       await supabase.from('clientes').upsert({
         telefone: clienteTelefone,
         nome: clienteNome,
@@ -40,7 +72,7 @@ export default function AuthModal() {
         updated_at: new Date().toISOString()
       }, { onConflict: 'telefone' });
 
-      // 2. AGORA SIM: Grava sempre uma linha nova na aba Histórico com a data e hora de HOJE/AGORA
+      // 2. Grava no Histórico
       await supabase.from('historico_acessos').insert([{ 
         nome: clienteNome, 
         telefone: clienteTelefone 
@@ -51,6 +83,26 @@ export default function AuthModal() {
     }
   };
 
+  // REGISTRA VISITANTE ANÔNIMO
+  const registrarAcessoAnonimo = async () => {
+    try {
+      await supabase.from('historico_acessos').insert([{ 
+        nome: 'Visitante Anônimo', 
+        telefone: 'Não informado' 
+      }]);
+    } catch (error) {
+      console.error("Erro ao registrar acesso anônimo:", error);
+    }
+  };
+
+  // QUANDO A PESSOA CLICA NO "X" (VISITANTE ANÔNIMO)
+  const handleClose = () => {
+    sessionStorage.setItem('vascarin_modal_closed', 'true');
+    setIsOpen(false);
+    checkAndLogVisit('anonymous'); // Chama a trava anti-spam antes de registrar
+  };
+
+  // QUANDO A PESSOA SE CADASTRA
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !phone) {
@@ -60,32 +112,47 @@ export default function AuthModal() {
 
     const cleanPhone = phone.replace(/\D/g, '');
 
-    // VALIDAÇÃO EXATA DE 11 DÍGITOS (DDD + 9º DÍGITO + 8 NÚMEROS)
     if (cleanPhone.length !== 11) {
       alert("Por favor, digite um número de WhatsApp válido contendo exatamente 11 dígitos (com DDD e o 9º dígito).");
       return;
     }
 
     setIsSubmitting(true);
-    const clientData = { name, phone: cleanPhone };
+    
+    const clientData = { name, phone: cleanPhone, wantsUpdates };
     localStorage.setItem('vascarin_client', JSON.stringify(clientData));
 
-    // Chama a função que salva o cliente e também gera a linha no histórico
+    // Como o cliente acabou de colocar os dados, forçamos o registro imediato (zerando a trava de tempo)
+    const now = new Date().getTime();
+    localStorage.setItem('vascarin_last_visit_time', now.toString());
     await registrarAcesso(name, cleanPhone);
 
     setIsSubmitting(false);
     setIsOpen(false);
-    window.location.reload();
+    window.location.reload(); // O recarregamento não vai mais duplicar, pois a trava de 30 minutos agora bloqueia a segunda rodada
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 flex flex-col gap-5 animate-in fade-in zoom-in duration-300">
-        <div className="text-center">
+      <div className="bg-white relative w-full max-w-md rounded-2xl shadow-2xl p-8 flex flex-col gap-5 animate-in fade-in zoom-in duration-300">
+        
+        {/* BOTÃO FECHAR (X) */}
+        <button 
+          onClick={handleClose}
+          title="Fechar e ver catálogo"
+          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <div className="text-center mt-2">
           <span className="text-xs font-black uppercase tracking-widest text-black block mb-1">Vascarin Beauty</span>
-          <h2 className="text-sm font-bold text-gray-800">Identifique-se para ver os preços exclusivos e catálogo.</h2>
+          <h2 className="text-sm font-bold text-gray-800 pr-4 pl-4">Identifique-se para ver os preços exclusivos e catálogo.</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3 mt-2">
@@ -112,6 +179,19 @@ export default function AuthModal() {
               required
             />
           </div>
+
+          {/* CHECKBOX DE ATUALIZAÇÕES */}
+          <label className="flex items-center gap-2 mt-1 mb-1 cursor-pointer group">
+            <input 
+              type="checkbox" 
+              checked={wantsUpdates} 
+              onChange={(e) => setWantsUpdates(e.target.checked)} 
+              className="w-4 h-4 accent-black cursor-pointer"
+            />
+            <span className="text-[10px] text-gray-600 font-bold uppercase group-hover:text-black transition-colors">
+              Desejo receber promoções e novidades no WhatsApp
+            </span>
+          </label>
 
           <button 
             type="submit" 
