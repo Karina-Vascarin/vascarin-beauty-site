@@ -2,8 +2,7 @@
 
 import { useFavoritesStore } from '@/store/favorites';
 import { useCartStore } from '@/store/cart';
-import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ProductModal from './ProductModal';
 import { supabase } from '@/lib/supabase';
 
@@ -16,9 +15,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const addItemToCart = useCartStore((state) => state.addItem);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [imageError, setImageError] = useState(false);
 
-  // ESTADOS DO NOVO MODAL "AVISE-ME"
+  // ESTADOS DO MODAL "AVISE-ME"
   const [showAviseModal, setShowAviseModal] = useState(false);
   const [aviseName, setAviseName] = useState('');
   const [avisePhone, setAvisePhone] = useState('');
@@ -46,7 +44,6 @@ export default function ProductCard({ product }: ProductCardProps) {
     let clientName = '';
     let clientPhone = '';
 
-    // Verifica se a pessoa já se cadastrou antes
     try {
       const localData = localStorage.getItem('vascarin_client');
       if (localData) {
@@ -56,7 +53,6 @@ export default function ProductCard({ product }: ProductCardProps) {
       }
     } catch (e) {}
 
-    // Se já estiver logada, entra na fila direto. Se não, abre o Modal bonitinho!
     if (clientName && clientPhone) {
       registrarAviseMe(clientName, clientPhone);
     } else {
@@ -84,10 +80,8 @@ export default function ProductCard({ product }: ProductCardProps) {
       alert(`Pronto, ${nome}! Vamos te avisar no WhatsApp assim que o ${product.nome} estiver disponível.`);
       setShowAviseModal(false);
 
-      // Salva os dados para que o cliente não precise digitar de novo na próxima vez
       localStorage.setItem('vascarin_client', JSON.stringify({ name: nome, phone: cleanPhone, wantsUpdates: true }));
       
-      // Também avisa no banco de dados de clientes
       await supabase.from('clientes').upsert({
         telefone: cleanPhone,
         nome: nome,
@@ -107,18 +101,27 @@ export default function ProductCard({ product }: ProductCardProps) {
     registrarAviseMe(aviseName, avisePhone);
   };
 
-  // Montagem do caminho da imagem
-  let imageSrc = "";
-  const semImagem = !product.imagem || String(product.imagem).includes('default-image');
-  if (!semImagem) {
+  // MONTAGEM DO CAMINHO DA IMAGEM E CONTROLE DE CACHE
+  let basePath = "";
+  if (product.imagem && !String(product.imagem).includes('default-image')) {
     let rawPath = String(product.imagem).replace(/[\r\n]+/g, '').trim();
     if (rawPath.startsWith('/produtos/')) rawPath = rawPath.replace('/produtos/', '');
-    else if (rawPath.startsWith('produtos/')) rawPath = rawPath.replace('produtos/', '');
+    if (rawPath.startsWith('produtos/')) rawPath = rawPath.replace('produtos/', '');
     const hasExtension = /\.(png|jpe?g|webp)$/i.test(rawPath);
-    imageSrc = encodeURI(`/produtos/${rawPath}${hasExtension ? '' : '.png'}`);
+    basePath = `/produtos/${rawPath}${hasExtension ? '' : '.png'}`;
+  } else if (product.id) {
+    basePath = `/produtos/${String(product.id).toLowerCase()}.png`;
   }
 
-  const mostrarImagem = !semImagem && !!imageSrc && !imageError;
+  const [imgSrc, setImgSrc] = useState(basePath);
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgSrc(basePath);
+    setImgError(false);
+  }, [basePath]);
+
+  const mostrarImagem = !!imgSrc && !imgError;
   const categoriaExibida = product.categoria || product.marca || 'Perfumes';
 
   return (
@@ -146,19 +149,19 @@ export default function ProductCard({ product }: ProductCardProps) {
           </svg>
         </button>
 
-        {/* Imagem do Produto com sistema anti-falha */}
+        {/* Imagem do Produto */}
         <div 
           onClick={() => setIsModalOpen(true)}
           className="relative w-full h-48 mb-4 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer group-hover:opacity-90 transition-opacity"
           title="Clique para ampliar"
         >
           {mostrarImagem ? (
-            <Image 
-              src={imageSrc} 
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img 
+              src={imgSrc} 
               alt={product.nome} 
-              fill 
-              className="object-contain p-2"
-              onError={() => setImageError(true)} 
+              className="w-full h-full object-contain p-2"
+              onError={() => setImgError(true)} 
             />
           ) : (
             <span className="text-xs text-gray-400 font-bold uppercase tracking-widest">Sem foto</span>
