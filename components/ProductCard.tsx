@@ -16,11 +16,15 @@ export default function ProductCard({ product }: ProductCardProps) {
   const addItemToCart = useCartStore((state) => state.addItem);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  // Estado para controlar se a imagem deu erro ao carregar
   const [imageError, setImageError] = useState(false);
 
-  const isFavorite = favoriteItems.some((item) => (item.id && item.id === product.id) || item.nome === product.nome);
+  // ESTADOS DO NOVO MODAL "AVISE-ME"
+  const [showAviseModal, setShowAviseModal] = useState(false);
+  const [aviseName, setAviseName] = useState('');
+  const [avisePhone, setAvisePhone] = useState('');
+  const [isSubmittingAvise, setIsSubmittingAvise] = useState(false);
+
+  const isFavorite = favoriteItems.some((item: any) => (item.id && item.id === product.id) || item.nome === product.nome);
 
   const handleToggleFavorite = () => {
     if (isFavorite) {
@@ -33,35 +37,74 @@ export default function ProductCard({ product }: ProductCardProps) {
   const estoqueNum = Number(product.estoque ?? product.quantidade ?? 1);
   const isEsgotado = estoqueNum <= 0;
 
-  const handleAviseMe = async () => {
-    let clientName = null;
-    let clientPhone = null;
-    
+  // Função da Máscara de Telefone
+  const formatPhone = (value: string) => {
+    return value.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2").slice(0, 15);
+  };
+
+  const triggerAviseMe = () => {
+    let clientName = '';
+    let clientPhone = '';
+
+    // Verifica se a pessoa já se cadastrou antes
     try {
       const localData = localStorage.getItem('vascarin_client');
       if (localData) {
         const parsed = JSON.parse(localData);
-        clientName = parsed.name;
-        clientPhone = parsed.phone;
+        clientName = parsed.name || '';
+        clientPhone = parsed.phone || '';
       }
     } catch (e) {}
 
-    const nome = clientName || prompt("Digite seu nome:");
-    if (!nome) return;
+    // Se já estiver logada, entra na fila direto. Se não, abre o Modal bonitinho!
+    if (clientName && clientPhone) {
+      registrarAviseMe(clientName, clientPhone);
+    } else {
+      setShowAviseModal(true);
+    }
+  };
 
-    const telefone = clientPhone || prompt("Digite seu WhatsApp para avisarmos quando chegar:");
-    if (!telefone) return;
+  const registrarAviseMe = async (nome: string, telefone: string) => {
+    const cleanPhone = telefone.replace(/\D/g, '');
+    
+    if (cleanPhone.length !== 11) {
+      alert("Por favor, digite um número de WhatsApp válido com 11 dígitos.");
+      return;
+    }
 
+    setIsSubmittingAvise(true);
+    
     try {
       await supabase.from('fila_espera').insert([{
         nome: nome,
-        telefone: telefone.replace(/\D/g, ''),
+        telefone: cleanPhone,
         produto: product.nome
       }]);
+      
       alert(`Pronto, ${nome}! Vamos te avisar no WhatsApp assim que o ${product.nome} estiver disponível.`);
+      setShowAviseModal(false);
+
+      // Salva os dados para que o cliente não precise digitar de novo na próxima vez
+      localStorage.setItem('vascarin_client', JSON.stringify({ name: nome, phone: cleanPhone, wantsUpdates: true }));
+      
+      // Também avisa no banco de dados de clientes
+      await supabase.from('clientes').upsert({
+        telefone: cleanPhone,
+        nome: nome,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'telefone' });
+
     } catch (err) {
-      alert("Erro ao registrar na fila de espera.");
+      alert("Erro ao registrar na fila de espera. Tente novamente.");
+    } finally {
+      setIsSubmittingAvise(false);
     }
+  };
+
+  const handleSubmitAviseModal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aviseName || !avisePhone) return;
+    registrarAviseMe(aviseName, avisePhone);
   };
 
   // Montagem do caminho da imagem
@@ -75,10 +118,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     imageSrc = encodeURI(`/produtos/${rawPath}${hasExtension ? '' : '.png'}`);
   }
 
-  // Verifica se pode exibir a foto (não é vazia, tem src e não deu erro de carregamento)
   const mostrarImagem = !semImagem && !!imageSrc && !imageError;
-
-  // Pega a categoria real da coluna C da planilha
   const categoriaExibida = product.categoria || product.marca || 'Perfumes';
 
   return (
@@ -136,7 +176,6 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Detalhes do Produto */}
         <div className="flex flex-col flex-1 justify-between">
           <div>
-            {/* Exibe a categoria real da coluna C */}
             <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
               {categoriaExibida}
             </span>
@@ -157,7 +196,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
             {isEsgotado ? (
               <button
-                onClick={handleAviseMe}
+                onClick={triggerAviseMe}
                 className="w-full bg-zinc-800 text-white text-[10px] font-bold uppercase py-3 rounded-xl hover:bg-black transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
               >
                 ⏳ Avise-me quando chegar
@@ -178,8 +217,66 @@ export default function ProductCard({ product }: ProductCardProps) {
         product={product} 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        onAddToCart={(item) => addItemToCart({ ...item, quantidade: 1 })} 
+        onAddToCart={(item: any) => addItemToCart({ ...item, quantidade: 1 })} 
       />
+
+      {/* MODAL "AVISE-ME QUANDO CHEGAR" */}
+      {showAviseModal && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div className="bg-white relative w-full max-w-md rounded-2xl shadow-2xl p-8 flex flex-col gap-5 animate-in fade-in zoom-in duration-300">
+            
+            <button 
+              onClick={() => setShowAviseModal(false)}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+
+            <div className="text-center mt-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 block mb-1">⏳ Fila de Espera</span>
+              <h2 className="text-sm font-bold text-gray-800 pr-4 pl-4">Avise-me quando chegar!</h2>
+              <p className="text-xs text-gray-500 mt-2">Identifique-se para avisarmos assim que o <strong className="text-black">{product.nome}</strong> voltar ao estoque.</p>
+            </div>
+
+            <form onSubmit={handleSubmitAviseModal} className="flex flex-col gap-3 mt-2">
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Seu Nome</label>
+                <input 
+                  type="text" 
+                  placeholder="Digite seu nome" 
+                  value={aviseName} 
+                  onChange={(e) => setAviseName(e.target.value)}
+                  className="w-full border border-gray-300 p-3 text-xs rounded-lg focus:outline-none focus:border-black"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Seu WhatsApp</label>
+                <input 
+                  type="text" 
+                  placeholder="(11) 99999-9999" 
+                  value={avisePhone} 
+                  onChange={(e) => setAvisePhone(formatPhone(e.target.value))} 
+                  className="w-full border border-gray-300 p-3 text-xs rounded-lg focus:outline-none focus:border-black"
+                  required
+                />
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={isSubmittingAvise}
+                className="w-full bg-black text-white text-xs font-bold uppercase py-4 rounded-lg hover:bg-zinc-800 transition-colors mt-2 cursor-pointer disabled:opacity-50"
+              >
+                {isSubmittingAvise ? 'Registrando...' : 'Me avise no WhatsApp'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }
