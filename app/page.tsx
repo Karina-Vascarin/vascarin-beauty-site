@@ -47,7 +47,7 @@ export default function Home() {
       </h1>
       
       <p style={{ maxWidth: '600px', fontSize: '1.125rem', lineHeight: '1.6', marginBottom: '1rem', color: '#52525b' }}>
-        Estamos atualizando nosso catálogo de perfumes importados, miniaturas e fragrâncias árabes!
+        Estamos atualizando nosso catálogo!
       </p>
       
       <p style={{ maxWidth: '600px', fontSize: '1.125rem', lineHeight: '1.6', marginBottom: '2.5rem', color: '#52525b' }}>
