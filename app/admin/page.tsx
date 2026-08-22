@@ -27,7 +27,10 @@ export default function AdminDashboard() {
   const [manualPhone, setManualPhone] = useState('');
   const [manualItems, setManualItems] = useState('');
   const [manualTotal, setManualTotal] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState('');
+  
+  // ESTADOS DA BUSCA INTELIGENTE DE PERFUMES NO PEDIDO MANUAL
+  const [productSearchInput, setProductSearchInput] = useState('');
+  const [selectedProductObj, setSelectedProductObj] = useState<any>(null);
   const [selectedQty, setSelectedQty] = useState(1);
 
   // ESTADOS PARA EDIÇÃO DE CLIENTE
@@ -196,7 +199,6 @@ export default function AdminDashboard() {
     if (!error) carregarTudo();
   };
 
-  // EXCLUIR E EDITAR REGISTROS
   const handleDeleteBusca = async (id: string | number) => {
     if (confirm("Tem certeza que deseja excluir esta pesquisa do painel?")) {
       const { error } = await supabase.from('buscas_site').delete().eq('id', id);
@@ -258,15 +260,16 @@ export default function AdminDashboard() {
   };
 
   const handleAddItemToOrder = () => {
-    if (!selectedProduct) return;
-    const product = storeProducts.find((p: any) => p.nome === selectedProduct);
-    const itemString = `${selectedQty}x ${selectedProduct}`;
+    if (!selectedProductObj) return;
+    const itemString = `${selectedQty}x ${selectedProductObj.nome}`;
     setManualItems(prev => prev ? `${prev}, ${itemString}` : itemString);
-    if (product && product.preco) {
+    if (selectedProductObj.preco) {
       const totalAtual = Number(manualTotal) || 0;
-      setManualTotal((totalAtual + (Number(product.preco) * selectedQty)).toFixed(2));
+      setManualTotal((totalAtual + (Number(selectedProductObj.preco) * selectedQty)).toFixed(2));
     }
-    setSelectedProduct(''); setSelectedQty(1);
+    setProductSearchInput('');
+    setSelectedProductObj(null);
+    setSelectedQty(1);
   };
 
   const exportToCSV = (filename: string, rows: string[][]) => {
@@ -663,7 +666,6 @@ export default function AdminDashboard() {
                     return (
                       <div key={i} className="border border-gray-200 p-5 rounded-xl flex flex-col justify-between relative group hover:border-gray-300 transition-colors bg-white">
                         
-                        {/* BOTÃO EXCLUIR CLIENTE (X) */}
                         <button 
                           onClick={() => handleDeleteCliente(c.telefone)} 
                           className="absolute top-3 right-3 text-gray-300 hover:text-red-500 transition-colors p-1 cursor-pointer font-bold"
@@ -1069,7 +1071,6 @@ export default function AdminDashboard() {
                   <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
                     <h3 className="text-xs font-bold uppercase text-gray-700 mb-3">1. Dados do Cliente</h3>
                     
-                    {/* SELETOR DE CLIENTE CADASTRADO */}
                     <div className="mb-3">
                       <label className="text-[10px] font-bold uppercase text-gray-500 block mb-1">Selecionar da Lista de Clientes</label>
                       <select 
@@ -1099,16 +1100,66 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
+                  <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 relative">
                     <h3 className="text-xs font-bold uppercase text-gray-700 mb-3">2. Selecionar Perfumes</h3>
-                    <div className="flex gap-2">
-                      <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)} className="flex-1 border border-gray-300 p-3 text-xs rounded-lg bg-white outline-none focus:border-black">
-                        <option value="">Selecione um perfume...</option>
-                        {storeProducts.map((p: any) => <option key={p.id} value={p.nome}>{p.nome} — R$ {p.preco.toFixed(2)}</option>)}
-                      </select>
-                      <input type="number" min="1" value={selectedQty} onChange={e => setSelectedQty(Number(e.target.value))} className="w-16 border border-gray-300 p-3 text-xs rounded-lg text-center bg-white outline-none" />
-                      <button type="button" onClick={handleAddItemToOrder} className="bg-black text-white text-xs font-bold px-5 rounded-lg hover:bg-zinc-800 cursor-pointer">Incluir</button>
+                    
+                    {/* CAMPO DE BUSCA INTELIGENTE DE PERFUMES */}
+                    <div className="flex gap-2 relative">
+                      <div className="flex-1 relative">
+                        <input 
+                          type="text"
+                          placeholder="Digite o nome do perfume para buscar..."
+                          value={productSearchInput}
+                          onChange={(e) => {
+                            setProductSearchInput(e.target.value);
+                            setSelectedProductObj(null);
+                          }}
+                          className="w-full border border-gray-300 p-3 text-xs rounded-lg bg-white outline-none focus:border-black"
+                        />
+
+                        {/* LISTA FLUTUANTE DE SUGESTÕES */}
+                        {productSearchInput.trim().length > 0 && !selectedProductObj && (
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto z-50">
+                            {storeProducts
+                              .filter((p: any) => String(p.nome || '').toLowerCase().includes(productSearchInput.toLowerCase()))
+                              .map((p: any) => (
+                                <div 
+                                  key={p.id || p.nome}
+                                  onClick={() => {
+                                    setSelectedProductObj(p);
+                                    setProductSearchInput(p.nome);
+                                  }}
+                                  className="p-3 text-xs hover:bg-gray-100 cursor-pointer flex justify-between items-center border-b border-gray-50 last:border-none"
+                                >
+                                  <span className="font-medium text-gray-800">{p.nome}</span>
+                                  <span className="font-bold text-black">R$ {Number(p.preco || 0).toFixed(2)}</span>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <input 
+                        type="number" 
+                        min="1" 
+                        value={selectedQty} 
+                        onChange={e => setSelectedQty(Number(e.target.value))} 
+                        className="w-16 border border-gray-300 p-3 text-xs rounded-lg text-center bg-white outline-none" 
+                      />
+                      <button 
+                        type="button" 
+                        onClick={handleAddItemToOrder} 
+                        className="bg-black text-white text-xs font-bold px-5 rounded-lg hover:bg-zinc-800 cursor-pointer"
+                      >
+                        Incluir
+                      </button>
                     </div>
+
+                    {selectedProductObj && (
+                      <span className="text-[10px] text-green-700 font-bold block mt-2">
+                        ✔ Selecionado: {selectedProductObj.nome} (R$ {Number(selectedProductObj.preco || 0).toFixed(2)})
+                      </span>
+                    )}
                   </div>
                 </div>
 
