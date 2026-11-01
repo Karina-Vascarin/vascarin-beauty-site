@@ -1,5 +1,6 @@
 export async function getProducts() {
-  const PLANILHA_URL = "https://docs.google.com/spreadsheets/d/1OCL4031TtnsRLFJqf_mf5KSv0R6Eev8cqKfMR5YMb7A/edit?gid=0#gid=0";
+  // URL formatada para exportar diretamente os dados em CSV da planilha nova
+  const PLANILHA_URL = "https://docs.google.com/spreadsheets/d/1OCL4031TtnsRLFJqf_mf5KSv0R6Eev8cqKfMR5YMb7A/gviz/tq?tqx=out:csv";
 
   try {
     const response = await fetch(PLANILHA_URL, { 
