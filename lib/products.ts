@@ -1,5 +1,5 @@
 export async function getProducts() {
-  const PLANILHA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSEBFXb1d_7KFNXVBxCiclQcVy4_EhBITqtjFDqxvCm4_fHhB5z6mshvP41Vkqck8LB0lvL7rffu7zw/pub?gid=0&single=true&output=csv";
+  const PLANILHA_URL = "https://docs.google.com/spreadsheets/d/1OCL4031TtnsRLFJqf_mf5KSv0R6Eev8cqKfMR5YMb7A/edit?gid=0#gid=0";
 
   try {
     const response = await fetch(PLANILHA_URL, { 
